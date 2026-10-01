@@ -1,0 +1,40 @@
+prompt*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Build / packaging
+build/
+dist/
+*.whl
+*.tar.gz
+
+# Virtualenvs
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.pytest_tmp/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.forge-doctor/
+.venv-smoke/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local env — never commit
+.env
+.env.*
+graphify-out/
+.tokensave/

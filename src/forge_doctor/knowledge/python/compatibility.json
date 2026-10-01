@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://devguide.python.org/versions/"
+  ],
+  "domain": "python",
+  "supported": [
+    "3.11",
+    "3.12",
+    "3.13",
+    "3.14"
+  ],
+  "eol": [
+    "3.7",
+    "3.8",
+    "3.9",
+    "3.10"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://iceberg.apache.org/releases/",
+    "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-iceberg.html"
+  ],
+  "domain": "iceberg",
+  "current": "1.10.0",
+  "format_versions": {
+    "1": {
+      "status": "legacy",
+      "notes": "Append/overwrite model; no row-level deletes, no MERGE INTO."
+    },
+    "2": {
+      "status": "current",
+      "notes": "Required for row-level deletes, UPDATE/DELETE/MERGE INTO, position and equality deletes."
+    }
+  },
+  "features": {
+    "merge": {
+      "requires_format_version": 2,
+      "note": "MERGE INTO needs format-version 2 and an engine that supports row-level ops."
+    },
+    "update": {
+      "requires_format_version": 2
+    },
+    "delete": {
+      "requires_format_version": 2
+    },
+    "position_deletes": {
+      "requires_format_version": 2
+    },
+    "equality_deletes": {
+      "requires_format_version": 2
+    }
+  }
+}

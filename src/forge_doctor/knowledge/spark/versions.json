@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://spark.apache.org/releases/"
+  ],
+  "domain": "spark",
+  "current": "4.1.1",
+  "versions": {
+    "3.3": {
+      "status": "aging"
+    },
+    "3.4": {
+      "status": "supported"
+    },
+    "3.5": {
+      "status": "supported"
+    },
+    "4.0": {
+      "status": "supported"
+    },
+    "4.1": {
+      "status": "current"
+    }
+  }
+}

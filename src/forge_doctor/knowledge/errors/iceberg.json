@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://iceberg.apache.org/docs/latest/"
+  ],
+  "domain": "iceberg",
+  "errors": [
+    {
+      "id": "ICE-E001",
+      "title": "Table or namespace not found",
+      "patterns": [
+        "NoSuchTableException",
+        "NoSuchNamespaceException",
+        "re:Table.*(does not exist|not found)"
+      ],
+      "causes": [
+        "table never created in this catalog/namespace",
+        "catalog name wrong in the Spark session config"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "ICE-E002",
+      "title": "Commit conflict",
+      "patterns": [
+        "CommitFailedException",
+        "re:commit.*conflict|retry-able?"
+      ],
+      "causes": [
+        "concurrent writers updated the same table",
+        "retry the commit; widen isolation level if recurring"
+      ],
+      "related": [],
+      "severity": "warning"
+    },
+    {
+      "id": "ICE-E003",
+      "title": "Catalog resolution failure",
+      "patterns": [
+        "re:Cannot find catalog|Catalog.*not (found|loaded)",
+        "ValidationException"
+      ],
+      "causes": [
+        "spark.sql.catalog.<name> not configured",
+        "catalog impl jar missing from the classpath"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "ICE-E004",
+      "title": "Snapshot/manifest missing",
+      "patterns": [
+        "re:Snapshot.*not found|manifest.*(missing|not found)|NotFoundException.*s3"
+      ],
+      "causes": [
+        "files expired/deleted while a reader still referenced them",
+        "check expire_snapshots and orphan cleanup schedules"
+      ],
+      "related": [],
+      "severity": "error"
+    }
+  ]
+}

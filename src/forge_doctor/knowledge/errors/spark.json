@@ -1,0 +1,195 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://spark.apache.org/docs/latest/",
+    "ops runbook signatures"
+  ],
+  "domain": "spark",
+  "errors": [
+    {
+      "id": "SPARK-E001",
+      "title": "Out of memory (driver or executor)",
+      "patterns": [
+        "java.lang.OutOfMemoryError",
+        "re:OutOfMemoryError"
+      ],
+      "causes": [
+        "collect()/toPandas() pulling all rows to the driver",
+        "executor memory too small for partition size",
+        "data skew concentrating rows on one partition"
+      ],
+      "related": [
+        "SPARK001",
+        "SPARK008"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E002",
+      "title": "Executor lost",
+      "patterns": [
+        "ExecutorLostFailure",
+        "Lost executor",
+        "ExecutorLostFailure (executor"
+      ],
+      "causes": [
+        "executor OOM killed by container manager",
+        "spot/preemptible instance reclaimed",
+        "GC pause exceeded heartbeat timeout"
+      ],
+      "related": [
+        "SPARK-E001",
+        "SPARK-E009"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E003",
+      "title": "Shuffle fetch failure",
+      "patterns": [
+        "FetchFailedException",
+        "MetadataFetchFailedException"
+      ],
+      "causes": [
+        "executor lost while serving shuffle blocks",
+        "external shuffle service unavailable",
+        "too many concurrent shuffle partitions"
+      ],
+      "related": [
+        "SPARK-E002"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E004",
+      "title": "Task not serializable",
+      "patterns": [
+        "Task not serializable",
+        "NotSerializableException"
+      ],
+      "causes": [
+        "closure captures a non-serializable object (session, connection, self)",
+        "RDD/DF referenced inside a transformation"
+      ],
+      "related": [
+        "SPARK010"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E005",
+      "title": "Container killed (over memory limit)",
+      "patterns": [
+        "Container killed by YARN",
+        "killed by external signal",
+        "re:Container.*killed.*memory"
+      ],
+      "causes": [
+        "executor memory overhead underestimated for Python/Arrow",
+        "off-heap usage (PySpark, native libs) exceeded"
+      ],
+      "related": [
+        "SPARK-E001"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E006",
+      "title": "Path or table does not exist",
+      "patterns": [
+        "Path does not exist",
+        "AnalysisException",
+        "re:TABLE_OR_VIEW_NOT_FOUND|Table or view not found"
+      ],
+      "causes": [
+        "wrong path, bucket, or catalog namespace",
+        "table not registered in the catalog in use",
+        "case-sensitivity mismatch in table name"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E007",
+      "title": "Column not found",
+      "patterns": [
+        "cannot resolve",
+        "re:given input columns",
+        "Column .* does not exist"
+      ],
+      "causes": [
+        "typo or renamed column in source schema",
+        "schema drift between writer and reader"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E008",
+      "title": "GC overhead limit exceeded",
+      "patterns": [
+        "GC overhead limit exceeded"
+      ],
+      "causes": [
+        "executor heap too small for task data",
+        "too many small partitions causing object churn"
+      ],
+      "related": [
+        "SPARK-E001",
+        "SPARK008"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E009",
+      "title": "Heartbeat timeout",
+      "patterns": [
+        "Executor heartbeat timed out",
+        "re:heartbeats?.*timeout|Timeout.*heartbeat"
+      ],
+      "causes": [
+        "executor busy in a long GC or heavy task",
+        "network partition between driver and executor"
+      ],
+      "related": [
+        "SPARK-E008"
+      ],
+      "severity": "warning"
+    },
+    {
+      "id": "SPARK-E010",
+      "title": "File not found during read",
+      "patterns": [
+        "FileNotFoundException",
+        "No such file or directory",
+        "re:Path.*does not exist"
+      ],
+      "causes": [
+        "source path missing or permissions denied",
+        "concurrent writer deleted files mid-read (enable consistent view / use commits)"
+      ],
+      "related": [
+        "SPARK-E006"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "SPARK-E011",
+      "title": "Block/data exceeds 2GB limit",
+      "patterns": [
+        "Size exceeds Integer.MAX_VALUE",
+        "re:exceeds.*2 ?GB|Cannot grow.*by.*bytes"
+      ],
+      "causes": [
+        "single partition larger than 2GB - repartition upstream",
+        "broadcast variable too large"
+      ],
+      "related": [
+        "SPARK008"
+      ],
+      "severity": "error"
+    }
+  ]
+}

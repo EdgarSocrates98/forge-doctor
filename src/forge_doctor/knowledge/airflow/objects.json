@@ -1,0 +1,52 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://airflow.apache.org/docs/apache-airflow/stable/",
+    "https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html"
+  ],
+  "domain": "airflow",
+  "parse_time_modules": [
+    "requests",
+    "urllib",
+    "httpx",
+    "boto3",
+    "botocore",
+    "psycopg2",
+    "sqlalchemy",
+    "paramiko",
+    "subprocess"
+  ],
+  "sensor_types": [
+    "Sensor",
+    "BaseSensorOperator",
+    "ExternalTaskSensor",
+    "ExternalTaskMarker",
+    "TimeSensor",
+    "TimeDeltaSensor",
+    "DateTimeSensor",
+    "WeekdaySensor"
+  ],
+  "provider_packages": {
+    "amazon": "apache-airflow-providers-amazon",
+    "google": "apache-airflow-providers-google",
+    "microsoft": "apache-airflow-providers-microsoft-azure",
+    "databricks": "apache-airflow-providers-databricks",
+    "snowflake": "apache-airflow-providers-snowflake",
+    "postgres": "apache-airflow-providers-postgres",
+    "cncf": "apache-airflow-providers-cncf-kubernetes",
+    "docker": "apache-airflow-providers-docker",
+    "http": "apache-airflow-providers-http",
+    "ssh": "apache-airflow-providers-ssh",
+    "ftp": "apache-airflow-providers-ftp",
+    "mysql": "apache-airflow-providers-mysql"
+  },
+  "dynamic_start_date_calls": [
+    "now",
+    "today",
+    "utcnow",
+    "days_ago",
+    "get_current_date"
+  ]
+}

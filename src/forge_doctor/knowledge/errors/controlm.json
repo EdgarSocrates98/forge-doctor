@@ -1,0 +1,101 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://documents.bmc.com/products/control-m/"
+  ],
+  "domain": "controlm",
+  "errors": [
+    {
+      "id": "CTM-E001",
+      "title": "Agent or host unavailable",
+      "patterns": [
+        "re:agent.*(unavailable|not responding|down)",
+        "re:host.*(unavailable|unreachable)",
+        "Agent Ping failed"
+      ],
+      "causes": [
+        "agent process down or network partition to the host",
+        "host group member decommissioned; check `ctm config server:agents`"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "CTM-E002",
+      "title": "Job ended not-ok (OSCOMPSTAT / exit status)",
+      "patterns": [
+        "OSCOMPSTAT",
+        "re:ended.*not.?ok|exit status [1-9]",
+        "re:job.*(failed|aborted)"
+      ],
+      "causes": [
+        "the underlying command/script failed - check the job output",
+        "exit-code handling: job may need explicit OnDo / OK-criteria rules"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "CTM-E003",
+      "title": "Deploy validation error",
+      "patterns": [
+        "re:deploy.*(failed|error|invalid)",
+        "re:build.*(failed|errors?)",
+        "DeployDescriptor"
+      ],
+      "causes": [
+        "definition fails site-standard or schema validation",
+        "run `ctm build` locally; check field names against the API version"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "CTM-E004",
+      "title": "Job not submitted / held",
+      "patterns": [
+        "re:job.*(held|not submitted|wait.*condition)",
+        "re:condition.*(not satisfied|timeout)",
+        "re:event.*(timeout|never (arrived|received))"
+      ],
+      "causes": [
+        "upstream event/condition never arrived - check producers",
+        "job held manually or by a site standard"
+      ],
+      "related": [],
+      "severity": "warning"
+    },
+    {
+      "id": "CTM-E005",
+      "title": "SLA / service delay",
+      "patterns": [
+        "re:SLA.*(delay|breach|risk|miss)",
+        "re:service.*(delayed|at risk|overdue)",
+        "re:expected.*completion.*exceeded"
+      ],
+      "causes": [
+        "critical path running past the deadline window",
+        "upstream job retrying or waiting on a late condition"
+      ],
+      "related": [],
+      "severity": "warning"
+    },
+    {
+      "id": "CTM-E006",
+      "title": "Automation API / authorization failure",
+      "patterns": [
+        "re:automation-?api.*(error|failed|401|403)",
+        "re:unauthorized|forbidden|invalid token",
+        "re:connection.*(refused|timeout).*em"
+      ],
+      "causes": [
+        "expired or missing API token; renew via `ctm session login`",
+        "endpoint/environment name wrong in deploy descriptor"
+      ],
+      "related": [],
+      "severity": "error"
+    }
+  ]
+}

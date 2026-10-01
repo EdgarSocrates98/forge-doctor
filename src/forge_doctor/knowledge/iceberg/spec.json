@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://iceberg.apache.org/spec/",
+    "https://iceberg.apache.org/docs/latest/spark-writes/",
+    "https://iceberg.apache.org/docs/latest/spark-configuration/"
+  ],
+  "format_versions": {
+    "1": {
+      "features": ["append", "overwrite", "identity and transform partitioning"],
+      "notes": "default for new tables"
+    },
+    "2": {
+      "features": [
+        "row-level deletes (position/equality)",
+        "merge-on-read",
+        "MERGE/UPDATE/DELETE",
+        "sequence numbers"
+      ]
+    },
+    "3": {
+      "features": [
+        "deletion vectors",
+        "row lineage",
+        "variant/geospatial types",
+        "column default values"
+      ],
+      "notes": "requires Spark 4.x-era writers for full support"
+    }
+  },
+  "feature_floors": {
+    "merge-on-read": {
+      "min_format": 2,
+      "props": ["write.delete.mode", "write.update.mode", "write.merge.mode"],
+      "value": "merge-on-read",
+      "fix": "Set 'format-version'='2' (or use copy-on-write modes)."
+    },
+    "deletion-vectors": {
+      "min_format": 3,
+      "props": ["write.delete.mode"],
+      "value": "deletion-vectors",
+      "fix": "Set 'format-version'='3' and confirm engine support (Spark 4.x+)."
+    },
+    "row-lineage": {
+      "min_format": 3,
+      "props": ["write.row-lineage.enabled"],
+      "value": "true",
+      "fix": "Row lineage requires format-version=3."
+    }
+  },
+  "write_apis": {
+    "v2": ["writeTo(...).using(\"iceberg\")"],
+    "legacy": ["insertInto", "saveAsTable", "write.save", "write.parquet/orc/..."],
+    "notes": "V1 writer APIs bypass Iceberg's table API resolution in some paths; writeTo is the explicit iceberg-aware API."
+  }
+}

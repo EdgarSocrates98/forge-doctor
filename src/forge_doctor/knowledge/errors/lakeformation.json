@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/"
+  ],
+  "domain": "lakeformation",
+  "errors": [
+    {
+      "id": "LAKE-E001",
+      "title": "Lake Formation permission denied",
+      "patterns": [
+        "Insufficient Lake Formation permission",
+        "re:Lake ?Formation.*(denied|permission|not authorized)",
+        "AccessDeniedException.*lakeformation"
+      ],
+      "causes": [
+        "role needs LF grant on database/table/columns",
+        "cross-account access missing resource-link or grant"
+      ],
+      "related": [
+        "GLUE-E002"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E002",
+      "title": "Table version invalid",
+      "patterns": [
+        "INVALID_TABLE_VERSION",
+        "re:table version.*invalid"
+      ],
+      "causes": [
+        "governed table metadata drifted",
+        "retry after a catalog refresh; check LF transaction state"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E003",
+      "title": "Credential vending failed",
+      "patterns": [
+        "re:(GetDataAccess|vend).*fail|Unable to vend credentials"
+      ],
+      "causes": [
+        "registered location role cannot vend for the caller",
+        "S3 registered location misconfigured for the table"
+      ],
+      "related": [
+        "LAKE-E001"
+      ],
+      "severity": "error"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[project]
+name = "docker-problem-project"
+version = "0.1.0"
+description = "Sample project with Docker and CI problems."
+requires-python = ">=3.11"

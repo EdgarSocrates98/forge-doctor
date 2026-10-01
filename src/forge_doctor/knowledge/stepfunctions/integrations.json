@@ -1,0 +1,20 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html",
+    "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-service-integrations.html"
+  ],
+  "integrations": {
+    "lambda:invoke": {"service": "lambda", "sync": false, "callback": true},
+    "glue:startJobRun.sync": {"service": "glue", "sync": true, "callback": false},
+    "athena:startQueryExecution.sync": {"service": "athena", "sync": true, "callback": false},
+    "ecs:runTask.sync": {"service": "ecs", "sync": true, "callback": false},
+    "sns:publish": {"service": "sns", "sync": false, "callback": false},
+    "sqs:sendMessage": {"service": "sqs", "sync": false, "callback": true},
+    "dynamodb:*": {"service": "dynamodb", "sync": false, "callback": false},
+    "states:startExecution.sync": {"service": "stepfunctions", "sync": true, "callback": false}
+  },
+  "notes": "Callback (.waitForTaskToken) is unsupported on some integrations, e.g. athena startQueryExecution. Distributed Map requires STANDARD type."
+}

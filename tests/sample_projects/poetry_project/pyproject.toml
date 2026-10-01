@@ -1,0 +1,8 @@
+[tool.poetry]
+name = "poetry-project"
+version = "0.1.0"
+description = "Sample Poetry-managed project"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+typer = "^0.15"

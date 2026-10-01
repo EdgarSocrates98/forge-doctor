@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://parquet.apache.org/docs/file-format/",
+    "https://spark.apache.org/docs/latest/sql-data-sources-parquet.html"
+  ],
+  "codecs": ["snappy", "gzip", "zstd", "lz4", "lz4_raw", "brotli", "uncompressed", "none"],
+  "defaults": {"codec": "snappy"},
+  "thresholds": {
+    "small_file_median_mb": 16,
+    "excessive_files": 10000,
+    "size_skew_ratio": 8,
+    "target_file_mb": [128, 1024]
+  },
+  "config_keys": {
+    "codec": "spark.sql.parquet.compression.codec",
+    "max_records_per_file": "spark.sql.files.maxRecordsPerFile",
+    "bloom_enabled": "spark.sql.parquet.bloom.filter.enabled"
+  }
+}

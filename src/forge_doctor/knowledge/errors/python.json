@@ -1,0 +1,115 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.python.org/3/library/exceptions.html"
+  ],
+  "domain": "python",
+  "errors": [
+    {
+      "id": "PY-E001",
+      "title": "Module not found",
+      "patterns": [
+        "ModuleNotFoundError",
+        "No module named",
+        "ImportError"
+      ],
+      "causes": [
+        "dependency missing from pyproject/requirements",
+        "package installed in a different environment",
+        "PYTHONPATH or packaging path wrong for src layout"
+      ],
+      "related": [
+        "DEP001",
+        "DEP002"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E002",
+      "title": "None attribute access",
+      "patterns": [
+        "'NoneType' object has no attribute",
+        "re:NoneType.*no attribute"
+      ],
+      "causes": [
+        "function returned None where a value was expected",
+        "optional lookup (dict.get/find) used without a guard"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E003",
+      "title": "Type/shape mismatch",
+      "patterns": [
+        "TypeError:",
+        "re:unsupported operand|not (callable|iterable|subscriptable)"
+      ],
+      "causes": [
+        "API contract changed upstream",
+        "value parsed as str where int/list was expected"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E004",
+      "title": "Syntax/indentation error",
+      "patterns": [
+        "SyntaxError",
+        "IndentationError",
+        "TabError"
+      ],
+      "causes": [
+        "mixed tabs and spaces or unbalanced delimiters",
+        "edited file not parsed before deploy"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E005",
+      "title": "Permission denied",
+      "patterns": [
+        "PermissionError",
+        "Permission denied"
+      ],
+      "causes": [
+        "file/dir access rights wrong for the runtime user",
+        "writing to a read-only mount or system path"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E006",
+      "title": "Encoding/decode failure",
+      "patterns": [
+        "UnicodeDecodeError",
+        "UnicodeEncodeError"
+      ],
+      "causes": [
+        "file not UTF-8 - pass encoding= or errors= explicitly",
+        "binary content read as text"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "PY-E007",
+      "title": "Recursion limit",
+      "patterns": [
+        "RecursionError",
+        "maximum recursion depth"
+      ],
+      "causes": [
+        "unbounded recursion - convert to a loop or raise the limit",
+        "cyclic data structure traversed without a visited set"
+      ],
+      "related": [],
+      "severity": "error"
+    }
+  ]
+}

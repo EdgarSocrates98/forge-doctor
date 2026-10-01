@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html",
+    "https://spark.apache.org/docs/latest/api/python/reference/pyspark.ss/api/pyspark.sql.streaming.DataStreamWriter.html"
+  ],
+  "stateful_ops": {
+    "groupby": {"state": "aggregation", "needs_watermark": true},
+    "window": {"state": "aggregation", "needs_watermark": true},
+    "join": {"state": "stream_join", "needs_watermark": true},
+    "dropduplicates": {"state": "dedup", "needs_watermark": true},
+    "dropduplicateswithinwatermark": {"state": "dedup", "needs_watermark": false},
+    "mapgroupswithstate": {"state": "arbitrary", "needs_watermark": false},
+    "flatmapgroupswithstate": {"state": "arbitrary", "needs_watermark": false},
+    "transformwithstate": {"state": "arbitrary", "needs_watermark": false},
+    "deduplicate": {"state": "dedup", "needs_watermark": true}
+  },
+  "output_modes": ["append", "update", "complete"],
+  "notes": "dropDuplicatesWithinWatermark and *WithState ops carry their own eviction semantics; watermark absence is informational for them. checkpointLocation is required for any fault-tolerant writeStream."
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://registry.terraform.io/browse/providers",
+    "https://developer.hashicorp.com/terraform/language/providers/requirements"
+  ],
+  "sources_map": {
+    "aws": "hashicorp/aws",
+    "azurerm": "hashicorp/azurerm",
+    "google": "hashicorp/google",
+    "google-beta": "hashicorp/google-beta",
+    "databricks": "databricks/databricks",
+    "kubernetes": "hashicorp/kubernetes",
+    "helm": "hashicorp/helm",
+    "random": "hashicorp/random",
+    "null": "hashicorp/null",
+    "local": "hashicorp/local",
+    "tls": "hashicorp/tls",
+    "time": "hashicorp/time",
+    "external": "hashicorp/external",
+    "archive": "hashicorp/archive",
+    "http": "hashicorp/http",
+    "snowflake": "snowflake-labs/snowflake",
+    "confluent": "confluentinc/confluent",
+    "awscc": "hashicorp/awscc"
+  },
+  "current_major": {
+    "aws": 6,
+    "azurerm": 4,
+    "google": 7,
+    "databricks": 1
+  },
+  "notes": "current_major is a conservative floor snapshot; bump on verified releases."
+}

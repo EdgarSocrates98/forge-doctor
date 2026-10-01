@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://developer.hashicorp.com/terraform/language/",
+    "https://developer.hashicorp.com/terraform/language/v1.5.x/whats-new"
+  ],
+  "feature_floors": {
+    "moved blocks": "1.1",
+    "check blocks": "1.5",
+    "import blocks": "1.5",
+    "terraform test": "1.6",
+    "removed blocks": "1.7",
+    "ephemeral values": "1.10",
+    "stacks": "1.9"
+  },
+  "module_sources": {
+    "local_prefixes": ["./", "../"],
+    "git_prefixes": ["git::", "git@", "https://github.com", "ssh://git"],
+    "registry_shape": "namespace/name/provider",
+    "mutable_refs": ["main", "master", "HEAD", "head", "trunk", "develop"]
+  },
+  "backends": {
+    "local": {"locking": false, "shared": false},
+    "s3": {"locking": "dynamodb_table or use_lockfile", "shared": true},
+    "azurerm": {"locking": true, "shared": true},
+    "gcs": {"locking": true, "shared": true},
+    "remote": {"locking": true, "shared": true}
+  }
+}

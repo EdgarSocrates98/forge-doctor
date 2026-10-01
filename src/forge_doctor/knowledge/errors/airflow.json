@@ -1,0 +1,100 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://airflow.apache.org/docs/apache-airflow/stable/"
+  ],
+  "domain": "airflow",
+  "errors": [
+    {
+      "id": "AIR-E001",
+      "title": "DAG import timeout",
+      "patterns": [
+        "re:DAG.*import.*timeout|dagbag.*timeout",
+        "TimeoutError.*dag",
+        "re:timed out.*(parsing|processing).*dag"
+      ],
+      "causes": [
+        "expensive top-level code: external calls, big loops, Variable.get",
+        "too many DAGs generated per file; check parse-pressure"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "AIR-E002",
+      "title": "Zombie / undead task",
+      "patterns": [
+        "re:zombie|undead task",
+        "re:task.*(heartbeat.*(lost|timeout)|died)",
+        "re:Detected zombie"
+      ],
+      "causes": [
+        "worker killed mid-task (OOM, node loss); scheduler marks zombie",
+        "heartbeat config mismatch between worker and scheduler"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "AIR-E003",
+      "title": "Pool starvation",
+      "patterns": [
+        "re:pool.*(full|starv|exhausted|slots)",
+        "re:could not be scheduled|no available slots"
+      ],
+      "causes": [
+        "pool slots consumed by long-running sensors or retries",
+        "deferrable=False tasks holding slots while waiting"
+      ],
+      "related": [],
+      "severity": "warning"
+    },
+    {
+      "id": "AIR-E004",
+      "title": "Scheduler heartbeat / job failure",
+      "patterns": [
+        "re:scheduler.*(heartbeat|stalled|not.*(running|healthy))",
+        "re:DagFileProcessorManager.*(timeout|crash)",
+        "re:The scheduler does not appear to be running"
+      ],
+      "causes": [
+        "scheduler overloaded or crashed; check DAG parse times",
+        "metadata DB connection exhaustion"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "AIR-E005",
+      "title": "Task serialization / dependency error",
+      "patterns": [
+        "re:Serialization|serialized.*dag.*(fail|error)",
+        "re:ImportError.*(provider|operator|airflow)",
+        "re:Broken DAG"
+      ],
+      "causes": [
+        "provider package missing or incompatible with Airflow version",
+        "non-serializable object on the DAG/tasks"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "AIR-E006",
+      "title": "Triggerer / deferrable failure",
+      "patterns": [
+        "re:triggerer.*(fail|error|down|unreachable)",
+        "re:Trigger.*(failed|error).*deferr",
+        "re:deferred.*(task|operator).*fail"
+      ],
+      "causes": [
+        "triggerer service not running or overloaded",
+        "trigger class not found (provider/version mismatch)"
+      ],
+      "related": [],
+      "severity": "error"
+    }
+  ]
+}

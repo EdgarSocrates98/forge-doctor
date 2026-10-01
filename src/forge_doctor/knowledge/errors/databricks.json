@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.databricks.com/en/error-messages/"
+  ],
+  "domain": "databricks",
+  "errors": [
+    {
+      "id": "DBX-E001",
+      "title": "Cluster unreachable or terminated",
+      "patterns": [
+        "Cluster not reachable",
+        "re:cluster.*(terminated|unreachable|unexpected state)",
+        "INVALID_STATE"
+      ],
+      "causes": [
+        "cluster terminated mid-run (idle timeout, spot loss)",
+        "init script failure prevented startup"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "DBX-E002",
+      "title": "Unity Catalog permission denied",
+      "patterns": [
+        "re:(PERMISSION_DENIED|Unauthorized).*unity|not authorized.*catalog",
+        "com.databricks.sql.managedcatalog"
+      ],
+      "causes": [
+        "principal lacks USE CATALOG/SELECT on the UC object",
+        "storage credential or external location misconfigured"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "DBX-E003",
+      "title": "Spark Connect/gRPC failure",
+      "patterns": [
+        "SparkConnectGrpcException",
+        "re:gRPC.*(error|unavailable)"
+      ],
+      "causes": [
+        "client/server version skew on the Spark Connect channel",
+        "network path blocked between client and cluster"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "DBX-E004",
+      "title": "Notebook/library install failure",
+      "patterns": [
+        "re:(library|init script).*(failed|error)|LibraryInstallFailed"
+      ],
+      "causes": [
+        "incompatible wheel/index for the DBR version",
+        "init script wrote to a path the runtime cannot read"
+      ],
+      "related": [
+        "PY-E001"
+      ],
+      "severity": "error"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html"
+  ],
+  "domain": "glue",
+  "targets": {
+    "5.0": {
+      "changes": [
+        {
+          "severity": "HIGH",
+          "change": "Python 3.10 -> 3.11",
+          "detail": "Rebuilt native wheels required; check pandas/Arrow compatibility."
+        },
+        {
+          "severity": "HIGH",
+          "change": "Java 8 -> 17",
+          "detail": "Custom connectors built for Java 8 need rebuilds."
+        },
+        {
+          "severity": "MEDIUM",
+          "change": "Spark 3.3 -> 3.5",
+          "detail": "Review deprecated Spark APIs and UDF behavior."
+        }
+      ]
+    },
+    "5.1": {
+      "changes": [
+        {
+          "severity": "INFO",
+          "change": "Spark 3.5.2 maintenance release",
+          "detail": "Incremental runtime update; verify connector versions."
+        }
+      ]
+    },
+    "6.0": {
+      "changes": [
+        {
+          "severity": "HIGH",
+          "change": "Spark 3.5.x -> 4.1.1",
+          "detail": "Major Spark upgrade; removed/renamed APIs and behavior changes."
+        },
+        {
+          "severity": "HIGH",
+          "change": "Python 3.11 -> 3.13",
+          "detail": "New interpreter + glibc baseline; incompatible native wheels."
+        },
+        {
+          "severity": "HIGH",
+          "change": "Iceberg 1.x -> 1.11.0",
+          "detail": "Catalog/table format expectations may differ across engines."
+        },
+        {
+          "severity": "MEDIUM",
+          "change": "Java 17 runtime",
+          "detail": "Same Java baseline as Glue 5.x; new for jobs coming from 4.0."
+        },
+        {
+          "severity": "INFO",
+          "change": "EMRFS removed; S3A is the S3 connector",
+          "detail": "s3:// paths go through Hadoop S3A; remove emrfs:// usages."
+        }
+      ]
+    }
+  }
+}

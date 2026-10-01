@@ -1,0 +1,7 @@
+[tool.poetry]
+name = "problematic-python-project"
+version = "0.1.0"
+description = "Sample project that triggers warnings"
+
+[tool.poetry.dependencies]
+boto3 = "*"

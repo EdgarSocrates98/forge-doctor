@@ -1,0 +1,75 @@
+name: Forge Doctor
+description: >-
+  Deterministic diagnostics for data engineering projects - one scan emits the
+  console report and SARIF for GitHub Code Scanning, then fails the job when
+  findings meet the configured threshold.
+author: EdgarSocrates98
+branding:
+  icon: activity
+  color: purple
+
+inputs:
+  path:
+    description: Project directory to scan.
+    required: false
+    default: .
+  format:
+    description: Stdout format (text|json|jsonl|html|sarif|agent).
+    required: false
+    default: text
+  sarif-file:
+    description: Where to write the SARIF report (empty skips SARIF upload).
+    required: false
+    default: forge-doctor.sarif
+  fail-on:
+    description: Lowest severity that fails the step (error|warning).
+    required: false
+    default: error
+  baseline:
+    description: Baseline JSON file; only NEW findings fail when set.
+    required: false
+    default: ""
+  install:
+    description: >-
+      What to install with pipx. Empty installs the action's own checkout
+      ($GITHUB_ACTION_PATH) — the action always runs the code at its ref.
+      Set to a spec (e.g. "forge-doctor==0.7.0") to override.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install forge-doctor
+      shell: bash
+      run: pipx install "${{ inputs.install || github.action_path }}"
+
+    # One scan: stdout format + optional SARIF file in the same pass. The exit
+    # code is captured, NOT propagated yet, so SARIF is always produced first.
+    - name: Scan
+      shell: bash
+      run: |
+        set +e
+        forge-doctor scan "${{ inputs.path }}" \
+          --emit "${{ inputs.format }}" \
+          ${{ inputs.sarif-file != '' && format('--emit sarif:"{0}"', inputs.sarif-file) || '' }} \
+          --fail-on "${{ inputs.fail-on }}" \
+          ${{ inputs.baseline && format('--baseline "{0}"', inputs.baseline) || '' }}
+        code=$?
+        set -e
+        echo "forge_doctor_exit=$code" >> "$GITHUB_ENV"
+        exit 0
+
+    - name: Upload to Code Scanning
+      if: always() && inputs.sarif-file != ''
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+
+    - name: Enforce fail-on
+      shell: bash
+      run: exit "${{ env.forge_doctor_exit || '1' }}"

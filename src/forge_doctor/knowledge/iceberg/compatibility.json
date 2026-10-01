@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-iceberg.html",
+    "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-tables.html"
+  ],
+  "domain": "iceberg",
+  "runtimes": {
+    "glue": {
+      "3.0": {
+        "spark": "3.3",
+        "iceberg": "none",
+        "severity": "HIGH",
+        "note": "No bundled Iceberg integration in Glue 3.0; requires a custom connector and is effectively unsupported."
+      },
+      "4.0": {
+        "spark": "3.3",
+        "iceberg": "1.x",
+        "severity": "INFO",
+        "note": "Iceberg via the bundled connector (1.x); verify the exact bundled version for MERGE/equality-delete support."
+      },
+      "5.0": {
+        "spark": "3.5",
+        "iceberg": "1.x",
+        "severity": "PASS",
+        "note": "First-class Iceberg support; confirm format-version=2 for row-level ops."
+      },
+      "6.0": {
+        "spark": "4.1.1",
+        "iceberg": "1.11.0",
+        "severity": "PASS",
+        "note": "Latest supported runtime; Iceberg 1.11 bundled."
+      }
+    },
+    "emr": {
+      "7.x": {
+        "iceberg": "1.x",
+        "severity": "INFO",
+        "note": "EMR 7.x bundles Iceberg; exact minor varies by release train."
+      }
+    },
+    "athena": {
+      "engine_v3": {
+        "iceberg": "1.x",
+        "severity": "INFO",
+        "note": "Athena engine v3 reads/writes Iceberg; MERGE/UPDATE support depends on engine version."
+      }
+    },
+    "s3tables": {
+      "managed": {
+        "severity": "INFO",
+        "note": "S3 Tables enforce their own compaction/maintenance; table-bucket catalogs integrate via the S3 Tables catalog."
+      }
+    }
+  }
+}

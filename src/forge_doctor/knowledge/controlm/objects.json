@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://documents.bmc.com/products/control-m/",
+    "https://docs.bmc.com/docs/automation-api/"
+  ],
+  "domain": "controlm",
+  "job_type_prefix": "Job",
+  "container_types": [
+    "Folder",
+    "SmartFolder",
+    "SubFolder",
+    "SimpleFolder"
+  ],
+  "calendar_types": [
+    "RBC",
+    "RuleBasedCalendar",
+    "SimpleCalendar",
+    "Calendar",
+    "WeeklyCalendar",
+    "MonthlyCalendar",
+    "PeriodicalCalendar"
+  ],
+  "event_fields": {
+    "wait": [
+      "EventsToWaitFor",
+      "WaitForEvents",
+      "InCondition",
+      "InConditions",
+      "PrereqConditions",
+      "PreConditions"
+    ],
+    "add": [
+      "EventsToAdd",
+      "AddEvents",
+      "OutCondition",
+      "OutConditions"
+    ]
+  },
+  "schedule_fields": [
+    "When",
+    "WeekDays",
+    "Months",
+    "MonthDays",
+    "DaysInterval",
+    "FromTime",
+    "ToTime",
+    "Cyclic",
+    "Schedule",
+    "RuleBasedCalendars",
+    "RBC",
+    "Calendar"
+  ],
+  "required_metadata": [
+    "Application",
+    "SubApplication",
+    "Owner",
+    "RunAs"
+  ],
+  "api_verbs": [
+    "build",
+    "deploy",
+    "run",
+    "config",
+    "provision",
+    "session",
+    "reporting",
+    "package",
+    "environment"
+  ],
+  "credential_fields": [
+    "password",
+    "secret",
+    "token",
+    "credential",
+    "apikey",
+    "api_key",
+    "centralized_connection_password"
+  ]
+}

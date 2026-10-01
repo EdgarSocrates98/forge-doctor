@@ -1,0 +1,134 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.aws.amazon.com/glue/latest/dg/",
+    "ops runbook signatures"
+  ],
+  "domain": "glue",
+  "errors": [
+    {
+      "id": "GLUE-E001",
+      "title": "Glue job command failed",
+      "patterns": [
+        "Command failed with exit code",
+        "re:Command failed.*exit code \\d+"
+      ],
+      "causes": [
+        "script raised an uncaught exception - look earlier in the log",
+        "missing job parameters or wrong arguments"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E002",
+      "title": "IAM permission denied",
+      "patterns": [
+        "AccessDeniedException",
+        "is not authorized to perform",
+        "re:not authorized.*perform"
+      ],
+      "causes": [
+        "job IAM role lacks the required action on the resource",
+        "missing Glue/S3/catalog permissions on the execution role"
+      ],
+      "related": [
+        "LAKE-E001"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E003",
+      "title": "DPU capacity limit",
+      "patterns": [
+        "ResourceNumberLimitExceededException",
+        "re:exceeded.*DPUs?|Cannot allocate.*DPU|Insufficient.*capacity"
+      ],
+      "causes": [
+        "account DPU quota reached - request increase or lower concurrency",
+        "max_capacity/worker_count higher than available capacity"
+      ],
+      "related": [
+        "GLUE005"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E004",
+      "title": "Data Catalog client failure",
+      "patterns": [
+        "Error creating the Glue Data Catalog client",
+        "Unable to load class",
+        "re:Could not.*catalog|hive metastore"
+      ],
+      "causes": [
+        "VPC endpoint/DNS missing for glue.amazonaws.com",
+        "connector jar incompatible with the Glue version"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E005",
+      "title": "Unsupported or deprecated Glue version",
+      "patterns": [
+        "re:Glue version.*(not supported|deprecated|invalid)",
+        "Invalid glue version"
+      ],
+      "causes": [
+        "glue_version set to a version AWS retired",
+        "job definition not updated after runtime upgrade"
+      ],
+      "related": [
+        "GLUE002"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E006",
+      "title": "Subnet out of IP addresses",
+      "patterns": [
+        "The specified subnet does not have enough free addresses",
+        "re:subnet.*free addresses"
+      ],
+      "causes": [
+        "Glue connection uses ENIs; the subnet ran out of IPs",
+        "use a larger subnet or reduce job concurrency"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "GLUE-E007",
+      "title": "Bookmark / state handling issue",
+      "patterns": [
+        "JobBookmark",
+        "re:bookmark.*(error|fail)"
+      ],
+      "causes": [
+        "bookmark data incompatible across source schema changes",
+        "reset the job bookmark for a clean run"
+      ],
+      "related": [],
+      "severity": "warning"
+    },
+    {
+      "id": "GLUE-E008",
+      "title": "DynamicFrame schema mismatch",
+      "patterns": [
+        "re:ChoiceType|ResolveChoice.*fail|Schema mismatch",
+        "No fields to resolve"
+      ],
+      "causes": [
+        "source data mixes types in one column",
+        "resolveChoice / applyMapping target schema wrong"
+      ],
+      "related": [
+        "GLUE003"
+      ],
+      "severity": "error"
+    }
+  ]
+}

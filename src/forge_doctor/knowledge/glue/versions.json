@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.1",
+  "verified_at": "2026-09-30",
+  "sources": [
+    "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html"
+  ],
+  "domain": "glue",
+  "current": "6.0",
+  "versions": {
+    "0.9": {
+      "status": "eol"
+    },
+    "1.0": {
+      "status": "eol"
+    },
+    "2.0": {
+      "status": "eol",
+      "spark": "2.4",
+      "python": "3.7",
+      "java": "8"
+    },
+    "3.0": {
+      "status": "aging",
+      "spark": "3.1",
+      "python": "3.7",
+      "java": "8"
+    },
+    "4.0": {
+      "status": "supported",
+      "spark": "3.3",
+      "python": "3.10",
+      "java": "8",
+      "iceberg": "1.0"
+    },
+    "5.0": {
+      "status": "supported",
+      "spark": "3.5",
+      "python": "3.11",
+      "java": "17",
+      "iceberg": "1.5"
+    },
+    "5.1": {
+      "status": "supported",
+      "spark": "3.5.2",
+      "python": "3.11",
+      "java": "17",
+      "iceberg": "1.7"
+    },
+    "6.0": {
+      "status": "current",
+      "spark": "4.1.1",
+      "python": "3.13",
+      "java": "17",
+      "iceberg": "1.11.0"
+    }
+  }
+}

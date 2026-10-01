@@ -1,0 +1,111 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: pipx install "poetry>=2.2"
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Lint
+        run: poetry run ruff check .
+
+      - name: Format
+        run: poetry run ruff format --check .
+
+      - name: Type check
+        run: poetry run mypy
+
+      - name: Tests
+        run: poetry run pytest --cov --cov-report=term-missing
+
+      - name: Build package
+        run: poetry build
+
+  smoke:
+    name: smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        shell: bash
+        run: pipx install "poetry>=2.2"
+
+      - name: Build wheel
+        shell: bash
+        run: poetry build --format wheel
+
+      - name: Install wheel
+        shell: bash
+        run: python -m pip install dist/forge_doctor-*.whl
+
+      - name: CLI smoke
+        shell: bash
+        run: |
+          forge-doctor --version
+          forge-doctor doctor .
+          forge-doctor scan tests/sample_projects/clean_python_project \
+            --format json --show-root -o smoke-report.json || test $? -le 1
+          python -c "import json,sys; d=json.load(open('smoke-report.json')); assert d['schema_version']=='3.0'; assert d['tool']['name']=='forge-doctor'; print('smoke ok:', len(d['results']), 'results')"
+
+  extras-smoke:
+    name: extras smoke (watch/lsp/schemas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install with optional extras
+        run: pip install '.[watch,lsp,schemas]'
+
+      - name: Boot optional integrations
+        run: |
+          python -c "import watchfiles, yaml; from pygls.lsp.server import LanguageServer; LanguageServer('fd','1'); yaml.safe_load('a: 1'); print('extras ok')"
+          forge-doctor --version
+          printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}\n' | forge-doctor mcp --root . | head -1
+
+  dogfood:
+    name: dogfood (this repo, local action)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # SARIF disabled: the action installs its own checkout ($GITHUB_ACTION_PATH).
+      - name: Forge Doctor on forge-doctor
+        uses: ./
+        with:
+          path: .
+          sarif-file: ""
+          fail-on: error

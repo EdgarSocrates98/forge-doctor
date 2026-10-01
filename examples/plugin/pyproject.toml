@@ -1,0 +1,19 @@
+# Example external check plugin for forge-doctor.
+#
+# Install into the same environment as forge-doctor:
+#     pipx inject forge-doctor examples/plugin
+# then `forge-doctor plugins` lists it and `forge-doctor scan` runs EXAMPLE001.
+
+[project]
+name = "forge-doctor-example"
+version = "0.1.0"
+description = "Example forge-doctor check plugin"
+requires-python = ">=3.11"
+dependencies = ["forge-doctor"]
+
+[project.entry-points."forge_doctor.checks"]
+example = "forge_doctor_example:ExampleTodoCheck"
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"

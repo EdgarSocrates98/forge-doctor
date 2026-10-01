@@ -1,0 +1,8 @@
+[tool.poetry]
+name = "glue-project"
+version = "0.1.0"
+description = "Sample project with AWS Glue jobs"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+boto3 = "^1.34"
