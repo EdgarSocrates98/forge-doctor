@@ -852,6 +852,37 @@ A microbatch writer sinks into a non-transactional store
 `forge-doctor platform findings` renders only this category; the same
 checks also run inside `forge-doctor scan` under `category=platform`.
 
+## Runtime evidence (offline artifacts)
+
+`forge-doctor runtime inspect <artifact>` normalizes a user-exported
+runtime artifact into `RuntimeEvidenceModel` facts — executions,
+metrics, errors, timings, throughput, lag, retries, resource usage —
+without any cloud access. Auto-detected adapters:
+
+- `spark_eventlog` — Spark History event log (NDJSON `SparkListener*`
+  records): jobs/stages, shuffle/spill/GC/input-output metrics,
+  executor loss, per-stage task skew.
+- `spark_ss_progress` — Structured Streaming `StreamingQueryProgress`
+  JSON: input vs processed rate, batch `durationMs` phases, state
+  operator rows, source offsets, watermark.
+- `athena_stats` — `GetQueryExecution` statistics JSON (nested or flat):
+  DataScannedInBytes plus queue/planning/execution timings.
+- `lambda_report` — CloudWatch `REPORT RequestId:` lines: duration,
+  billed duration, memory size/used, init duration, timeouts.
+- `sfn_history` — `GetExecutionHistory` JSON: state transitions,
+  failures with causes, retry counts, execution duration.
+- `glue_logs` — Glue job log text: JobRunId/Job Name identifiers plus
+  conservative error extraction (OOM, executor loss, Spark/Glue
+  exceptions).
+- `neptune_explain` — the phase-4 explain/profile parser exposed as a
+  runtime adapter (steps, max cardinality, flags).
+
+`runtime diagnose <artifact>` additionally matches the artifact's text
+and extracted errors against the known-error signature packs.
+`streaming progress <file>` renders a progress artifact directly.
+Artifacts join platform-graph entities only through demonstrable
+identifiers (ARN, job name, query id, execution id) — never fuzzy.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

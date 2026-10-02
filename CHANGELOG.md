@@ -300,6 +300,15 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   (GlueJobOperator, LambdaInvoke*, StepFunction*, EMR, Databricks).
   CLI: `forge-doctor platform findings` (also runs inside `scan` under
   the `platform` category).
+- **Runtime Evidence layer** — `core/runtime_evidence.py` normalizes
+  exported artifacts into `RuntimeEvidenceModel` (executions, metrics,
+  errors, timings, throughput, lag, retries, resource usage, state,
+  identifiers); `analyzers/runtime_evidence.py` ships seven offline
+  adapters (Spark event log, Structured Streaming progress, Athena
+  stats, Lambda REPORT, Step Functions history, Glue logs, Neptune
+  explain/profile) behind ordered first-match dispatch. Identity joins
+  use demonstrable keys only (ARN/job/query/execution id). CLI:
+  `runtime inspect|diagnose <artifact>` and `streaming progress <file>`.
 
 ### Added (0.7.0)
 

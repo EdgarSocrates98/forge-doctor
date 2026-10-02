@@ -74,8 +74,47 @@ def streaming_inspect(
     console.print()
 
 
+@streaming_app.command(name="progress")
+def streaming_progress(
+    artifact: Annotated[Path, typer.Argument(help="StreamingQueryProgress JSON export.")],
+) -> None:
+    """Summarize a Structured Streaming progress artifact (offline)."""
+    from forge_doctor.analyzers.runtime_evidence import ingest_artifact
+
+    model = ingest_artifact(artifact, adapter="spark_ss_progress")
+    console = Console()
+    console.print()
+    console.print("[bold]Streaming Progress[/bold]")
+    if model.source == "unknown" and not model.throughput:
+        console.print("  not a StreamingQueryProgress artifact")
+        raise typer.Exit(2)
+    if model.identifiers:
+        console.print(
+            f"  stream={model.identifiers.get('stream', '?')} "
+            f"id={model.identifiers.get('execution_id', '?')}"
+        )
+    for t in model.throughput:
+        console.print(
+            f"  {t.name}: input={t.input_rps}/s processed={t.output_rps}/s "
+            f"rows={t.input_rows} batch={t.duration_ms:.0f}ms"
+            if t.duration_ms
+            else f"  {t.name}: input={t.input_rps}/s processed={t.output_rps}/s rows={t.input_rows}"
+        )
+        if t.input_rps is not None and t.output_rps is not None and t.output_rps < t.input_rps:
+            console.print("    [yellow]processing rate below input rate - backlog grows[/yellow]")
+    for timing in model.timings:
+        console.print(f"  duration.{timing.phase}={timing.duration_ms:.0f}ms")
+    for m in model.metrics:
+        console.print(f"  {m.name}={m.value:g}{m.unit}")
+    for s in model.state:
+        console.print(f"  {s}")
+    for m in model.lag:
+        console.print(f"  {m.name}={m.value:g} {m.scope}")
+    console.print()
+
+
 @streaming_app.callback(invoke_without_command=True)
 def _streaming_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:
-        _stderr.print("use `forge-doctor streaming inspect`")
+        _stderr.print("use `forge-doctor streaming inspect|progress`")
         raise typer.Exit(2)
