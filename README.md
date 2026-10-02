@@ -82,6 +82,7 @@ forge-doctor capabilities graph .     # capability→evidence provenance subgrap
 forge-doctor twin inspect .           # digital twin: graph + invariant report
 forge-doctor twin export .            # deterministic twin snapshot artifact
 forge-doctor advise .                 # ranked, cited actions (decision intelligence)
+forge-doctor optimize .               # ranked optimization candidates + validation commands
 forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
 forge-doctor migrate plan .           # named deterministic migration plans
 forge-doctor policy list .            # organization policy packs

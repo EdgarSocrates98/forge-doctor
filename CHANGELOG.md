@@ -218,6 +218,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fingerprints and entity ids; ties break deterministically on
   fingerprint. `-f json` emits a stable shape; `--top N` truncates.
   Advisory only — it points at `fix`/`remediate`, never applies.
+- **Optimization intelligence** — `forge-doctor optimize <path>`
+  enumerates the optimizations the platform is eligible for
+  (`core/optimize.py`): finding-backed candidates reuse the experiment
+  vocabulary (`partition-data`, `add-checkpoint`,
+  `increase-trigger-interval`), and observed platform versions older
+  than a compatibility pack's declared targets produce upgrade
+  candidates (`glue-version-upgrade`). Every candidate cites its
+  evidence, gives a static cost proxy (never live numbers), a
+  confidence label from the evidence planes present, and the exact
+  `lab experiment`/`what-if` command that validates it. Dedupe per
+  (optimization, file); no evidence, no candidates.
 
 ### Fixed
 
