@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from forge_doctor.api import SCHEMA_VERSION
+
 if TYPE_CHECKING:
     from forge_doctor.analyzers.index import ProjectIndex, PyModuleIndex
     from forge_doctor.core.context import ProjectContext
@@ -66,7 +68,7 @@ class LineageGraph:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "schema_version": "1.0",
+            "schema_version": SCHEMA_VERSION,
             "nodes": {
                 "jobs": sorted(self.jobs),
                 "datasets": sorted(self.datasets),
@@ -150,7 +152,7 @@ class LineageGraph:
                     ],
                 }
             )
-        return {"schema_version": "1.0", "producer": producer, "events": events}
+        return {"schema_version": SCHEMA_VERSION, "producer": producer, "events": events}
 
 
 def _mm_id(name: str) -> str:

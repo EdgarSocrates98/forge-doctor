@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from forge_doctor.api import SCHEMA_VERSION
+
 if TYPE_CHECKING:
     from forge_doctor.core.context import ProjectContext
 
@@ -41,7 +43,7 @@ class ProjectGraph:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "schema_version": "1.0",
+            "schema_version": SCHEMA_VERSION,
             "nodes": [
                 {"id": n.id, "kind": n.kind, "label": n.label, "detail": n.detail}
                 for n in sorted(self.nodes.values(), key=lambda n: (n.kind, n.id))

@@ -11,6 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from forge_doctor import __version__
+from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import (
     FailOnOpt,
@@ -112,7 +113,7 @@ def workspace_scan(
             _json.dumps(
                 {
                     "tool": "forge-doctor",
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     "projects": {
                         name: [result_to_dict(r) for r in rs] for name, rs in per_project.items()
                     },
@@ -172,7 +173,7 @@ def workspace_inspect(
             _json.dumps(
                 {
                     "tool": "forge-doctor",
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     "repositories": [
                         {
                             "name": r.name,

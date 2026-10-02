@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `present`), required files, required file content. Findings carry org
   rule ids; invalid packs surface as `POLICY010`. New commands:
   `forge-doctor policy list|eval|validate`.
+- **Public API** — `forge_doctor.api` is the stable SDK surface
+  (`scan`, `platform_graph`, `capabilities_evaluate`, `what_if`,
+  `migrate_plans`, `version`, `SCHEMA_VERSION`, re-exported
+  `ScanReport`/`ScanOptions`/`DataPlatformGraph`); `SCHEMA_VERSION` is
+  now the single constant behind every `schema_version` JSON key.
+  `forge-doctor schema contracts [name]` publishes JSON Schemas for the
+  public artifacts; `docs/api.md` records the semver/stability rules.
 
 ### Fixed
 

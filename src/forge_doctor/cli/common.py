@@ -22,6 +22,7 @@ from rich.padding import Padding
 from rich.table import Table
 from rich.text import Text
 
+from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.core.baseline import load_baseline_items
 from forge_doctor.core.cache import scan_cache
 from forge_doctor.core.config import ForgeDoctorConfig
@@ -369,7 +370,7 @@ def _render_findings(findings: list[CheckResult], fmt: str) -> None:
             _json.dumps(
                 {
                     "tool": "forge-doctor",
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     "findings": [result_to_dict(f) for f in findings],
                 },
                 indent=2,

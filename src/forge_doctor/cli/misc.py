@@ -16,6 +16,7 @@ from rich.console import Console
 from rich.table import Table
 
 from forge_doctor import __version__
+from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import (
     OutputOpt,
@@ -341,6 +342,27 @@ def _diff_two_files(old_path: Path, new_path: Path) -> list[SchemaChange]:
     return diff_schemas(parse_schema(old_path), parse_schema(new_path))
 
 
+@schema_app.command(name="contracts")
+def schema_contracts(
+    name: Annotated[str | None, typer.Argument(help="Contract name; omit to list all.")] = None,
+) -> None:
+    """Dump the JSON Schemas for Forge Doctor's public artifacts."""
+    import json as _json
+
+    from forge_doctor.core.schemas import SCHEMAS
+
+    if name is None:
+        console = Console()
+        for key, item in SCHEMAS.items():
+            console.print(f"  [bold]{key}[/bold]  [dim]{item.get('title', '')}[/dim]")
+        return
+    found = SCHEMAS.get(name)
+    if found is None:
+        _stderr.print(f"[red]Unknown contract:[/red] {name} (valid: {', '.join(sorted(SCHEMAS))})")
+        raise typer.Exit(INTERNAL_ERROR_EXIT)
+    typer.echo(_json.dumps(found, indent=2))
+
+
 @schema_app.command(name="diff")
 def schema_diff_cmd(
     old: Annotated[str, typer.Argument(help="Old schema file, or 'base...head' git range.")],
@@ -414,7 +436,7 @@ def schema_diff_cmd(
         typer.echo(
             _json.dumps(
                 {
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     # Honesty stamp: schema parsing is syntax-level only.
                     "parser": "best-effort",
                     "changes": results,
@@ -703,7 +725,7 @@ def diagnose_cmd(
             _json.dumps(
                 {
                     "tool": "forge-doctor",
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     "findings": [
                         {
                             "id": d.signature.id,

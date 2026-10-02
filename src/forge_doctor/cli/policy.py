@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import _stderr
 from forge_doctor.core.context import ProjectContext
@@ -82,7 +83,7 @@ def policy_eval(
             _json.dumps(
                 {
                     "tool": "forge-doctor",
-                    "schema_version": "1.0",
+                    "schema_version": SCHEMA_VERSION,
                     "packs": [
                         {"name": p.name, "version": p.version, "rules": len(p.rules)} for p in packs
                     ],
