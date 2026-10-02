@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Performance benchmark** — `forge-doctor bench run [--files N]`
   measures cold/warm scan time, AST parse count, graph build, pack load,
   and peak memory; `--budget` enforces portable ratio/count budgets.
+- **Workspace intelligence** — `forge-doctor workspace inspect` builds a
+  `WorkspaceModel`: marker-based repo discovery, per-repo platform
+  graphs merged by canonical entity id, and cross-repo `DEFINES` /
+  `IMPLEMENTS` / `INVOKES` links from `repo:workspace:<name>` entities.
 
 ### Fixed
 
@@ -27,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OPTIMIZE`/`VACUUM`) is no longer attributed to Delta without any
   project-level delta signal; self-evident syntax (`USING DELTA`,
   `table_changes(`) still counts.
+- **Airflow bare operator calls** — `SomeOperator(task_id=...)` as a
+  bare expression inside `with DAG(...)` (context-manager binding) is
+  now collected as a task; previously only `var = Operator(...)` assigns
+  were seen, so orchestrator targets and edges were missed.
 - **Migration planner crash** — `databricks-runtime-upgrade` iterated
   DBR dict keys then indexed them (`TypeError`); now iterates values
   correctly (caught by the golden corpus).

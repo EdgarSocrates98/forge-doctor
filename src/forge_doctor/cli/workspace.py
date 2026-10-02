@@ -151,6 +151,92 @@ def workspace_scan(
     raise typer.Exit(1 if summary.errors else 0)
 
 
+@workspace_app.command(name="inspect")
+def workspace_inspect(
+    path: Annotated[Path, typer.Option("--path", help="Workspace root.")] = Path("."),
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Build the WorkspaceModel: repos, merged platform graph, cross-repo links."""
+    import json as _json
+
+    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.workspace import build_workspace_model
+
+    if not path.is_dir():
+        _stderr.print(f"[red]Not a directory:[/red] {path}")
+        raise typer.Exit(INTERNAL_ERROR_EXIT)
+    model = build_workspace_model(path.resolve(), ProjectContext(root=path.resolve()))
+
+    if fmt == "json":
+        typer.echo(
+            _json.dumps(
+                {
+                    "tool": "forge-doctor",
+                    "schema_version": "1.0",
+                    "repositories": [
+                        {
+                            "name": r.name,
+                            "path": r.path,
+                            "markers": list(r.markers),
+                            "languages": list(r.languages),
+                        }
+                        for r in model.repositories
+                    ],
+                    "links": [
+                        {
+                            "kind": lnk.kind.value,
+                            "source_repo": lnk.source_repo,
+                            "target_repo": lnk.target_repo,
+                            "entity": lnk.entity_id,
+                        }
+                        for lnk in model.links
+                    ],
+                    "graph": {
+                        "entities": [e.id for e in model.graph.entities()],
+                        "relationships": [
+                            {"src": r.src, "dst": r.dst, "kind": r.kind.value}
+                            for r in model.graph.relationships()
+                        ],
+                    },
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    console = Console()
+    table = Table(title=f"WorkspaceModel: {path.resolve()}", title_justify="left")
+    table.add_column("Repository", style="bold")
+    table.add_column("Path")
+    table.add_column("Languages")
+    table.add_column("Markers", style="dim")
+    for r in model.repositories:
+        table.add_row(r.name, r.path, ", ".join(r.languages) or "-", ", ".join(r.markers) or "-")
+    console.print(table)
+
+    links = Table(title="Cross-repo links", title_justify="left")
+    links.add_column("Repo")
+    links.add_column("Edge")
+    links.add_column("Entity")
+    links.add_column("Defined in", style="dim")
+    for lnk in model.links:
+        links.add_row(
+            lnk.source_repo,
+            lnk.kind.value,
+            lnk.entity_id,
+            lnk.target_repo or "(external)",
+        )
+    if not model.links:
+        links.add_row("-", "-", "no cross-repo links", "-")
+    console.print(links)
+    s = model.summary()
+    console.print(
+        f"\n[bold]{s['repositories']} repositories[/bold] - {s['entities']} entities, "
+        f"{s['relationships']} relationships, {s['cross_repo_links']} cross-repo links"
+    )
+
+
 @workspace_app.command(name="diff")
 def workspace_diff(
     range_spec: Annotated[str, typer.Argument(help="'base...head' git range.")],

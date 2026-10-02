@@ -403,6 +403,28 @@ class _FileWalk:
     def _generic(self, node: ast.AST, dag: str) -> None:
         if isinstance(node, ast.Assign):
             self._assign(node, dag)
+        elif isinstance(node, ast.Expr) and _is_operator_call(node.value, self.sensors):
+            # Bare ``SomeOperator(task_id=...)`` inside ``with DAG(...):`` -
+            # the canonical context-manager binding form has no Assign.
+            call = node.value
+            assert isinstance(call, ast.Call)  # guaranteed by _is_operator_call
+            kws = _kwargs(call)
+            dag_kw = kws.get("dag")
+            if isinstance(dag_kw, ast.Name):
+                bound = dag_kw.id
+            elif dag_kw is not None:
+                bound = _lit(dag_kw)
+            else:
+                bound = ""
+            task = self._task(
+                var="",
+                operator=_dotted(call.func).rsplit(".", 1)[-1],
+                line=call.lineno,
+                dag=dag or bound,
+                call=call,
+                kws=kws,
+            )
+            self.tasks.append(task)
         elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.RShift | ast.LShift):
             self._edge_chain(node)
         elif isinstance(node, ast.Call):

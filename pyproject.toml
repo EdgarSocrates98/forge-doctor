@@ -69,7 +69,7 @@ exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload"]
 target-version = "py311"
 src = ["src", "tests"]
 line-length = 100
-extend-exclude = ["tests/sample_projects", "examples"]
+extend-exclude = ["tests/sample_projects", "examples", "labs", "golden"]
 
 [tool.ruff.lint]
 select = [

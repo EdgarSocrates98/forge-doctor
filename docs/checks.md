@@ -1280,6 +1280,26 @@ Budgets (`--budget b.json`) are portable ratios/counts, not wall clocks:
 `warm_ratio_max`, `ast_parse_max_ratio`, `graph_ms_per_1k_files`,
 `cold_ms_per_1k_files`. Violations print and exit 1.
 
+## Workspace intelligence
+
+`forge-doctor workspace inspect` merges per-repo platform graphs into a
+`WorkspaceModel`: sibling sub-projects are discovered by marker files
+(`pyproject.toml`, `*.tf`, `databricks.yml`, `airflow.cfg`, `dags/`
+content — outermost marker dir wins), each repo's `DataPlatformGraph` is
+built independently, and canonical entity ids converge so the same
+`compute_job:glue:orders-etl` declared in `terraform-repo`, implemented
+in `glue-jobs`, and invoked by `airflow-dags` becomes one node with
+three `repo:workspace:<name>` edges:
+
+| Edge | Meaning |
+|------|---------|
+| `DEFINES` | the repo's IaC/config declares the entity |
+| `IMPLEMENTS` | a glue-code file whose normalized stem matches the job name |
+| `INVOKES` | the repo's workflows invoke an entity defined elsewhere |
+
+Internal `task:*` targets and same-repo invocations are not links.
+`--format json` emits the full repo/link/graph model for tooling.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning
