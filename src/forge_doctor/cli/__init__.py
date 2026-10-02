@@ -7,6 +7,7 @@ what populates the CLI. ``_snapshot`` is re-exported for the test-suite.
 from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     advise,
     airflow,
+    analytical,
     bench,
     bigquery,
     capabilities,
@@ -113,6 +114,7 @@ _PANELS: dict[str, dict[str, str]] = {
             "redshift",
             "dbt",
             "trino",
+            "analytical",
         ),
         "Platform intelligence",
     ),

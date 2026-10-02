@@ -1,0 +1,23 @@
+{
+  "type": "kafka",
+  "ingestionSpec": {
+    "dataSchema": {
+      "dataSource": "events",
+      "timestampSpec": {"column": "ts", "format": "iso"},
+      "dimensionsSpec": {
+        "dimensions": ["country", "device", "channel", "campaign", "version"]
+      },
+      "metricsSpec": [
+        {"type": "count", "name": "count"},
+        {"type": "doubleSum", "name": "revenue", "fieldName": "revenue"}
+      ],
+      "granularitySpec": {
+        "segmentGranularity": "DAY",
+        "queryGranularity": "HOUR",
+        "rollup": false
+      }
+    },
+    "ioConfig": {"type": "kafka", "topic": "events", "consumerProperties": {"bootstrap.servers": "b:9092"}},
+    "tuningConfig": {"type": "kafka"}
+  }
+}

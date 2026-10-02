@@ -68,6 +68,7 @@ ALWAYS_RUN = frozenset({ENV, GIT, HOST, UNBOUNDED})
 # without a declaration resolve to UNBOUNDED (conservative).
 MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "airflow": frozenset({PYTHON, PACKAGING}),
+    "analytical": frozenset({SQL, CONFIG, FILES}),
     "architecture": frozenset({CONTRACT}),
     "aws": frozenset({ENV, HOST}),
     "bigquery": frozenset({SQL, TERRAFORM, CONFIG, FILES}),

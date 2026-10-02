@@ -1,0 +1,16 @@
+{
+  "tableName": "orders",
+  "tableType": "REALTIME",
+  "segmentsConfig": {
+    "replication": "1",
+    "schemaName": "orders",
+    "timeColumnName": "ts"
+  },
+  "tableIndexConfig": {
+    "noDictionaryColumns": ["device_id"],
+    "sortedColumn": [],
+    "invertedIndexColumns": []
+  },
+  "tenants": {},
+  "metadata": {}
+}

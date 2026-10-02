@@ -1,0 +1,6 @@
+{
+  "name": "plain-json",
+  "description": "Adversarial: generic JSON + MySQL ENGINE=InnoDB/MyISAM must not attribute to ClickHouse/Pinot/Druid",
+  "expected_findings": [],
+  "forbidden_findings": ["CH001", "CH002", "CH003", "CH004", "PIN001", "PIN002", "PIN003", "DRU001", "DRU002"]
+}

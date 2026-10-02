@@ -1,0 +1,6 @@
+{
+  "name": "unkeyed",
+  "description": "ClickHouse: MergeTree w/o ORDER BY, Replicated w/o keeper, Distributed w/o local shard, Kafka w/o dedupe",
+  "expected_findings": ["CH001", "CH002", "CH003", "CH004"],
+  "forbidden_findings": []
+}

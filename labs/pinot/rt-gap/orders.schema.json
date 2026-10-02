@@ -1,0 +1,13 @@
+{
+  "schemaName": "orders",
+  "dimensionFieldSpecs": [
+    {"name": "device_id", "dataType": "STRING", "cardinality": 50000},
+    {"name": "region", "dataType": "STRING"}
+  ],
+  "metricFieldSpecs": [
+    {"name": "amount", "dataType": "DOUBLE"}
+  ],
+  "timeFieldSpec": {
+    "incomingGranularitySpec": {"name": "ts", "dataType": "LONG", "timeType": "MILLISECONDS"}
+  }
+}

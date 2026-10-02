@@ -1020,6 +1020,44 @@ def _trino(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         g.add_relationship(Relationship(src=src, dst=tid, kind=R.CONTAINS, evidence_kind=_STA))
 
 
+def _analytical(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Real-time OLAP tables/datasources (spec 219).
+
+    Each discovered table becomes ``table:<engine>:<name>`` carrying
+    the engine family + key surface; Pinot schema files become
+    ``schema:pinot:<name>`` entities. No edges beyond containment-free
+    entities — engines don't expose catalog nesting in this evidence.
+    """
+    from forge_doctor.analyzers.analytical_model import analytical_model
+
+    model = analytical_model(ctx)
+    if not model.has_evidence:
+        return
+    for t in model.tables:
+        g.add_entity(
+            _e(
+                K.TABLE,
+                t.engine,
+                t.name,
+                t.file,
+                t.line,
+                kind=t.kind,
+                table_engine=t.table_engine or t.table_type,
+            )
+        )
+    for s in model.pinot_schemas:
+        g.add_entity(
+            _e(
+                K.SCHEMA,
+                "pinot",
+                s.name,
+                s.file,
+                dims=str(len(s.dims)),
+                metrics=str(len(s.metrics)),
+            )
+        )
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1414,6 +1452,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _dbt,
         _contracts,
         _trino,
+        _analytical,
         _iceberg,
         _parquet,
         _terraform,

@@ -1705,3 +1705,75 @@ declared catalog file — a typo or missing catalog fails at run time.
 Confidence is MEDIUM: in a mixed-vendor repo a three-part name may
 legitimately belong to another engine.
 **Fix:** create the catalog properties file or fix the reference.
+
+## Analytical engines (AnalyticalEngineModel — ClickHouse / Pinot / Druid)
+
+Shared model over three thin adapters. ClickHouse evidence is authored
+DDL (`CREATE TABLE ... ENGINE = <family>` — an explicit family
+allowlist so `ENGINE=InnoDB`/MySQL never attributes); Pinot evidence is
+table-config JSON (`tableName` + `tableType`/`segmentsConfig`) and
+schema JSON (`schemaName` + `dimensionFieldSpecs`/`metricFieldSpecs`);
+Druid evidence is ingestion-spec JSON (`ingestionSpec`/`spec` +
+`dataSchema` + `ioConfig`). Observed metadata comes only from exported
+artifacts under `clickhouse/`/`pinot/`/`druid/` or
+`.forge-doctor/evidence/` with positive field signals. StarRocks/Doris
+deferred per spec — the model assumes no closed membership.
+
+### CH000 — ClickHouse surface · info
+Anchor census: tables/views by engine family.
+
+### CH001 — MergeTree table without ORDER BY · warning
+A MergeTree-family table without an ordering key gets `tuple()` sort —
+full scans and no dedupe.
+**Fix:** add `ORDER BY` matching the access pattern.
+
+### CH002 — Replicated engine without keeper config · warning
+`Replicated*` engine but no keeper/zookeeper config file in the
+project — replication never engages.
+**Fix:** add keeper/zookeeper config or use a non-replicated engine.
+
+### CH003 — Distributed table without local shard · warning
+`Distributed(cluster, db, local)` references a local table never
+defined in the project — writes land nowhere.
+**Fix:** define the referenced local shard table.
+
+### CH004 — Kafka ingestion without dedupe plan · warning
+`ENGINE=Kafka` table with no dedupe-family sink (`Replacing*`/
+`Summing*`/`Aggregating*`/`Collapsing*`) and no materialized view —
+consumer restarts re-deliver duplicates.
+**Fix:** add a dedupe-family target or `MATERIALIZED VIEW` sink.
+
+### PIN000 — Pinot surface · info
+Anchor census: tables by type, schema files.
+
+### PIN001 — Realtime table without retention · warning
+`tableType=REALTIME` without `segmentsConfig.retentionTimeValue` —
+realtime segments accumulate forever.
+**Fix:** set `retentionTimeValue`/`retentionTimeUnit`.
+
+### PIN002 — High-cardinality dim filtered without inverted index · warning (medium confidence)
+A dimension with high-cardinality evidence (`cardinality` in the
+schema, or listed in `noDictionaryColumns`) that appears in an authored
+`WHERE` clause but is absent from `invertedIndexColumns` and indexed
+`fieldConfigList` entries. Confidence MEDIUM — filter evidence is a
+text heuristic.
+**Fix:** add the dim to `invertedIndexColumns` or a `fieldConfigList`
+index.
+
+### PIN003 — No star-tree index on group-by-heavy table · warning (medium confidence)
+Observed query-log exports show ≥2 `GROUP BY` queries against a table
+whose `tableIndexConfig` lacks `starTreeIndexConfigs`.
+**Fix:** add `starTreeIndexConfigs` (or verify the export is stale).
+
+### DRU000 — Druid surface · info
+Anchor census: datasources from ingestion specs.
+
+### DRU001 — Datasource without partitioning config · warning
+`ingestionSpec` with no `tuningConfig.partitionsSpec` — falls back to
+default dynamic partitioning; segment sizes drift.
+**Fix:** add `partitionsSpec` (`hashed`/`numShards`/`range`).
+
+### DRU002 — Rollup disabled on high-cardinality datasource · warning
+`granularitySpec.rollup=false` with ≥3 declared metrics+dims — raw
+events stored unaggregated.
+**Fix:** set `rollup=true` or trim dims/metrics.

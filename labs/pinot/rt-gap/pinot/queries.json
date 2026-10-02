@@ -1,0 +1,4 @@
+[
+  {"query": "SELECT region, SUM(amount) FROM orders GROUP BY region", "executionMillis": 1200},
+  {"query": "SELECT device_id, COUNT(*) FROM orders GROUP BY device_id", "executionMillis": 3400}
+]

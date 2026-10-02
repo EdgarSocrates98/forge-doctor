@@ -122,11 +122,13 @@ produced it — free text at construction, so this list is what
 | airflow | Apache Airflow orchestration model. |
 | athena | Amazon Athena analytics model. |
 | aws | Generic AWS provider resources not mapped to a narrower family. |
+| clickhouse | ClickHouse real-time OLAP model. |
 | controlm | Control-M scheduling model. |
 | databricks | Databricks workspace model. |
 | datacontract | Data contract model (declared schema/SLA promises). |
 | dbt | dbt transformation-layer model (models, sources, tests). |
 | delta | Delta Lake table model. |
+| druid | Apache Druid real-time OLAP model. |
 | dynamodb | Amazon DynamoDB model. |
 | emr | Amazon EMR model. |
 | firehose | Amazon Data Firehose model. |
@@ -143,6 +145,7 @@ produced it — free text at construction, so this list is what
 | neptune | Amazon Neptune model. |
 | neptune_loader | Neptune bulk-loader task entities (loader functions). |
 | parquet | Apache Parquet physical-layout model. |
+| pinot | Apache Pinot real-time OLAP model. |
 | sns | Amazon SNS model. |
 | spark_ss | Spark Structured Streaming model. |
 | sql | First-class SQL model (sqlglot index). |

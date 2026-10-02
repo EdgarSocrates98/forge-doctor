@@ -352,6 +352,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `table:trino:*`. New command `forge-doctor trino inspect`, labs
   `labs/trino/{prod-cluster,plain-props}`. Presto semantics deferred
   per spec.
+- **Analytical engines** (spec 219, roadmap-4 wave 3b) —
+  `analyzers/analytical_model.py` builds a shared
+  `AnalyticalEngineModel` with three thin adapters: ClickHouse
+  (`ENGINE=` family allowlist on authored DDL — MySQL `ENGINE=InnoDB`
+  never attributes), Pinot (`*.table.json`/`*.schema.json` marker
+  keys), and Druid (`ingestionSpec`/`dataSchema`+`ioConfig` JSON).
+  Observed metadata only from exported artifacts under engine dirs or
+  `.forge-doctor/evidence/`. Checks `CH001`–`CH004` (MergeTree without
+  ORDER BY, Replicated without keeper config, Distributed without
+  local shard, Kafka ingestion without dedupe plan), `PIN001`–`PIN003`
+  (realtime without retention, filtered high-card dim without inverted
+  index — MEDIUM, group-by-heavy observed queries without star-tree —
+  MEDIUM), `DRU001`–`DRU002` (datasource without partitionsSpec,
+  rollup disabled on wide dims+metrics). Graph: `table:<engine>:*`
+  entities + `schema:pinot:*`. New command `forge-doctor analytical
+  inspect`, labs `labs/clickhouse/unkeyed`, `labs/pinot/rt-gap`,
+  `labs/druid/unpartitioned`, adversarial `labs/analytical/plain-json`.
+  StarRocks/Doris deferred — the model assumes no closed membership.
 
 ### Fixed
 

@@ -1,0 +1,6 @@
+{
+  "name": "unpartitioned",
+  "description": "Druid: ingestion spec without partitionsSpec, rollup disabled on wide dims+metrics",
+  "expected_findings": ["DRU001", "DRU002"],
+  "forbidden_findings": []
+}

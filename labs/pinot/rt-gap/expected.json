@@ -1,0 +1,6 @@
+{
+  "name": "rt-gap",
+  "description": "Pinot: realtime table w/o retention, filtered high-card dim w/o inverted index, group-by-heavy w/o star-tree",
+  "expected_findings": ["PIN001", "PIN002", "PIN003"],
+  "forbidden_findings": []
+}

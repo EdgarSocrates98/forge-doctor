@@ -6,6 +6,7 @@ from types import ModuleType
 
 from forge_doctor.checks import (
     airflow,
+    analytical,
     architecture,
     aws,
     bigquery,
@@ -77,6 +78,7 @@ BUILTIN_MODULES = (
     bigquery,
     warehouse,
     trino,
+    analytical,
 )
 
 
