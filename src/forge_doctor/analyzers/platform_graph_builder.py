@@ -64,6 +64,11 @@ _TF_TYPED: dict[str, tuple[K, str]] = {
     "databricks_volume": (K.STORAGE_LOCATION, "databricks"),
     "databricks_external_location": (K.STORAGE_LOCATION, "databricks"),
     "databricks_storage_credential": (K.PRINCIPAL, "databricks"),
+    "aws_athena_named_query": (K.QUERY, "athena"),
+    "aws_athena_prepared_statement": (K.QUERY, "athena"),
+    "aws_athena_database": (K.CATALOG, "glue"),
+    "aws_athena_data_catalog": (K.CATALOG, "athena"),
+    "aws_athena_workgroup": (K.COMPUTE_JOB, "athena"),
 }
 
 # Streaming source/sink class -> entity kind (bus/topic vs table vs blob).
@@ -816,6 +821,97 @@ def _platforms(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             g.add_relationship(Relationship(src=q.id, dst=t.id, kind=rel, evidence_kind=_STA))
 
 
+def _serverless(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Lambda/Athena model entities + trigger/destination edges."""
+    from forge_doctor.analyzers.athena_model import athena_model
+    from forge_doctor.analyzers.lambda_model import lambda_model
+
+    lam = lambda_model(ctx)
+    for fn in lam.functions:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "lambda",
+                fn.name,
+                fn.file,
+                fn.line,
+                runtime=fn.runtime,
+                producer=fn.source,
+            )
+        )
+    _DEST_KINDS = {
+        "sns": K.STREAM,
+        "sqs": K.STREAM,
+        "states": K.WORKFLOW,
+        "lambda": K.COMPUTE_JOB,
+        "events": K.STREAM,
+    }
+
+    # resolve a function reference (name, TF label, or CFN logical id)
+    def _fn_id(ref: str) -> str:
+        for fn in lam.functions:
+            if fn.matches(ref):
+                return f"compute_job:lambda:{fn.name}"
+        return f"compute_job:lambda:{ref}" if ref else ""
+
+    for src in lam.event_sources:
+        fn_id = _fn_id(src.function)
+        src_e = _e(
+            K.STREAM,
+            src.kind,
+            src.detail or f"{src.kind}:{src.file.as_posix()}:{src.line}",
+            src.file,
+            src.line,
+        )
+        g.add_entity(src_e)
+        if fn_id and any(e.id == fn_id for e in g.entities()):
+            g.add_relationship(
+                Relationship(src=src_e.id, dst=fn_id, kind=R.TRIGGERS, evidence_kind=_CFG)
+            )
+    for dest in lam.destinations:
+        fn_id = _fn_id(dest.function)
+        if not any(e.id == fn_id for e in g.entities()):
+            continue
+        for label, arn in (("on_success", dest.on_success), ("on_failure", dest.on_failure)):
+            if not arn:
+                continue
+            svc = arn.split(":")[2] if arn.count(":") >= 3 else ""
+            kind = _DEST_KINDS.get(svc)
+            if kind is None:
+                continue
+            ident = arn.rsplit(":", 1)[-1].rsplit("/", 1)[-1] or arn
+            domain = "stepfunctions" if svc == "states" else svc
+            tgt = _e(kind, domain, ident, dest.file, dest.line)
+            g.add_entity(tgt)
+            g.add_relationship(
+                Relationship(
+                    src=fn_id,
+                    dst=tgt.id,
+                    kind=R.INVOKES,
+                    evidence_kind=_CFG,
+                    attrs=(("destination", label),),
+                )
+            )
+
+    athena = athena_model(ctx)
+    for w in athena.workgroups:
+        g.add_entity(_e(K.COMPUTE_JOB, "athena", w.name, w.file, w.line, engine=w.engine_version))
+    for q in athena.named_queries:
+        qe = _e(K.QUERY, "athena", q.name, q.file, q.line)
+        g.add_entity(qe)
+        if q.workgroup:
+            tail = q.workgroup.rsplit(".", 1)[-1]
+            wg_id = f"compute_job:athena:{tail}"
+            if any(e.id == wg_id for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=qe.id, dst=wg_id, kind=R.DEPENDS_ON, evidence_kind=_CFG)
+                )
+    for c in athena.catalogs:
+        g.add_entity(_e(K.CATALOG, "athena", c.name, c.file, c.line, type=c.type))
+    for d in athena.databases:
+        g.add_entity(_e(K.CATALOG, "glue", d))
+
+
 def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
     """Fuse every domain model into one canonical graph (memoized)."""
     cached = getattr(ctx, _CACHE_ATTR, None)
@@ -832,6 +928,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _neptune,
         _lakeformation,
         _platforms,
+        _serverless,
         _sql,
         _iceberg,
         _parquet,

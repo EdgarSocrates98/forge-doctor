@@ -380,6 +380,31 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   `knowledge/capabilities/{emr,databricks,delta}.json`,
   `knowledge/{emr/releases,databricks/runtime,delta/features}.json`.
   CLI: `emr|databricks|delta inspect|findings`, `delta features`.
+- **Athena + Lambda + Step Functions deep intelligence** —
+  `analyzers/athena_model.py` (workgroups with engine version,
+  enforced result location, bytes-scanned cutoff, encryption;
+  catalogs, databases, named/prepared queries; CTAS/UNLOAD/PREPARE
+  SQL ops; Iceberg DDL; boto3 `athena` call-sites) and
+  `analyzers/lambda_model.py` (functions with runtime/arch/memory/
+  timeout/ephemeral storage/reserved+provisioned concurrency/layers/
+  VPC/DLQ/tracing; event sources incl. stream/sqs/s3/sns/schedule
+  kinds with TF-ref + ARN resolution; invoke-config destinations;
+  layer versions; boto3 `lambda` calls; idempotency-library imports).
+  `StepFunctionsModel` deepened: per-machine `QueryLanguage`
+  (JSONPath/JSONata), per-state payload keys, retry `MaxAttempts` +
+  `ErrorEquals` sets, Lambda `target` extraction
+  (`Parameters.FunctionName`), and Distributed Map
+  `MaxConcurrency`/`ToleratedFailurePercentage`. Checks: ATH000-005,
+  LAM000-005, SFN030-032. Cross-domain: PLAT010 (SFN + client-side
+  Athena poller → `.sync` candidate) and PLAT011 (Distributed Map
+  `MaxConcurrency` > the invoked Lambda's reserved concurrency).
+  Platform graph gains `compute_job:athena`, `query:athena`,
+  `catalog:athena`, stream→lambda TRIGGERS edges, and
+  function→destination INVOKES edges. Packs:
+  `capabilities/{athena,lambda}.json`, `athena/engines.json`,
+  `lambda/runtimes.json`, `stepfunctions/query-languages.json`.
+  CLI: `athena|lambda inspect|findings`; `stepfunctions inspect`
+  shows query language, retry attempts, map detail, payload keys.
 
 ### Added (0.7.0)
 

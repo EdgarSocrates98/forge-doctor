@@ -1,0 +1,27 @@
+{
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-02",
+ "sources": [
+  "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html"
+ ],
+ "domain": "lambda",
+ "eol": [
+  "dotnet6",
+  "dotnetcore3.1",
+  "go1.x",
+  "java8",
+  "nodejs10.x",
+  "nodejs12.x",
+  "nodejs14.x",
+  "nodejs16.x",
+  "provided",
+  "python2.7",
+  "python3.6",
+  "python3.7",
+  "python3.8",
+  "ruby2.5",
+  "ruby2.7"
+ ],
+ "note": "End-of-life runtimes stop receiving patches and block create/update."
+}

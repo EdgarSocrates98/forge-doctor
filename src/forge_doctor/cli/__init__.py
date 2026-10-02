@@ -26,6 +26,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     rootcause,
     runtime,
     scan,
+    serverless,
     stepfunctions,
     streaming,
     terraform,

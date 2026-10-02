@@ -555,6 +555,124 @@ def _eval_plat009(rc: RuleContext) -> list[CrossDomainHit]:
     return hits
 
 
+def _eval_plat010(rc: RuleContext) -> list[CrossDomainHit]:
+    """SFN invokes a Lambda while the project polls Athena client-side."""
+    from forge_doctor.analyzers.athena_model import athena_model
+    from forge_doctor.analyzers.stepfunctions_model import stepfunctions_model
+
+    sfn = stepfunctions_model(rc.ctx)
+    if not sfn.has_machines:
+        return []
+    athena = athena_model(rc.ctx)
+    poll_pair = {"athena.start_query_execution", "athena.get_query_execution"} <= set(
+        athena.boto3_calls
+    )
+    if not poll_pair:
+        return []
+    hits: list[CrossDomainHit] = []
+    for machine in sfn.machines:
+        lambda_tasks = [s for s in machine.states if s.type == "Task" and s.integration == "lambda"]
+        if not lambda_tasks:
+            continue
+        hits.append(
+            CrossDomainHit(
+                message=(
+                    f"{machine.name} invokes Lambda task(s) "
+                    f"({', '.join(s.name for s in lambda_tasks)}) while the "
+                    "project hand-polls Athena - candidate for "
+                    "`startQueryExecution.sync`"
+                ),
+                file=machine.file,
+                line=machine.line,
+                severity=Severity.INFO,
+                facts=(
+                    _fact(
+                        "config",
+                        "stepfunctions",
+                        f"{machine.name} lambda task(s): {', '.join(s.name for s in lambda_tasks)}",
+                        machine.file,
+                        machine.line,
+                    ),
+                    _fact(
+                        "code",
+                        "athena",
+                        "start_query_execution + get_query_execution pair",
+                    ),
+                ),
+            )
+        )
+    return hits
+
+
+def _eval_plat011(rc: RuleContext) -> list[CrossDomainHit]:
+    """DISTRIBUTED Map MaxConcurrency above the invoked function's cap."""
+    from forge_doctor.analyzers.lambda_model import lambda_model
+    from forge_doctor.analyzers.stepfunctions_model import stepfunctions_model
+
+    sfn = stepfunctions_model(rc.ctx)
+    lam = lambda_model(rc.ctx)
+    if not (sfn.has_machines and lam.functions):
+        return []
+    reserved = {
+        f.name: f.reserved_concurrency for f in lam.functions if f.reserved_concurrency >= 0
+    }
+    if not reserved:
+        return []
+    hits: list[CrossDomainHit] = []
+    for machine in sfn.machines:
+        nested_by_parent = {n.name.split(".")[0]: n for n in machine.nested}
+        for st in machine.states:
+            if st.map_mode != "DISTRIBUTED" or st.max_concurrency <= 0:
+                continue
+            inner = nested_by_parent.get(st.name)
+            if inner is None:
+                continue
+            lambda_states = [
+                s for s in inner.states if s.type == "Task" and s.integration == "lambda"
+            ]
+            for ls in lambda_states:
+                # target = Parameters.FunctionName or arn tail; match
+                # against function name or its IaC label.
+                by_label = {f.tf_label: f for f in lam.functions if f.tf_label}
+                fname = ""
+                if ls.target:
+                    cand = ls.target
+                    if cand in reserved:
+                        fname = cand
+                    elif cand in by_label and by_label[cand].name in reserved:
+                        fname = by_label[cand].name
+                if not fname:
+                    continue
+                if st.max_concurrency > reserved[fname]:
+                    hits.append(
+                        CrossDomainHit(
+                            message=(
+                                f"{machine.name}.{st.name}: MaxConcurrency="
+                                f"{st.max_concurrency} > reserved concurrency "
+                                f"{reserved[fname]} of lambda '{fname}'"
+                            ),
+                            file=machine.file,
+                            line=machine.line,
+                            severity=Severity.WARNING,
+                            facts=(
+                                _fact(
+                                    "config",
+                                    "stepfunctions",
+                                    f"{st.name} max_concurrency={st.max_concurrency}",
+                                    machine.file,
+                                    machine.line,
+                                ),
+                                _fact(
+                                    "config",
+                                    "lambda",
+                                    f"{fname} reserved={reserved[fname]}",
+                                ),
+                            ),
+                        )
+                    )
+    return hits
+
+
 def neptune_queries_safe(rc: RuleContext) -> list[GraphTraversal]:
     from forge_doctor.analyzers.neptune_queries import neptune_queries
 
@@ -717,6 +835,38 @@ RULES: tuple[CrossDomainRule, ...] = (
         fix="Upgrade the cluster's spark_version or drop the feature.",
         required_capabilities=("DELTA_DELETION_VECTORS",),
         evaluate=_eval_plat009,
+    ),
+    CrossDomainRule(
+        id="PLAT010",
+        title="Step Functions + Lambda poller where a native .sync exists",
+        description=(
+            "A state machine invokes a Lambda function while the project "
+            "contains a client-side Athena poll pair "
+            "(start_query_execution + get_query_execution) - the Task is "
+            "a candidate for the native `states:::aws-sdk:athena:"
+            "startQueryExecution.sync` integration."
+        ),
+        why="A Lambda wrapper that polls Athena bills invocations and adds a hop "
+        "the service integration already removes.",
+        when_ok="Athena long-running calls use `.sync` task integrations directly.",
+        fix="Replace the polling Lambda Task with the `.sync` SDK integration.",
+        required_entity_kinds=frozenset({K.WORKFLOW, K.COMPUTE_JOB}),
+        evaluate=_eval_plat010,
+    ),
+    CrossDomainRule(
+        id="PLAT011",
+        title="Distributed Map concurrency exceeds Lambda reserved concurrency",
+        description=(
+            "A DISTRIBUTED Map whose ItemProcessor invokes a Lambda "
+            "function is configured with MaxConcurrency above the "
+            "function's reserved_concurrent_executions - items throttle "
+            "or the map stalls."
+        ),
+        why="Map concurrency above a hard function cap turns parallelism into throttling errors.",
+        when_ok="Map MaxConcurrency stays within the invoked function's reserved cap.",
+        fix="Lower MaxConcurrency or raise the function's reserved concurrency.",
+        required_entity_kinds=frozenset({K.WORKFLOW, K.COMPUTE_JOB}),
+        evaluate=_eval_plat011,
     ),
 )
 

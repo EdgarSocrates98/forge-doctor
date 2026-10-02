@@ -1,0 +1,72 @@
+{
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-02",
+ "sources": [
+  "https://docs.aws.amazon.com/athena/latest/ug/engine-versions-reference.html",
+  "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg.html",
+  "https://docs.aws.amazon.com/athena/latest/ug/unload.html",
+  "https://docs.aws.amazon.com/athena/latest/ug/prepared-statements.html"
+ ],
+ "domain": "athena",
+ "capabilities": [
+  {
+   "id": "ATHENA_ICEBERG",
+   "platform": "athena",
+   "status": "conditional",
+   "versions": {
+    "1": "unsupported",
+    "2": "unsupported",
+    "3": "supported"
+   },
+   "reason": "Iceberg tables (query + CTAS/DDL) require Athena engine version 3.",
+   "limitations": [
+    "Iceberg DDL needs the workgroup on engine 3; readers on engine 2 fail."
+   ],
+   "source": "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg.html"
+  },
+  {
+   "id": "ATHENA_UNLOAD",
+   "platform": "athena",
+   "status": "conditional",
+   "versions": {
+    "1": "unsupported",
+    "2": "supported",
+    "3": "supported"
+   },
+   "reason": "UNLOAD writes query results as files to S3; engine 2+.",
+   "source": "https://docs.aws.amazon.com/athena/latest/ug/unload.html"
+  },
+  {
+   "id": "ATHENA_PREPARED_STATEMENTS",
+   "platform": "athena",
+   "status": "conditional",
+   "versions": {
+    "1": "unsupported",
+    "2": "supported",
+    "3": "supported"
+   },
+   "reason": "PREPARE/EXECUTE prepared statements require engine version 2+.",
+   "source": "https://docs.aws.amazon.com/athena/latest/ug/prepared-statements.html"
+  },
+  {
+   "id": "ATHENA_RESULT_REUSE",
+   "platform": "athena",
+   "status": "conditional",
+   "versions": {
+    "1": "unsupported",
+    "2": "supported",
+    "3": "supported"
+   },
+   "reason": "Result reuse (ResultConfigurationUpdates) requires engine 2+.",
+   "source": "https://docs.aws.amazon.com/athena/latest/ug/reusing-query-results.html"
+  },
+  {
+   "id": "ATHENA_SYNC_INTEGRATION",
+   "platform": "athena",
+   "status": "supported",
+   "reason": "Step Functions supports startQueryExecution/getQueryResults as `.sync` tasks - no polling Lambda needed.",
+   "source": "https://docs.aws.amazon.com/step-functions/latest/dg/connect-athena.html"
+  }
+ ]
+}

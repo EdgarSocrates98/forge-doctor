@@ -46,7 +46,8 @@ def sfn_inspect(
     for m in model.machines:
         mtype = m.type.upper() or "unknown"
         loc = f"{m.file}:{m.line}" if m.line else f"{m.file}"
-        console.print(f"\n  [bold]{m.name}[/bold]  {mtype}  [dim]{loc}[/dim]")
+        qlang = m.query_language or "JSONPath"
+        console.print(f"\n  [bold]{m.name}[/bold]  {mtype}  {qlang}  [dim]{loc}[/dim]")
         by_type = Counter(s.type for s in m.states)
         console.print("    states: " + ", ".join(f"{k}x{n}" for k, n in sorted(by_type.items())))
         integ = sorted({s.integration for s in m.states if s.integration})
@@ -54,7 +55,25 @@ def sfn_inspect(
             console.print(f"    integrations: {', '.join(integ)}")
         retries = sum(s.retry_count for s in m.states)
         catches = sum(s.catch_count for s in m.states)
-        console.print(f"    retry blocks: {retries}  catch blocks: {catches}")
+        attempts = sum(s.retry_max_attempts for s in m.states)
+        console.print(
+            f"    retry blocks: {retries} (max_attempts={attempts})  catch blocks: {catches}"
+        )
+        maps = [s for s in m.states if s.map_mode]
+        if maps:
+            console.print(
+                "    maps: "
+                + ", ".join(
+                    f"{s.name}[{s.map_mode} max_concurrency={s.max_concurrency or '-'} "
+                    f"tolerated={s.tolerated_failure}%]"
+                    for s in maps
+                )
+            )
+        payload = sorted({k for s in m.states for k in s.payload_keys})
+        if payload:
+            console.print(f"    payload keys: {', '.join(payload)}")
+        for n in m.nested:
+            console.print(f"    nested {n.name}: {len(n.states)} state(s)")
 
     if model.iac_refs:
         console.print(f"\n[bold]IaC references[/bold]  {', '.join(model.iac_refs)}")

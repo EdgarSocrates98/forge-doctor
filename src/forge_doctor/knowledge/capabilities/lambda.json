@@ -1,0 +1,56 @@
+{
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-02",
+ "sources": [
+  "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html",
+  "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html",
+  "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html",
+  "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html"
+ ],
+ "domain": "lambda",
+ "capabilities": [
+  {
+   "id": "LAMBDA_DESTINATIONS",
+   "platform": "lambda",
+   "status": "supported",
+   "reason": "Asynchronous invocations support on-success/on-failure destinations and DLQs.",
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html"
+  },
+  {
+   "id": "LAMBDA_RESERVED_CONCURRENCY",
+   "platform": "lambda",
+   "status": "supported",
+   "reason": "reserved_concurrent_executions bounds a function's parallelism; unset means account-limit headroom.",
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html"
+  },
+  {
+   "id": "LAMBDA_SNAPSTART",
+   "platform": "lambda",
+   "status": "conditional",
+   "versions": {
+    "java11": "supported",
+    "java17": "supported",
+    "java21": "supported",
+    "python3.12": "supported",
+    "python3.13": "supported",
+    "dotnet8": "supported"
+   },
+   "reason": "SnapStart (snapshot-restored init) is limited to specific runtimes - java11+, python3.12+, .NET 8+.",
+   "limitations": [
+    "Not available on interpreted runtimes below the listed floors."
+   ],
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html"
+  },
+  {
+   "id": "LAMBDA_STREAM_TO_LAKE",
+   "platform": "lambda",
+   "status": "conditional",
+   "reason": "Stream event sources (Kinesis/DynamoDB/SQS) deliver at-least-once - handlers must dedupe or be idempotent.",
+   "limitations": [
+    "Static evidence of an idempotency library import is the only offline signal."
+   ],
+   "source": "https://docs.aws.amazon.com/lambda/latest/dg/with-kinesis.html"
+  }
+ ]
+}

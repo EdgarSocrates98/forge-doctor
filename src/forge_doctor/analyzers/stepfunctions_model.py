@@ -47,6 +47,14 @@ class SfnState:
     catch_count: int
     map_mode: str  # "" | INLINE | DISTRIBUTED
     line: int
+    query_language: str = ""  # JSONata|JSONPath|"" (inherit)
+    payload_keys: tuple[str, ...] = ()  # InputPath|Parameters|Arguments|Output|...
+    retry_max_attempts: int = 0  # summed MaxAttempts across Retry entries
+    retry_errors: tuple[str, ...] = ()  # ErrorEquals across Retry entries
+    catch_errors: tuple[str, ...] = ()  # ErrorEquals across Catch entries
+    max_concurrency: int = 0  # Map MaxConcurrency (0 = unset/default)
+    tolerated_failure: float = 0.0  # Map ToleratedFailurePercentage
+    target: str = ""  # lambda FunctionName / literal arn tail when resolvable
 
 
 @dataclass(frozen=True)
@@ -60,6 +68,7 @@ class SfnMachine:
     start_at: str
     states: tuple[SfnState, ...]
     nested: tuple[SfnMachine, ...] = ()  # Map Iterator/ItemProcessor bodies
+    query_language: str = "JSONPath"  # top-level QueryLanguage (ASL default)
 
 
 @dataclass
@@ -123,12 +132,58 @@ def _states_of(doc: dict[str, Any]) -> tuple[SfnState, ...]:
         )
         resource = str(body.get("Resource", "") or "")
         map_mode = ""
+        max_concurrency = 0
+        tolerated_failure = 0.0
         if body.get("Type") == "Map":
             proc = body.get("ItemProcessor") or body.get("Iterator") or {}
             mode = proc.get("ProcessorConfig", {}).get("Mode", "") if isinstance(proc, dict) else ""
             map_mode = str(mode).upper() or "INLINE"
+            mc = body.get("MaxConcurrency")
+            max_concurrency = int(mc) if isinstance(mc, (int, float)) else 0
+            tfail = body.get("ToleratedFailurePercentage")
+            tolerated_failure = float(tfail) if isinstance(tfail, (int, float)) else 0.0
         timeout = body.get("TimeoutSeconds")
         heartbeat = body.get("HeartbeatSeconds")
+        retries = [r for r in body.get("Retry", []) or [] if isinstance(r, dict)]
+        retry_max_attempts = 0
+        retry_errors: list[str] = []
+        for r in retries:
+            ma = r.get("MaxAttempts")
+            retry_max_attempts += int(ma) if isinstance(ma, (int, float)) else 1
+            retry_errors.extend(str(e) for e in (r.get("ErrorEquals") or []) if isinstance(e, str))
+        catch_errors = [
+            str(e)
+            for c in body.get("Catch", []) or []
+            if isinstance(c, dict)
+            for e in (c.get("ErrorEquals") or ["States.ALL"])
+            if isinstance(e, str)
+        ]
+        payload_keys = tuple(
+            k
+            for k in (
+                "InputPath",
+                "OutputPath",
+                "Parameters",
+                "ResultSelector",
+                "ResultPath",
+                "Arguments",
+                "Output",
+                "Assign",
+                "ItemSelector",
+                "ItemBatcher",
+            )
+            if k in body
+        )
+        target = ""
+        params = body.get("Parameters") or body.get("Arguments") or {}
+        if isinstance(params, dict):
+            for key in ("FunctionName", "FunctionArn", "functionName"):
+                v = params.get(key)
+                if isinstance(v, str) and not v.endswith(".$"):
+                    target = v.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+                    break
+        if not target and resource.startswith("arn:aws:lambda:"):
+            target = resource.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
         out.append(
             SfnState(
                 name=name,
@@ -142,10 +197,18 @@ def _states_of(doc: dict[str, Any]) -> tuple[SfnState, ...]:
                 integration=_integration(resource),
                 timeout_seconds=int(timeout) if isinstance(timeout, (int, float)) else None,
                 heartbeat_seconds=int(heartbeat) if isinstance(heartbeat, (int, float)) else None,
-                retry_count=len(body.get("Retry", []) or []),
+                retry_count=len(retries),
                 catch_count=len(catches),
                 map_mode=map_mode,
                 line=0,
+                query_language=str(body.get("QueryLanguage", "") or ""),
+                payload_keys=payload_keys,
+                retry_max_attempts=retry_max_attempts,
+                retry_errors=tuple(sorted(set(retry_errors))),
+                catch_errors=tuple(sorted(set(catch_errors))),
+                max_concurrency=max_concurrency,
+                tolerated_failure=tolerated_failure,
+                target=target,
             )
         )
     return tuple(out)
@@ -184,6 +247,7 @@ def _machines_from_json(
         return []
     if not isinstance(doc, dict) or not isinstance(doc.get("States"), dict):
         return []
+    qlang = str(doc.get("QueryLanguage", "") or "JSONPath")
     return [
         SfnMachine(
             name=name,
@@ -193,6 +257,7 @@ def _machines_from_json(
             start_at=str(doc.get("StartAt", "")),
             states=_states_of(doc),
             nested=_nested_of(doc, file),
+            query_language=qlang,
         )
     ]
 

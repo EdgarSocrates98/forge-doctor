@@ -861,6 +861,17 @@ mapping) is exercised on a Databricks cluster whose `spark_version`
 predates the feature's protocol floor — the capability registry's
 UNSUPPORTED verdict or the floor check produces the finding.
 
+### PLAT010 — SFN + Lambda poller where native `.sync` exists · info
+A state machine invokes a Lambda Task while the project contains a
+client-side Athena poll pair (`start_query_execution` +
+`get_query_execution`) — the Task is a candidate for
+`states:::aws-sdk:athena:startQueryExecution.sync`.
+
+### PLAT011 — Distributed Map concurrency > Lambda reserved concurrency · warning
+A DISTRIBUTED Map whose ItemProcessor invokes a Lambda function is
+configured with `MaxConcurrency` above the function's
+`reserved_concurrent_executions` — items throttle instead of running.
+
 `forge-doctor platform findings` renders only this category; the same
 checks also run inside `forge-doctor scan` under `category=platform`.
 
@@ -1037,6 +1048,62 @@ Cross-domain rules added by this stage: **PLAT008** (EMR Iceberg
 writes under Lake Formation with no LF-integrated security
 configuration) and **PLAT009** (Databricks runtime below a detected
 Delta feature's protocol floor).
+
+## Athena
+
+`forge-doctor athena` builds an `AthenaProjectModel` from Terraform
+(`aws_athena_workgroup`, `aws_athena_data_catalog`,
+`aws_athena_database`, `aws_athena_named_query`,
+`aws_athena_prepared_statement`), CloudFormation (`AWS::Athena::*`),
+Athena-shaped SQL (CTAS, UNLOAD, PREPARE/EXECUTE, Iceberg DDL), and
+boto3 `athena` call-sites — engine versions, result configuration,
+bytes-scanned cutoffs, and query operations. Commands:
+`athena inspect`, `athena findings`.
+
+- **ATH000** Athena usage census · info (anchor)
+- **ATH001** engine < 3 with Iceberg DDL evidence · warning
+- **ATH002** workgroup without enforced result location · info
+- **ATH003** workgroup without `bytes_scanned_cutoff_per_query` · info
+- **ATH004** CTAS/UNLOAD/PREPARE SQL but no declared workgroup · info
+- **ATH005** boto3 `start_query_execution` + `get_query_execution`
+  polling pair · info
+
+## Lambda
+
+`forge-doctor lambda` builds a `LambdaProjectModel` from Terraform
+(`aws_lambda_function`, `aws_lambda_event_source_mapping`,
+`aws_lambda_permission`, `aws_lambda_function_event_invoke_config`,
+`aws_lambda_provisioned_concurrency_config`, `aws_lambda_layer_version`,
+S3/SNS/schedule trigger resources), CloudFormation (`AWS::Lambda::*`),
+and boto3 `lambda` call-sites — runtime, architecture, memory, timeout,
+ephemeral storage, concurrency controls, VPC, DLQ, layers, event
+sources, destinations, and idempotency-library evidence. Commands:
+`lambda inspect`, `lambda findings`.
+
+- **LAM000** Lambda usage census · info (anchor)
+- **LAM001** end-of-life runtime · warning
+- **LAM002** event-triggered function without DLQ/destination · info
+- **LAM003** stream-triggered function without concurrency bound · info
+- **LAM004** timeout unset or at the 15-minute ceiling · info
+- **LAM005** VPC-attached function on default 128MB memory · info
+
+## Step Functions (deepened)
+
+The `StepFunctionsModel` now captures per-machine `QueryLanguage`
+(JSONPath default vs JSONata opt-in), per-state payload keys
+(`InputPath`/`Parameters`/`ResultSelector`/`ResultPath`/`Arguments`/
+`Output`/`Assign`/`ItemSelector`/`ItemBatcher`), retry semantics
+(`MaxAttempts` sums, `ErrorEquals` sets on Retry and Catch), the
+invoked Lambda `target` (`Parameters.FunctionName` or literal ARN), and
+Distributed Map `MaxConcurrency`/`ToleratedFailurePercentage`.
+
+- **SFN030** JSONata-only keys under a JSONPath machine · warning
+- **SFN031** DISTRIBUTED Map with no retry/catch/tolerance · info
+- **SFN032** Wait+poll loop around a `.sync`-capable integration · warning
+
+Cross-domain rules added: **PLAT010** (SFN + Lambda poller → native
+`.sync` candidate) and **PLAT011** (Distributed Map concurrency exceeds
+the invoked Lambda's reserved concurrency).
 
 ## Policy
 

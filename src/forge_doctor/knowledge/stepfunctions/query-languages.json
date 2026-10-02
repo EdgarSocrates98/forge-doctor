@@ -1,0 +1,47 @@
+{
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-02",
+ "sources": [
+  "https://docs.aws.amazon.com/step-functions/latest/dg/transforming-data.html",
+  "https://docs.aws.amazon.com/step-functions/latest/dg/jsonpath-jsonata.html",
+  "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-asl-use-map-state-distributed.html"
+ ],
+ "domain": "stepfunctions",
+ "query_languages": [
+  {
+   "name": "JSONPath",
+   "status": "default",
+   "payload_keys": ["InputPath", "OutputPath", "Parameters", "ResultSelector", "ResultPath"],
+   "note": "ASL default; JSONPath reference syntax with $-anchored paths."
+  },
+  {
+   "name": "JSONata",
+   "status": "optional",
+   "payload_keys": ["Arguments", "Output", "Assign"],
+   "note": "Opt-in per machine or per state via QueryLanguage. JSONata-only keys (Arguments/Output/Assign) are invalid under JSONPath."
+  }
+ ],
+ "integration_patterns": [
+  {
+   "pattern": "arn:aws:states:::<service>:<api>",
+   "kind": "request-response",
+   "note": "Task returns after the API call; the job keeps running in the background."
+  },
+  {
+   "pattern": "arn:aws:states:::<service>:<api>.sync",
+   "kind": "run-a-job-sync",
+   "note": "Step Functions waits for job completion - replaces hand-rolled Wait+poll loops. Supported for Athena startQueryExecution, Glue, EMR, ECS runTask, Batch, SageMaker, and more."
+  },
+  {
+   "pattern": "arn:aws:states:::<service>:<api>.waitForTaskToken",
+   "kind": "callback",
+   "note": "Pauses until an external process returns the task token (e.g. a worker in a queue)."
+  }
+ ],
+ "distributed_map": {
+  "max_concurrency_field": "MaxConcurrency",
+  "tolerance_fields": ["ToleratedFailurePercentage", "ToleratedFailureCount"],
+  "note": "DISTRIBUTED mode fans out via child workflow executions; concurrency must respect downstream service quotas (Lambda reserved concurrency, API limits)."
+ }
+}

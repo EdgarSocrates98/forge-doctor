@@ -1,0 +1,27 @@
+{
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-02",
+ "sources": [
+  "https://docs.aws.amazon.com/athena/latest/ug/engine-versions-reference.html",
+  "https://docs.aws.amazon.com/athena/latest/ug/querying-iceberg.html"
+ ],
+ "domain": "athena",
+ "engines": [
+  {
+   "version": "1",
+   "status": "legacy",
+   "note": "Deprecated. No prepared statements, UNLOAD, result reuse, or Iceberg."
+  },
+  {
+   "version": "2",
+   "status": "supported",
+   "note": "Prepared statements, UNLOAD, result reuse. No Iceberg tables."
+  },
+  {
+   "version": "3",
+   "status": "current",
+   "note": "Required for Iceberg DDL/DML, lake analytics, and the current Spark/Trino feature line."
+  }
+ ]
+}

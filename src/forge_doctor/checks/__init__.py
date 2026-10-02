@@ -25,6 +25,7 @@ from forge_doctor.checks import (
     platforms,
     python_env,
     repository,
+    serverless,
     spark,
     stepfunctions,
     streaming,
@@ -57,6 +58,7 @@ BUILTIN_MODULES = (
     neptune,
     architecture,
     platforms,
+    serverless,
 )
 
 
