@@ -15,7 +15,7 @@ everything.
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -107,8 +107,31 @@ class DataPlatformGraph:
     _in: dict[str, list[Relationship]] = field(default_factory=dict)
 
     def add_entity(self, entity: Entity) -> Entity:
-        """Insert; first occurrence of an id wins (deterministic)."""
-        return self._entities.setdefault(entity.id, entity)
+        """Insert; on collision the first occurrence wins per-field while
+        missing attrs/file/line are filled from later producers - two
+        adapters describing the same entity union their facts."""
+        existing = self._entities.get(entity.id)
+        if existing is None:
+            self._entities[entity.id] = entity
+            return entity
+        merged_attrs = dict(entity.attrs)
+        merged_attrs.update(existing.attrs)  # first producer wins per key
+        if (
+            tuple(sorted(merged_attrs.items())) == existing.attrs
+            and (existing.file or not entity.file)
+            and (existing.line is not None or entity.line is None)
+            and (existing.name or not entity.name)
+        ):
+            return existing  # nothing new to merge - keep identity
+        merged = replace(
+            existing,
+            file=existing.file or entity.file,
+            line=existing.line if existing.line is not None else entity.line,
+            attrs=tuple(sorted(merged_attrs.items())),
+            name=existing.name or entity.name,
+        )
+        self._entities[entity.id] = merged
+        return merged
 
     def add_relationship(self, rel: Relationship) -> bool:
         """Insert; returns False for an exact duplicate edge."""

@@ -695,7 +695,21 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 or res.labels[-1]
             )
         )
-        typed = _e(kind, domain, name, res.file, res.line, producer="terraform")
+        # Version-ish attributes feed semantic diffs and what-if checks;
+        # copy only keys that exist so attrs stay evidence-backed.
+        version_attrs = {
+            k: str(res.attrs[k])
+            for k in (
+                "glue_version",
+                "runtime",
+                "engine_version",
+                "release_label",
+                "format_version",
+                "spark_version",
+            )
+            if k in res.attrs
+        }
+        typed = _e(kind, domain, name, res.file, res.line, producer="terraform", **version_attrs)
         g.add_entity(typed)
         g.add_relationship(
             Relationship(src=infra.id, dst=typed.id, kind=R.DEFINES, evidence_kind=_CFG)

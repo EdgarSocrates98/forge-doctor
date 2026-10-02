@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `WorkspaceModel`: marker-based repo discovery, per-repo platform
   graphs merged by canonical entity id, and cross-repo `DEFINES` /
   `IMPLEMENTS` / `INVOKES` links from `repo:workspace:<name>` entities.
+- **Semantic diff** — `forge-doctor diff <base>...<head> --semantic`:
+  entity-level `added`/`removed`/`modified`/`touched` changes, blast
+  radius via dependency-aware traversal, and a deterministic
+  low/medium/high risk classification with reasons — CI-gateable PR
+  intelligence without an LLM.
+- Terraform typed entities propagate version attrs (`glue_version`,
+  `runtime`, `engine_version`, `release_label`, `format_version`,
+  `spark_version`); `add_entity` merges duplicate-id entities instead of
+  discarding later producers' attrs.
 
 ### Fixed
 

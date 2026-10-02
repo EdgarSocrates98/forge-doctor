@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import shutil
 import subprocess
 import tempfile
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
@@ -400,8 +402,9 @@ def _scan_items(path: Path) -> dict[str, dict[str, object]]:
     return {r.fingerprint: result_to_dict(r) for r in report.results if r.fingerprint is not None}
 
 
-def _scan_git_ref(repo: Path, ref: str) -> dict[str, dict[str, object]] | None:
-    """Scan a git ref via a temporary detached worktree. None on failure."""
+@contextlib.contextmanager
+def _ref_worktree(repo: Path, ref: str) -> Iterator[Path | None]:
+    """Yield a detached worktree of ``ref`` (None when the ref fails)."""
     tmp = Path(tempfile.mkdtemp(prefix="forge-doctor-diff-"))
     add = subprocess.run(
         ["git", "-C", str(repo), "worktree", "add", "--detach", str(tmp), ref],
@@ -413,9 +416,10 @@ def _scan_git_ref(repo: Path, ref: str) -> dict[str, dict[str, object]] | None:
     if add.returncode != 0:
         shutil.rmtree(tmp, ignore_errors=True)
         _stderr.print(f"[red]Cannot resolve ref '{ref}':[/red] {add.stderr.strip()}")
-        return None
+        yield None
+        return
     try:
-        return _scan_items(tmp)
+        yield tmp
     finally:
         subprocess.run(
             ["git", "-C", str(repo), "worktree", "remove", "--force", str(tmp)],
@@ -425,6 +429,14 @@ def _scan_git_ref(repo: Path, ref: str) -> dict[str, dict[str, object]] | None:
             timeout=60,
         )
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _scan_git_ref(repo: Path, ref: str) -> dict[str, dict[str, object]] | None:
+    """Scan a git ref via a temporary detached worktree. None on failure."""
+    with _ref_worktree(repo, ref) as tmp:
+        if tmp is None:
+            return None
+        return _scan_items(tmp)
 
 
 def _resolve_diff_side(spec: str, repo: Path) -> tuple[str, dict[str, dict[str, object]]] | None:

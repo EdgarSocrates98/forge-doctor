@@ -1300,6 +1300,33 @@ three `repo:workspace:<name>` edges:
 Internal `task:*` targets and same-repo invocations are not links.
 `--format json` emits the full repo/link/graph model for tooling.
 
+## Semantic diff
+
+`forge-doctor diff <base>...<head> --semantic` upgrades the findings
+diff into a PR-review report built on the platform graph:
+
+```text
+risk: HIGH   1 files changed   +0 new findings   -0 fixed
+  - modified structural entity compute_job:glue:orders-etl impacts 2 dependents
+| modified | compute_job:glue:orders-etl | glue_version | 2 |
+blast radius -> task:airflow:load, workflow:airflow:daily_load
+```
+
+- **added / removed / modified / touched** — entity-level changes;
+  `touched` means the file changed but extracted attrs are identical.
+- **blast radius** — transitive dependents (callers count: inbound
+  INVOKES/DEPENDS_ON/READS edges are followed, unlike impact-reach).
+- **risk** — HIGH when a removed entity has dependents or a structural
+  entity (table/stream/dataset/catalog/workflow/compute_job) with
+  dependents is modified; MEDIUM for touched-with-dependents or bare
+  removals; LOW otherwise. Reasons are printed per classification.
+- Exit 1 on new findings or HIGH risk — CI-gateable.
+
+Version attrs (`glue_version`, `runtime`, `engine_version`,
+`release_label`, `format_version`, `spark_version`) propagate from
+Terraform onto typed entities so a `4.0 → 5.0` bump registers as
+`modified`, not just `touched`.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning
