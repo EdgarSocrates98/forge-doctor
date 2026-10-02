@@ -17,7 +17,11 @@ from forge_doctor.cli.app import app
 from forge_doctor.cli.common import _build_registry
 from forge_doctor.core.context import ProjectContext
 from forge_doctor.core.diagnosis import cluster_findings
-from forge_doctor.core.remediation import RemediationPlan, plan_remediation
+from forge_doctor.core.remediation import (
+    RemediationPlan,
+    plan_remediation,
+    plan_to_dict,
+)
 from forge_doctor.core.runner import CheckRunner
 
 console = Console()
@@ -40,7 +44,7 @@ def remediate(
     plans = plan_remediation(report.results, clusters, root_cause=root_cause)
 
     if as_json:
-        typer.echo(json.dumps([_plan_dict(p) for p in plans], indent=2))
+        typer.echo(json.dumps([plan_to_dict(p) for p in plans], indent=2))
         return
 
     console.print()
@@ -80,29 +84,3 @@ def _print_plan(plan: RemediationPlan) -> None:
         console.print(f"    validate: {v}")
     for rb in plan.rollback_notes:
         console.print(f"    rollback: {rb}")
-
-
-def _plan_dict(plan: RemediationPlan) -> dict[str, object]:
-    return {
-        "id": plan.id,
-        "problem": plan.problem,
-        "check_id": plan.check_id,
-        "targets": list(plan.targets),
-        "prerequisites": list(plan.prerequisites),
-        "dependencies": list(plan.dependencies),
-        "risks": list(plan.risks),
-        "validation_steps": list(plan.validation_steps),
-        "rollback_notes": list(plan.rollback_notes),
-        "actions": [
-            {
-                "id": a.id,
-                "description": a.description,
-                "target_entity": a.target_entity,
-                "rationale": a.rationale,
-                "expected_effect": a.expected_effect,
-                "validation": a.validation,
-                "depends_on": list(a.depends_on),
-            }
-            for a in plan.actions
-        ],
-    }

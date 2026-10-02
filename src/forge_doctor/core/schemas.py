@@ -238,9 +238,212 @@ GOLDEN_SNAPSHOT: dict[str, Any] = {
     ],
 }
 
+# ---------------------------------------------------------------------------
+# Forge ecosystem contracts (spec 211): portable artifacts downstream
+# Forge tools consume. All describe what the engine already emits.
+# ---------------------------------------------------------------------------
+
+FINDING: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/finding.json",
+    "title": "Single diagnostic finding (one CheckResult)",
+    **_FINDING,
+}
+
+EVIDENCE: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/evidence.json",
+    "title": "Normalized runtime evidence model (runtime inspect --json)",
+    "type": "object",
+    "required": ["source"],
+    "properties": {
+        "source": {"type": "string"},
+        "identifiers": {"type": "array", "items": {"type": "string"}},
+        "executions": {"type": "array", "items": {"type": "object"}},
+        "metrics": {"type": "array", "items": {"type": "object"}},
+        "errors": {"type": "array", "items": {"type": "object"}},
+        "timings": {"type": "array", "items": {"type": "object"}},
+        "throughput": {"type": "array", "items": {"type": "object"}},
+        "lag": {"type": "array", "items": {"type": "object"}},
+        "retries": {"type": "integer"},
+        "resource_usage": {"type": "array", "items": {"type": "object"}},
+        "state": {"type": ["object", "array", "string", "null"]},
+        "events": {"type": "array", "items": {"type": "object"}},
+    },
+    "additionalProperties": True,
+}
+
+_PLATFORM_ENTITY = {
+    "type": "object",
+    "required": ["id", "kind", "domain"],
+    "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string"},
+        "domain": {"type": "string"},
+        "identifier": {"type": "string"},
+        "name": {"type": "string"},
+        "file": {"type": "string"},
+        "line": {"type": "integer"},
+        "attrs": {"type": "object"},
+    },
+}
+
+_PLATFORM_EDGE = {
+    "type": "object",
+    "required": ["src", "dst", "kind"],
+    "properties": {
+        "src": {"type": "string"},
+        "dst": {"type": "string"},
+        "kind": {"type": "string"},
+        "evidence_kind": {"type": "string"},
+        "attrs": {"type": "object"},
+    },
+}
+
+PLATFORM_GRAPH: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/platform-graph.json",
+    "title": "DataPlatformGraph serialization (entities + relationships)",
+    "type": "object",
+    "required": ["entities", "relationships"],
+    "properties": {
+        "entities": {"type": "array", "items": _PLATFORM_ENTITY},
+        "relationships": {"type": "array", "items": _PLATFORM_EDGE},
+    },
+    "additionalProperties": True,
+}
+
+CAPABILITY_REPORT: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/capability-report.json",
+    "title": "Headline capability statuses per platform (capabilities list --json)",
+    "type": "object",
+    "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {"enum": ["supported", "unsupported", "conditional", "unknown"]},
+    },
+}
+
+REMEDIATION_PLAN: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/remediation-plan.json",
+    "title": "Deterministic remediation plan (remediate --json entry)",
+    "type": "object",
+    "required": ["id", "problem", "check_id", "actions"],
+    "properties": {
+        "id": {"type": "string"},
+        "problem": {"type": "string"},
+        "check_id": {"type": "string"},
+        "targets": {"type": "array", "items": {"type": "string"}},
+        "prerequisites": {"type": "array", "items": {"type": "string"}},
+        "dependencies": {"type": "array", "items": {"type": "string"}},
+        "risks": {"type": "array", "items": {"type": "string"}},
+        "validation_steps": {"type": "array", "items": {"type": "string"}},
+        "rollback_notes": {"type": "array", "items": {"type": "string"}},
+        "actions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "description"],
+                "properties": {
+                    "id": {"type": "string"},
+                    "description": {"type": "string"},
+                    "target_entity": {"type": ["string", "null"]},
+                    "rationale": {"type": "string"},
+                    "expected_effect": {"type": "string"},
+                    "validation": {"type": "string"},
+                    "depends_on": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        },
+    },
+    "additionalProperties": True,
+}
+
+HANDOFF_BUNDLE: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "https://forge-doctor.dev/schemas/handoff-bundle.json",
+    "title": "Forge handoff bundle (export --format handoff)",
+    "description": (
+        "Portable package of a scan's durable outputs for downstream Forge "
+        "tools. No timestamps: identical project state produces identical "
+        "bundles."
+    ),
+    "type": "object",
+    "required": [
+        "contract",
+        "contract_version",
+        "schema_version",
+        "tool",
+        "project",
+        "summary",
+        "results",
+        "graph",
+        "capabilities",
+        "plans",
+    ],
+    "properties": {
+        "contract": {"const": "handoff-bundle"},
+        "contract_version": {"type": "integer"},
+        "schema_version": {"type": "string"},
+        "tool": {
+            "type": "object",
+            "required": ["name", "version"],
+            "properties": {
+                "name": {"const": "forge-doctor"},
+                "version": {"type": "string"},
+            },
+        },
+        "project": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string"},
+                "root": {"type": "string"},
+            },
+        },
+        "summary": {
+            "type": "object",
+            "required": ["passed", "info", "warnings", "errors"],
+            "properties": {
+                "passed": {"type": "integer"},
+                "info": {"type": "integer"},
+                "warnings": {"type": "integer"},
+                "errors": {"type": "integer"},
+            },
+        },
+        "results": {"type": "array", "items": _FINDING},
+        "graph": {
+            "type": "object",
+            "required": ["entities", "relationships"],
+            "properties": {
+                "entities": {"type": "array", "items": _PLATFORM_ENTITY},
+                "relationships": {"type": "array", "items": _PLATFORM_EDGE},
+            },
+        },
+        "capabilities": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "enum": ["supported", "unsupported", "conditional", "unknown"]
+                },
+            },
+        },
+        "plans": {"type": "array", "items": REMEDIATION_PLAN},
+    },
+    "additionalProperties": True,
+}
+
 SCHEMAS: dict[str, dict[str, Any]] = {
     "scan-report": SCAN_REPORT,
     "policy-pack": POLICY_PACK,
     "lab-expected": LAB_EXPECTED,
     "golden-snapshot": GOLDEN_SNAPSHOT,
+    "finding": FINDING,
+    "evidence": EVIDENCE,
+    "platform-graph": PLATFORM_GRAPH,
+    "capability-report": CAPABILITY_REPORT,
+    "remediation-plan": REMEDIATION_PLAN,
+    "handoff-bundle": HANDOFF_BUNDLE,
 }

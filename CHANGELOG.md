@@ -163,6 +163,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checklist + optional pack_version/verified_at rewrite; dry-run only,
   distribution stays manual). Entries relying only on `re:` patterns
   without an `examples` fixture report as warnings.
+- **Ecosystem contracts** — the published contract set grows to the full
+  interop surface: `evidence`, `finding`, `capability-report`,
+  `platform-graph`, `remediation-plan`, and `handoff-bundle` join the
+  existing `scan-report`/`policy-pack`/`lab-expected`/`golden-snapshot`
+  schemas (`forge-doctor schema contracts <name>`). New commands:
+  `forge-doctor export <path> --format handoff` emits a portable JSON
+  bundle (`{contract, contract_version, schema_version, tool, project,
+  summary, results, graph, capabilities, plans}`) with stable keys and
+  deterministic ordering for downstream Forge tools, and
+  `forge-doctor contracts list|verify <bundle>` validates an artifact
+  file or stdin against the published schemas via a dependency-free
+  subset validator (`core/contract_check.py`). `plan_to_dict()` moves to
+  `core/remediation.py` so `remediate --json` and handoff bundles share
+  one serializer. `docs/contracts.md` is the interop spec.
 
 ### Fixed
 

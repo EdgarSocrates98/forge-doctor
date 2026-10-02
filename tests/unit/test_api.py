@@ -105,6 +105,13 @@ def test_schema_registry_covers_public_artifacts() -> None:
         "policy-pack",
         "lab-expected",
         "golden-snapshot",
+        # Forge ecosystem contracts (spec 211)
+        "finding",
+        "evidence",
+        "platform-graph",
+        "capability-report",
+        "remediation-plan",
+        "handoff-bundle",
     }
     for schema in SCHEMAS.values():
         assert schema["$schema"].endswith("/schema")

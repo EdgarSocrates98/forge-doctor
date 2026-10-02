@@ -148,3 +148,30 @@ def plan_remediation(
         if kind == "check" and key in by_check:
             plans.append(_plan(entry, key, tuple(sorted(by_check[key]))))
     return sorted(plans, key=lambda p: p.id)
+
+
+def plan_to_dict(plan: RemediationPlan) -> dict[str, Any]:
+    """Stable JSON-ready serialization of one remediation plan."""
+    return {
+        "id": plan.id,
+        "problem": plan.problem,
+        "check_id": plan.check_id,
+        "targets": list(plan.targets),
+        "prerequisites": list(plan.prerequisites),
+        "dependencies": list(plan.dependencies),
+        "risks": list(plan.risks),
+        "validation_steps": list(plan.validation_steps),
+        "rollback_notes": list(plan.rollback_notes),
+        "actions": [
+            {
+                "id": a.id,
+                "description": a.description,
+                "target_entity": a.target_entity,
+                "rationale": a.rationale,
+                "expected_effect": a.expected_effect,
+                "validation": a.validation,
+                "depends_on": list(a.depends_on),
+            }
+            for a in plan.actions
+        ],
+    }

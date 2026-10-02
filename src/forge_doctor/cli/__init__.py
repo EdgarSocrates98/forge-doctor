@@ -14,6 +14,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     datamodel,
     diff,
     dynamodb,
+    export,
     fix,
     fleet,
     golden,
@@ -117,11 +118,11 @@ _PANELS: dict[str, dict[str, str]] = {
         "Estate & change",
     ),
     "Quality gates & supply chain": dict.fromkeys(
-        ("lab", "golden", "bench", "policy", "plugins", "knowledge", "sbom"),
+        ("lab", "golden", "bench", "policy", "plugins", "knowledge", "sbom", "contracts"),
         "Quality gates & supply chain",
     ),
     "Setup & integrations": dict.fromkeys(
-        ("init", "info", "doctor", "cache", "mcp", "lsp", "version"),
+        ("init", "info", "doctor", "cache", "mcp", "lsp", "export", "version"),
         "Setup & integrations",
     ),
 }

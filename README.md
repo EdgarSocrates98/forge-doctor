@@ -86,6 +86,8 @@ forge-doctor lab run                  # Forge Lab scenario suites + ground truth
 forge-doctor golden run               # golden-repo snapshot regression
 forge-doctor bench run .              # performance & scale benchmark
 forge-doctor schema contracts         # JSON Schemas for output artifacts
+forge-doctor export . -f handoff      # portable bundle for downstream Forge tools
+forge-doctor contracts verify b.json  # validate a bundle against published contracts
 forge-doctor info                   # project stats, no checks
 forge-doctor init --name my-etl     # scaffold a new project
 forge-doctor repo                   # category shortcuts
@@ -257,7 +259,10 @@ forge-doctor scan . --format json
 
 The JSON contract is stable and meant for CI, GitHub, and agent consumers —
 `forge-doctor schema contracts` emits the JSON Schemas for every public
-artifact and [docs/api.md](docs/api.md) records the versioning rules.
+artifact, `forge-doctor contracts verify` validates artifacts against
+them, and [docs/api.md](docs/api.md) +
+[docs/contracts.md](docs/contracts.md) record the versioning and
+interop rules.
 Every finding carries a stable `fingerprint`; optional fields (`confidence`,
 `evidence`, `evidence_kind`, `tags`, `docs_uri`, `source`, `fixable`,
 `column`, `end_line`, `end_column`) appear only when set. `is_new`/`baseline`

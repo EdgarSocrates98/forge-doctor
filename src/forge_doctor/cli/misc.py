@@ -471,6 +471,60 @@ def schema_diff_cmd(
         raise typer.Exit(1)
 
 
+contracts_app = typer.Typer(
+    name="contracts", help="Published artifact contracts (verify handoff bundles, schemas)."
+)
+app.add_typer(contracts_app, name="contracts")
+
+
+@contracts_app.command(name="list")
+def contracts_list() -> None:
+    """List the published contract names (see `schema contracts <name>` for a dump)."""
+    from forge_doctor.core.schemas import SCHEMAS
+
+    console = Console()
+    for key in sorted(SCHEMAS):
+        console.print(f"  [bold]{key}[/bold]")
+
+
+@contracts_app.command(name="verify")
+def contracts_verify(
+    bundle: Annotated[
+        str, typer.Argument(help="JSON artifact to validate, or '-' for stdin.")
+    ] = "-",
+    contract: Annotated[
+        str, typer.Option("--contract", help="Contract name (see `contracts list`).")
+    ] = "handoff-bundle",
+) -> None:
+    """Validate a JSON artifact against a published contract (stdin or file).
+
+    ``forge-doctor export --format handoff`` output validates against
+    ``handoff-bundle``; other Forge tools use this in their own tests.
+    """
+    import sys
+
+    from forge_doctor.core.contract_check import verify_contract
+
+    label = "stdin"
+    try:
+        if bundle == "-":
+            raw = sys.stdin.read()
+        else:
+            label = Path(bundle).name
+            raw = Path(bundle).read_text(encoding="utf-8")
+        payload = json.loads(raw)
+    except (OSError, json.JSONDecodeError) as exc:
+        _stderr.print(f"[red]unreadable JSON:[/red] {exc}")
+        raise typer.Exit(1) from exc
+    errors = verify_contract(payload, contract)
+    console = Console()
+    if errors:
+        for err in errors:
+            console.print(f"  [red]invalid[/red] {err}")
+        raise typer.Exit(1)
+    console.print(f"[green]{label} satisfies contract '{contract}'[/green]")
+
+
 knowledge_app = typer.Typer(name="knowledge", help="Knowledge-pack provenance.")
 app.add_typer(knowledge_app, name="knowledge")
 
