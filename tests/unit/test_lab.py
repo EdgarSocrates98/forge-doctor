@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 from pathlib import Path
+
+import pytest
 
 from forge_doctor.core.lab import (
     discover_scenarios,
@@ -163,6 +167,35 @@ def test_root_cause_chain_via_runtime(tmp_path: Path) -> None:
     assert report.passed, (report.root_causes.missed, report.root_causes.actual)
 
 
+@pytest.mark.skipif(shutil.which("git") is None, reason="git binary required")
+def test_scenario_isolated_from_host_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Host env vars, ~/.aws config, and ancestor repos must not leak in.
+
+    AWS002 resolves a region from env or ~/.aws; GIT001 walks up to an
+    ancestor worktree. Under hermetic scanning both report the deterministic
+    "absent" verdict (warning/info lands in ``actual``; a host-derived PASS
+    would not).
+    """
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIAFAKE")
+    fake_home = tmp_path / "host-home"
+    (fake_home / ".aws").mkdir(parents=True)
+    (fake_home / ".aws" / "config").write_text("[default]\nregion = eu-west-1\n", encoding="utf-8")
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True, capture_output=True)
+
+    d = _scenario(
+        tmp_path,
+        "scen",
+        {"expected_findings": ["SPARK003"], "allowed_findings": ["AWS002", "GIT001"]},
+        {"jobs.py": _SPARK},
+    )
+    report = run_scenario(d)
+    assert report.passed
+    assert "AWS002" in report.findings.actual  # warned despite env + config
+    assert "GIT001" in report.findings.actual  # "not a repo" despite ancestor
+
+
 def test_run_lab_aggregates(tmp_path: Path) -> None:
     _scenario(tmp_path, "ok", {"expected_findings": ["SPARK003"]}, {"a.py": _SPARK})
     _scenario(tmp_path, "bad", {"expected_findings": ["NOPE"]}, {"a.py": _SPARK})
@@ -191,7 +224,7 @@ def test_metrics_perfect_run(tmp_path: Path) -> None:
         {
             "expected_findings": ["SPARK003", "SPARK001"],
             "forbidden_findings": ["DELTA001"],
-            "allowed_findings": ["REP001", "REP002", "PY002"],
+            "allowed_findings": ["AWS002", "REP001", "REP002", "PY002"],
         },
         {"jobs.py": _SPARK + "df.collect()\n"},
     )

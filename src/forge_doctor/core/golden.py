@@ -215,12 +215,12 @@ def discover_golden(golden_root: Path) -> list[Path]:
 
 
 def run_golden(repo_dir: Path) -> GoldenReport:
-    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.context import ProjectContext, ScanOptions
 
     name_dir = repo_dir.parent
     expected_dir = name_dir / EXPECTED_DIR
     report = GoldenReport(name=name_dir.name, path=repo_dir)
-    ctx = ProjectContext(root=repo_dir.resolve())
+    ctx = ProjectContext(root=repo_dir.resolve(), options=ScanOptions(hermetic=True))
     try:
         actual = snapshot_project(ctx, repo_dir)
     except Exception as exc:
@@ -244,11 +244,11 @@ def run_golden(repo_dir: Path) -> GoldenReport:
 
 def update_golden(repo_dir: Path) -> Path:
     """Regenerate all snapshot artifacts for one golden repo."""
-    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.context import ProjectContext, ScanOptions
 
     expected_dir = repo_dir.parent / EXPECTED_DIR
     expected_dir.mkdir(parents=True, exist_ok=True)
-    ctx = ProjectContext(root=repo_dir.resolve())
+    ctx = ProjectContext(root=repo_dir.resolve(), options=ScanOptions(hermetic=True))
     snapshot = snapshot_project(ctx, repo_dir)
     for artifact, data in snapshot.items():
         (expected_dir / f"{artifact}.json").write_text(

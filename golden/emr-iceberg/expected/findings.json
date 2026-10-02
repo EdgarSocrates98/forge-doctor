@@ -7,6 +7,13 @@
     "severity": "info"
   },
   {
+    "check_id": "AWS002",
+    "file": null,
+    "fingerprint": "10679ac97bf915c3",
+    "line": null,
+    "severity": "warning"
+  },
+  {
     "check_id": "AWS003",
     "file": null,
     "fingerprint": "9907f7abe0b0b0a9",
@@ -16,7 +23,7 @@
   {
     "check_id": "AWS004",
     "file": null,
-    "fingerprint": "7b76bc4d278f5227",
+    "fingerprint": "187ab1da4763c9d9",
     "line": null,
     "severity": "info"
   },
@@ -63,6 +70,13 @@
     "severity": "info"
   },
   {
+    "check_id": "GIT001",
+    "file": null,
+    "fingerprint": "b3f9dc1de5f22a12",
+    "line": null,
+    "severity": "info"
+  },
+  {
     "check_id": "GLUE001",
     "file": null,
     "fingerprint": "16d08bd0509fa060",
@@ -95,6 +109,13 @@
     "file": "jobs.py",
     "fingerprint": "98b8dcad694e2aa0",
     "line": 9,
+    "severity": "info"
+  },
+  {
+    "check_id": "PY001",
+    "file": null,
+    "fingerprint": "bf8c2f0a829deba0",
+    "line": null,
     "severity": "info"
   },
   {

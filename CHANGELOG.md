@@ -122,6 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Lab/golden host-state leak** — scans now support `ScanOptions.hermetic`,
+  hiding host state (env vars, `~/.aws`, PATH tools, ancestor git repos,
+  the PATH interpreter) so lab and golden results depend only on project
+  files. Fixes CI-only `AWS002` precision regressions when the runner has
+  no AWS region configured; `ctx.home`/`ctx.which` route host reads, and
+  hermetic git scoping still honors a scenario's own `git init`.
 - **Published JSON Schemas contradicted real output** — `scan-report`
   declared `tool`/`project` as strings (actually objects) and
   `golden-snapshot` declared a single object with a `tool` key

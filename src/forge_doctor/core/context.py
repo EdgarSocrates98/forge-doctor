@@ -21,6 +21,9 @@ from forge_doctor.core.config import ForgeDoctorConfig
 from forge_doctor.core.traversal import iter_files
 
 _ENV_KEYS = (
+    # Existence checks only - credential values stay in-process and are
+    # never copied into a result field.
+    "AWS_ACCESS_KEY_ID",
     "AWS_REGION",
     "AWS_DEFAULT_REGION",
     "AWS_PROFILE",
@@ -45,6 +48,11 @@ class ScanOptions:
     # Overlay files read from memory, never from disk, and are excluded
     # from the incremental cache (facts must not key on stale disk shas).
     overlay: Mapping[str, str] | None = None
+    # Hermetic scans hide host state - environment variables, ~/.aws,
+    # PATH tools, and ancestor git repositories - so results depend only
+    # on files inside the project root. Lab and golden corpora use this
+    # to stay deterministic across machines.
+    hermetic: bool = False
 
 
 @dataclass
@@ -113,10 +121,28 @@ class ProjectContext:
     @cached_property
     def env(self) -> dict[str, str]:
         """Relevant environment variables only - values stay in-process."""
+        if self.options.hermetic:
+            return {}
         return {key: os.environ[key] for key in _ENV_KEYS if key in os.environ}
+
+    @property
+    def home(self) -> Path:
+        """User home for host-level config; the project root under hermetic."""
+        return self.root if self.options.hermetic else Path.home()
+
+    def which(self, name: str) -> str | None:
+        """Locate a host tool on PATH; always ``None`` under hermetic scans."""
+        if self.options.hermetic:
+            return None
+        return shutil.which(name)
 
     @cached_property
     def git(self) -> GitInfo:
+        # Under hermetic scans only a repository rooted at the project
+        # counts - an ancestor repo (e.g. a fixture inside a checkout)
+        # would otherwise leak the host's tracked-file set into results.
+        if self.options.hermetic and not (self.root / ".git").exists():
+            return GitInfo(is_repo=False)
         git = shutil.which("git")
         if git is None:
             return GitInfo(is_repo=False)
@@ -140,6 +166,8 @@ class ProjectContext:
     @cached_property
     def python_version(self) -> tuple[int, int, int] | None:
         """Version of the ``python`` on PATH (the project-facing interpreter)."""
+        if self.options.hermetic:
+            return None
         for name in ("python", "python3"):
             binary = shutil.which(name)
             if binary is None:
