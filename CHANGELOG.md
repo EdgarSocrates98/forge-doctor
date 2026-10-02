@@ -177,6 +177,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   subset validator (`core/contract_check.py`). `plan_to_dict()` moves to
   `core/remediation.py` so `remediate --json` and handoff bundles share
   one serializer. `docs/contracts.md` is the interop spec.
+- **Platform ontology** — `core/ontology.py` is the canonical vocabulary
+  registry: every entity kind, relationship kind, evidence plane,
+  evidence domain, producer domain, and capability family carries a
+  documented definition. `forge-doctor ontology` prints it
+  (`-f json` for the stable machine shape); `forge-doctor ontology
+  validate <path>` conformance-checks a project's graph — free-text
+  producer domains outside the vocabulary are diagnostics. The
+  `platform-graph` contract now pins `kind`/`evidence_kind` to the
+  vocabulary enums, so `contracts verify` enforces ontology conformance.
+  `docs/ontology.md` tables are test-verified against the module.
 
 ### Fixed
 

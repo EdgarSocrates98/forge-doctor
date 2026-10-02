@@ -88,6 +88,8 @@ forge-doctor scan . --format sarif     # code scanning
 forge-doctor scan . --format html      # shareable single file
 forge-doctor scan . --format agent     # compact bundle for LLM consumers
 forge-doctor schema contracts          # JSON Schemas for every artifact
+forge-doctor ontology                  # canonical vocabulary + `ontology validate .`
+forge-doctor export . -f handoff       # portable bundle; `contracts verify` gates it
 ```
 
 ## Where to go next

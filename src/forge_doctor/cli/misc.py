@@ -525,6 +525,67 @@ def contracts_verify(
     console.print(f"[green]{label} satisfies contract '{contract}'[/green]")
 
 
+ontology_app = typer.Typer(
+    name="ontology",
+    help="Canonical platform vocabulary (entity/rel kinds, planes, domains).",
+)
+app.add_typer(ontology_app, name="ontology")
+
+
+@ontology_app.callback(invoke_without_command=True)
+def ontology_main(
+    ctx: typer.Context,
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Print the canonical vocabulary (entity kinds, rel kinds, evidence
+    planes/domains, producer domains, capability families)."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from forge_doctor.core.ontology import vocabulary
+
+    if fmt == "json":
+        typer.echo(json.dumps(vocabulary(), indent=2))
+        return
+    console = Console()
+    console.print()
+    console.print("[bold]Platform ontology[/bold] [dim](canonical vocabulary)[/dim]")
+    for section, terms in vocabulary().items():
+        console.print(f"\n[bold]{section.replace('_', ' ')}[/bold]")
+        for term in terms:
+            line = f"  [bold]{term['name']}[/bold]"
+            if term["definition"]:
+                line += f"  [dim]{term['definition']}[/dim]"
+            console.print(line)
+    console.print()
+
+
+@ontology_app.command(name="validate")
+def ontology_validate(
+    path: Annotated[Path, typer.Argument(help="Project root.")],
+) -> None:
+    """Validate a project's platform graph against the ontology vocabulary.
+
+    Reports entities whose free-text producer domain is outside the
+    vocabulary; enum-constrained fields (kind, rel kind, evidence plane)
+    cannot drift by construction.
+    """
+    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor.core.ontology import validate_graph
+
+    ctx_obj = ProjectContext(root=path.resolve())
+    graph = build_platform_graph(ctx_obj)
+    violations = validate_graph(graph)
+    console = Console()
+    if violations:
+        console.print(f"[red]{len(violations)} ontology violation(s)[/red]")
+        for v in violations:
+            console.print(f"  [red]unknown[/red] {v}")
+        raise typer.Exit(1)
+    n_e = len(graph.entities())
+    n_r = len(graph.relationships())
+    console.print(f"[green]ontology clean[/green] — {n_e} entities, {n_r} relationships conform")
+
+
 knowledge_app = typer.Typer(name="knowledge", help="Knowledge-pack provenance.")
 app.add_typer(knowledge_app, name="knowledge")
 

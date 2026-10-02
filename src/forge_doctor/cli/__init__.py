@@ -118,7 +118,17 @@ _PANELS: dict[str, dict[str, str]] = {
         "Estate & change",
     ),
     "Quality gates & supply chain": dict.fromkeys(
-        ("lab", "golden", "bench", "policy", "plugins", "knowledge", "sbom", "contracts"),
+        (
+            "lab",
+            "golden",
+            "bench",
+            "policy",
+            "plugins",
+            "knowledge",
+            "sbom",
+            "contracts",
+            "ontology",
+        ),
         "Quality gates & supply chain",
     ),
     "Setup & integrations": dict.fromkeys(

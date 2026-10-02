@@ -10,6 +10,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from forge_doctor.core.models import EvidenceKind
+from forge_doctor.core.platform_graph import EntityKind, RelKind
+
 SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 
 _FINDING = {
@@ -278,7 +281,11 @@ _PLATFORM_ENTITY = {
     "required": ["id", "kind", "domain"],
     "properties": {
         "id": {"type": "string"},
-        "kind": {"type": "string"},
+        "kind": {
+            "type": "string",
+            "description": "Ontology-bound entity kind (forge-doctor ontology).",
+            "enum": [k.value for k in EntityKind],
+        },
         "domain": {"type": "string"},
         "identifier": {"type": "string"},
         "name": {"type": "string"},
@@ -294,8 +301,16 @@ _PLATFORM_EDGE = {
     "properties": {
         "src": {"type": "string"},
         "dst": {"type": "string"},
-        "kind": {"type": "string"},
-        "evidence_kind": {"type": "string"},
+        "kind": {
+            "type": "string",
+            "description": "Ontology-bound relationship kind (forge-doctor ontology).",
+            "enum": [k.value for k in RelKind],
+        },
+        "evidence_kind": {
+            "type": "string",
+            "description": "Ontology-bound evidence plane.",
+            "enum": [k.value for k in EvidenceKind],
+        },
         "attrs": {"type": "object"},
     },
 }

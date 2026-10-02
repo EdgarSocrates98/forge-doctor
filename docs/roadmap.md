@@ -145,6 +145,27 @@ Reliability & trust:
   analysis, safe-fix (`--dry-run`/`--apply` boundaries), experiment
   engine, knowledge supply-chain lifecycle, Forge ecosystem contracts.
 
+## Consolidation programs (specs 225–229, run before roadmap-4)
+
+The official sequence inserts a consolidation layer between P6–P10 and
+coverage expansion — numbered 225–229 because 212–224 are already
+taken:
+
+- **Platform Ontology** (225): canonical vocabulary — entity kinds,
+  relationship kinds, evidence planes, domains, capability families —
+  with conformance validation so adapters can't drift silently.
+- **Capability Graph** (226): provenance wiring from each evaluated
+  capability to the entities/models/evidence that produced its status.
+- **Formal Digital Twin** (227): the `DataPlatformGraph` plus a
+  deterministic invariant suite — the trusted snapshot that decision
+  and optimization intelligence stand on.
+- **Decision Intelligence** (228): `advise` — ranked, fully-cited
+  actions merging root causes, remediation plans, fix safety, policy,
+  and blast radius.
+- **Optimization Intelligence** (229): `optimize` — ranked improvement
+  candidates with static cost-proxy estimates and an explicit
+  `lab experiment`/`what-if` validation path.
+
 ## Roadmap-4 — data-platform coverage expansion (specs authored)
 
 Generic model first, then vendor adapters (invariant: vendors are
