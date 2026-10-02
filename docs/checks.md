@@ -584,6 +584,77 @@ verification.
 `forge-doctor streaming inspect` summarizes the same model without a
 scan.
 
+## Graph (GraphProjectModel — query files, call sites, bulk-load headers)
+
+The model separates property-graph evidence (Gremlin/openCypher:
+vertices/edges, both carry properties) from RDF evidence (SPARQL:
+subject/predicate/object) — the two paradigms are never conflated.
+All GRAPH findings are INFO/WARNING with LOW/MEDIUM confidence: the
+model reports structure and traversal shape, never estimated cost.
+
+### GRAPH001 — Graph workload detected · info
+Anchor: counts traversals, artifacts, languages, paradigms, labels.
+
+### GRAPH002 — Disconnected graph components · info
+Vertex labels cluster into >1 component by traversal evidence — the
+model may be split or linking edges were not found.
+
+### GRAPH003 — Likely orphan vertex type · info
+A vertex label that never appears alongside an edge type.
+
+### GRAPH004 — Edge references undefined vertex type · info
+An edge traversed with no vertex type on at least one endpoint.
+
+### GRAPH005 — Inconsistent relationship direction · info
+The same edge type traversed both out and in across the project.
+
+### GRAPH006 — Relationship represented redundantly · info
+The same label appears as both an edge type and a vertex label.
+
+### GRAPH007 — Overly generic relationship type · info
+Edge labels like `RELATED`/`LINKS` carry no domain meaning.
+
+### GRAPH008 — Wide property vocabulary · info
+Data-dependent (spec-deferred to INFO): ≥8 distinct property keys —
+a static fan-out hint, cardinality needs runtime data.
+
+### GRAPH009 — Probable supernode pattern · info
+Data-dependent (spec-deferred to INFO): a vertex type touching ≥5
+distinct edge types — candidate only, not a confirmed hotspot.
+
+### GRAPH010 — Graph modeled as relational rows · info
+Bulk-load/data artifacts exist but no traversal/query usage was found.
+
+### GRAPH020 — Traversal without selective starting point · warning
+`g.V()` / bare `MATCH (n)` — cost scales with total graph size.
+
+### GRAPH021 — Traversal without a result bound · info
+Hops with no `LIMIT`/`limit()`/`tail()` — unbounded working set.
+
+### GRAPH022 — Variable-length traversal without depth bound · warning
+`[*]`/`[*1..]`/unbounded `repeat()` — paths of arbitrary depth.
+
+### GRAPH023 — High-fanout traversal risk · info
+≥3 hops with no filter — fan-out candidate, needs explain/profile.
+
+### GRAPH024 — Late filtering · info
+First filter lands at step ≥3 — the traversal fanned out first.
+
+### GRAPH025 — Repeated identical traversal pattern · info
+The same traversal shape at multiple call sites.
+
+### GRAPH026 — Excessive full-graph starting traversals · info
+Extension: ≥3 traversals project-wide start unselectively.
+
+### GRAPH030 — Mixed graph paradigms · info/warning
+Extension: property-graph and RDF evidence in the same project (INFO)
+or same file (WARNING) with no explicit boundary.
+
+`forge-doctor graph inspect`, `graph schema`, and `graph traversals`
+summarize the model without a scan. The pre-existing project
+intelligence dump remains available as `forge-doctor graph <path>`
+(unchanged) and `forge-doctor graph project`.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

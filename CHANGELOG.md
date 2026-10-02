@@ -212,6 +212,30 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   via `ctx.capabilities`; CLI: `forge-doctor capabilities list|explain`
   (`--json`, `--version`, `--variant`, `--attr`). ICE001 now consults the
   registry for its format-version floor — first migrated check.
+- **Graph Intelligence** (`analyzers/graph_model.py` +
+  `analyzers/graph_queries.py`) — paradigm-aware graph model: property
+  graph (Gremlin/openCypher) is never conflated with RDF (SPARQL);
+  paradigms land as `property_graph`/`rdf`/`unknown` from evidence.
+  Static shape extractors cover `.cypher`/`.cql`/`.sparql`/`.rq` files,
+  `.gremlin` scripts, Neptune bulk-load CSV headers, RDF data files, and
+  Python call sites (`g.V()` chains via the dotted-call index, query
+  strings handed to client methods) — nothing is executed, unparsed or
+  dynamic queries degrade to `parsed=False` honestly. Traversals record
+  start selectivity, steps, directions, hop counts/bounds, filters and
+  position, projection size, writes, vertex/edge labels, properties, and
+  edge endpoints. New `graph` category: GRAPH001 anchor, GRAPH002
+  disconnected components, GRAPH003 orphan vertex, GRAPH004 edge with
+  undefined endpoint type, GRAPH005 direction inconsistency, GRAPH006
+  redundant relationship modeling, GRAPH007 generic edge label,
+  GRAPH008/009 INFO-gated property fan-out and supernode candidates,
+  GRAPH010 relational-shape artifacts, GRAPH020–025 traversal-shape
+  family (unselective start, unbounded result, unbounded variable
+  length, high fan-out, late filtering, repeated pattern), plus local
+  extensions GRAPH026 (full-graph starts) and GRAPH030 (mixed paradigms).
+  `knowledge/graph/` packs (property-graph, rdf, modeling, algorithms;
+  schema 2 + sources). CLI: `forge-doctor graph inspect|schema|
+  traversals`; the prior project-intelligence dump stays reachable as
+  `forge-doctor graph <path>` (unchanged) and `graph project`.
 
 ### Added (0.7.0)
 

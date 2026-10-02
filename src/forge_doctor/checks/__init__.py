@@ -13,6 +13,7 @@ from forge_doctor.checks import (
     docker,
     git_checks,
     glue,
+    graph,
     iac,
     iceberg,
     lakeformation,
@@ -45,6 +46,7 @@ BUILTIN_MODULES = (
     stepfunctions,
     streaming,
     lakeformation,
+    graph,
 )
 
 

@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html",
+    "https://tinkerpop.apache.org/docs/current/reference/"
+  ],
+  "domain": "graph",
+  "purpose": "Conceptual catalog of graph algorithm families - awareness only; Forge Doctor implements no algorithm engine.",
+  "algorithms": {
+    "bfs": "Breadth-first traversal; hop-level exploration.",
+    "dfs": "Depth-first traversal; path exploration.",
+    "shortest_path": "Minimum-hop/weight path between vertices.",
+    "pagerank": "Iterative centrality scoring by inbound structure.",
+    "centrality": "Degree/closeness/betweenness/eigenvector measures.",
+    "connected_components": "Weakly/strongly connected component discovery.",
+    "community_detection": "Cluster discovery (label propagation, Louvain-style).",
+    "similarity": "Node similarity (Jaccard, cosine) over neighborhoods."
+  }
+}

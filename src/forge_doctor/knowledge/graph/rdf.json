@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://www.w3.org/TR/rdf11-concepts/",
+    "https://www.w3.org/TR/sparql11-query/",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+  ],
+  "domain": "graph",
+  "paradigm": "rdf",
+  "concepts": {
+    "subject": "Resource the statement describes.",
+    "predicate": "The property/relationship IRI.",
+    "object": "The value or target resource.",
+    "graph": "Optional context making the triple a quad (Neptune S-P-O-G)."
+  },
+  "formats": ["turtle (.ttl)", "n-triples (.nt)", "n3 (.n3)", "rdf/xml (.rdf)"],
+  "query_languages": {
+    "sparql": {
+      "forms": ["SELECT", "CONSTRUCT", "ASK", "DESCRIBE"],
+      "updates": ["INSERT DATA", "DELETE/INSERT", "DELETE WHERE"],
+      "operators": ["WHERE", "FILTER", "OPTIONAL", "UNION", "BIND", "VALUES"],
+      "property_paths": ["*", "+", "?", "/", "|", "!"],
+      "source": "https://www.w3.org/TR/sparql11-query/"
+    }
+  },
+  "interoperability": {
+    "note": "RDF data cannot be queried by property-graph languages and vice versa.",
+    "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+  }
+}

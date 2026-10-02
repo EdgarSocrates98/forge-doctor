@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://tinkerpop.apache.org/docs/current/reference/",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/best-practices.html"
+  ],
+  "domain": "graph",
+  "practices": [
+    {
+      "id": "selective-start",
+      "summary": "Start traversals from a selective bound (id, label+property) rather than g.V().",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/best-practices.html"
+    },
+    {
+      "id": "bound-variable-length",
+      "summary": "Variable-length patterns ([*] / repeat()) should carry an explicit depth bound.",
+      "source": "https://tinkerpop.apache.org/docs/current/reference/"
+    },
+    {
+      "id": "generic-edge-labels",
+      "summary": "Edge labels should name the domain relationship; generic labels obscure intent.",
+      "source": "https://tinkerpop.apache.org/docs/current/reference/"
+    },
+    {
+      "id": "supernode-awareness",
+      "summary": "Vertices with very high edge fan-out (supernodes) dominate traversal cost - a static signal is a candidate, not a confirmed hotspot.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/best-practices.html"
+    },
+    {
+      "id": "bulk-load-format",
+      "summary": "Neptune bulk load: CSV (~id/~from/~to/~label columns) for property graphs, RDF serializations for RDF.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    }
+  ]
+}

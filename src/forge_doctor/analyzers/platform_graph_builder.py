@@ -303,6 +303,67 @@ def _table(table_id: str) -> Entity:
     return _e(K.TABLE, domain, ident)
 
 
+def _graph_intel(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """GraphProjectModel adapter: schema/model entities, not real nodes.
+
+    ``graph:graphdata:<file>`` marks each detected artifact; vertex/edge
+    labels land as GRAPH_NODE/GRAPH_EDGE *types* (never per-record) and
+    traversals become QUERY entities reading/writing the workload graph.
+    """
+    from forge_doctor.analyzers.graph_model import graph_model
+
+    model = graph_model(ctx)
+    by_file: dict[Path, str] = {}
+    for w in model.workloads:
+        e = _e(K.GRAPH, "graphdata", w.file.as_posix(), w.file, w.line, paradigm=w.paradigm)
+        g.add_entity(e)
+        by_file.setdefault(w.file, e.id)
+    for label, sites in model.vertex_labels.items():
+        e = _e(K.GRAPH_NODE, "graph", label, sites[0][0], sites[0][1])
+        g.add_entity(e)
+    for label, sites in model.edge_labels.items():
+        e = _e(K.GRAPH_EDGE, "graph", label, sites[0][0], sites[0][1])
+        g.add_entity(e)
+    for t in model.traversals:
+        q = _e(
+            K.QUERY,
+            "graph",
+            f"{t.file.as_posix()}:{t.line}",
+            t.file,
+            t.line,
+            language=t.language,
+        )
+        g.add_entity(q)
+        target = by_file.get(t.file)
+        if target:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=target,
+                    kind=R.WRITES if t.writes else R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+        for label in t.vertex_labels:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=f"graph_node:graph:{label}",
+                    kind=R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+        for label in t.edge_labels:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=f"graph_edge:graph:{label}",
+                    kind=R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+
+
 def _sql(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.sql_ast import analyze_sql
 
@@ -423,6 +484,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _controlm,
         _stepfunctions,
         _streaming,
+        _graph_intel,
         _sql,
         _iceberg,
         _parquet,

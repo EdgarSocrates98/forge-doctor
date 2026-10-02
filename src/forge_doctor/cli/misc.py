@@ -663,28 +663,6 @@ def doctor_cmd(path: PathArg = Path(".")) -> None:
         raise typer.Exit(1)
 
 
-@app.command(name="graph")
-def graph_cmd(
-    path: PathArg = Path("."),
-    fmt: Annotated[str, typer.Option("--format", "-f", help="json|dot|mermaid")] = "json",
-) -> None:
-    """Project Intelligence Graph: jobs, datasets, infra, orchestrators."""
-    import json as _json
-
-    from forge_doctor.core.graph import build_graph
-
-    if not path.is_dir():
-        _stderr.print(f"[red]Not a directory:[/red] {path}")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-    graph = build_graph(ProjectContext(root=path))
-    if fmt == "dot":
-        typer.echo(graph.to_dot())
-    elif fmt == "mermaid":
-        typer.echo(graph.to_mermaid())
-    else:
-        typer.echo(_json.dumps(graph.to_dict(), indent=2, ensure_ascii=False))
-
-
 @app.command(name="version")
 def version_cmd() -> None:
     """Print the installed Forge Doctor version."""

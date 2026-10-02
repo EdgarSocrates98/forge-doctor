@@ -1,0 +1,39 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://tinkerpop.apache.org/gremlin.html",
+    "https://opencypher.org/",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+  ],
+  "domain": "graph",
+  "paradigm": "property_graph",
+  "concepts": {
+    "vertex": "Entity node carrying a label and properties.",
+    "edge": "Directed, labeled relationship between vertices; also carries properties.",
+    "label": "Type tag on vertices (e.g. Person) and edges (e.g. WORKS_AT).",
+    "direction": "Edges are directed; traversals follow out/in/both.",
+    "properties": "Key/value pairs on vertices and edges."
+  },
+  "query_languages": {
+    "gremlin": {
+      "steps": ["V", "E", "addV", "addE", "has", "hasLabel", "out", "in", "both",
+        "outE", "inE", "bothE", "repeat", "times", "until", "emit", "limit",
+        "order", "valueMap", "values", "property", "drop", "path", "dedup",
+        "where", "select", "project", "fold", "unfold"],
+      "writes": ["addV", "addE", "property", "drop", "mergeV", "mergeE"],
+      "filters": ["has", "hasLabel", "hasId", "hasNot", "where", "filter", "is"],
+      "directions": {"out": "out", "in": "in", "both": "both"},
+      "source": "https://tinkerpop.apache.org/gremlin.html"
+    },
+    "opencypher": {
+      "clauses": ["MATCH", "OPTIONAL MATCH", "CREATE", "MERGE", "DELETE",
+        "DETACH DELETE", "SET", "REMOVE", "RETURN", "WHERE", "WITH", "UNWIND"],
+      "node_pattern": "(var:Label {prop: value})",
+      "edge_pattern": "-[var:TYPE]-> , <-[var:TYPE]- , -[var]-",
+      "variable_length": "[*], [*1..3], [*..5]",
+      "source": "https://opencypher.org/"
+    }
+  }
+}
