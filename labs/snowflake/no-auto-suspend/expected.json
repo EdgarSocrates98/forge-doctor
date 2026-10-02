@@ -1,0 +1,6 @@
+{
+  "name": "no-auto-suspend",
+  "description": "Snowflake warehouse with no auto_suspend/auto_resume lifecycle config",
+  "expected_findings": ["SNOW001"],
+  "forbidden_findings": ["SNOW004", "SNOW005"]
+}

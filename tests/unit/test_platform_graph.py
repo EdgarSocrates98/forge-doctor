@@ -151,6 +151,12 @@ def test_enum_surface_matches_spec() -> None:
         "graph_node",
         "graph_edge",
         "repo",
+        "warehouse",
+        "warehouse_compute",
+        "view",
+        "schema",
+        "capability",
+        "knowledge_pack",
     }
     assert {k.value for k in RelKind} == {
         "INVOKES",
@@ -164,4 +170,8 @@ def test_enum_surface_matches_spec() -> None:
         "PRODUCES",
         "CONSUMES",
         "IMPLEMENTS",
+        "CONTAINS",
+        "READS_FROM",
+        "WRITES_TO",
+        "EVIDENCED_BY",
     }

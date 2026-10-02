@@ -1,0 +1,6 @@
+{
+  "name": "generic-sql",
+  "description": "Adversarial: non-Snowflake SQL must not attribute to Snowflake or trip SNOW checks",
+  "expected_findings": [],
+  "forbidden_findings": ["SNOW001", "SNOW002", "SNOW003", "SNOW004", "SNOW005"]
+}

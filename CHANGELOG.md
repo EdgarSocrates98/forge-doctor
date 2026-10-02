@@ -242,6 +242,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checks: `WARE001` surface census, `WARE010` unprofiled table,
   `WARE020` view→unknown base, `WARE030` compute without WLM. New lab
   scenario `labs/warehouse/redshift-cluster`.
+- **Snowflake adapter** (spec 213, roadmap-4 wave 1b) —
+  `analyzers/snowflake_model.py` populates a vendor detail model from
+  Snowflake DDL (`CREATE WAREHOUSE|DATABASE|SCHEMA|TABLE|STAGE|PIPE|
+  STREAM|TASK`, plus embedded `COPY INTO`), Terraform `snowflake_*`
+  resources, and observed `snowflake/` / `.forge-doctor/evidence/` /
+  `information_schema*` JSON/CSV exports (unknown shapes recorded, not
+  dropped). Facts merge into `WarehouseProjectModel` (deduped against
+  Terraform rows) and the graph adapter emits Snowflake stages, streams,
+  pipes, tasks, and principals with `CONTAINS`/`READS_FROM`/`WRITES_TO`
+  edges. Query-history exports become `EvidenceKind.RUNTIME` rows.
+  Checks `SNOW001`–`SNOW005` cover missing `auto_suspend`, asymmetric
+  `auto_resume`, unclustered large tables, public/insecure `COPY INTO`
+  stages, and `SELECT *` in persisted DDL. New command
+  `forge-doctor snowflake inspect`, capability pack `snowflake.json`
+  (time travel, zero-copy clone, Snowpipe, streams/tasks, clustering,
+  result caching, multi-cluster warehouses), and labs
+  `labs/snowflake/no-auto-suspend` + adversarial `generic-sql`.
 
 ### Fixed
 

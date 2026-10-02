@@ -93,6 +93,7 @@ forge-doctor bench run .              # performance & scale benchmark
 forge-doctor schema contracts         # JSON Schemas for output artifacts
 forge-doctor ontology                 # canonical vocabulary (entity/rel kinds, planes)
 forge-doctor ontology validate .      # graph conformance vs the vocabulary
+forge-doctor snowflake inspect .      # Snowflake warehouse model + vendor objects
 forge-doctor export . -f handoff      # portable bundle for downstream Forge tools
 forge-doctor contracts verify b.json  # validate a bundle against published contracts
 forge-doctor info                   # project stats, no checks

@@ -89,6 +89,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "python_env": frozenset({ENV, HOST, PACKAGING, CONFIG, FILES}),
     "repository": frozenset({FILES}),
     "serverless": frozenset({PYTHON, SQL, TERRAFORM, CONFIG}),
+    "snowflake": frozenset({SQL, TERRAFORM, CONFIG, FILES}),
     "spark": frozenset({PYTHON}),
     "sql": frozenset({SQL}),
     "stepfunctions": frozenset({TERRAFORM, CONFIG}),

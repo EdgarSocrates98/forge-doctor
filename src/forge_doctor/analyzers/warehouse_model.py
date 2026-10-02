@@ -318,6 +318,89 @@ def _from_sql(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
     model.platforms = tuple(sorted(set(model.platforms) | platforms))
 
 
+# ---------------------------------------------------------------------------
+# Vendor adapters — populate shared rows from vendor models (specs 213-215).
+# The aggregator knows both shapes; vendor models stay leaf-level.
+
+
+def _from_snowflake(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
+    """Merge snowflake-model facts into the shared warehouse model.
+
+    Terraform ``snowflake_*`` resources already land via ``_from_terraform``;
+    vendor rows dedupe on (concept, name) so no entity double-counts.
+    """
+    from forge_doctor.analyzers.snowflake_model import snowflake_model
+
+    sf = snowflake_model(ctx)
+    if not sf.has_evidence:
+        return
+    known_compute = {c.name for c in model.compute}
+    known_ns = {n.name for n in model.namespaces}
+    known_tables = {t.name for t in model.tables}
+    known_views = {v.name for v in model.views}
+    if sf.warehouses or sf.namespaces or sf.tables or sf.views:
+        model.platforms = tuple(sorted(set(model.platforms) | {PLATFORM_SNOWFLAKE}))
+    for w in sf.warehouses:
+        if w.name not in known_compute:
+            model.compute.append(
+                WarehouseCompute(w.name, PLATFORM_SNOWFLAKE, w.file, w.line, w.attrs)
+            )
+    for ns in sf.namespaces:
+        if ns.name not in known_ns:
+            model.namespaces.append(
+                WarehouseNamespace(ns.name, PLATFORM_SNOWFLAKE, ns.kind, ns.file, ns.line, ns.attrs)
+            )
+    for t in sf.tables:
+        if t.name not in known_tables:
+            model.tables.append(
+                WarehouseTable(
+                    t.name,
+                    PLATFORM_SNOWFLAKE,
+                    t.kind == "external_table",
+                    t.file,
+                    t.line,
+                    t.attrs,
+                )
+            )
+    for v in sf.views:
+        if v.name not in known_views:
+            read = v.attr("tables_read")
+            model.views.append(
+                WarehouseView(
+                    v.name,
+                    PLATFORM_SNOWFLAKE,
+                    v.kind == "materialized_view",
+                    tuple(r for r in read.split(",") if r),
+                    v.file,
+                    v.line,
+                    v.attrs,
+                )
+            )
+    # COPY INTO = authored load work; surface it as queries writing tables.
+    for copy in sf.copies:
+        if copy.target:
+            model.queries.append(
+                WarehouseQuery(
+                    f"{copy.file.as_posix() if copy.file else '?'}:{copy.line or 0}",
+                    PLATFORM_SNOWFLAKE,
+                    (),
+                    (copy.target,),
+                    copy.file,
+                    copy.line,
+                )
+            )
+    # Observed exports carry real stats — profile the matching tables.
+    for row in sf.observed_tables():
+        name = row.get("table_name", "name")
+        if name and name not in known_tables:
+            model.tables.append(
+                WarehouseTable(name, PLATFORM_SNOWFLAKE, False, row.file, None, row.fields)
+            )
+
+
+PLATFORM_SNOWFLAKE = "snowflake"
+
+
 def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
     """Memoized vendor-neutral warehouse model over ctx evidence."""
     cached = getattr(ctx, _CACHE_ATTR, None)
@@ -326,5 +409,6 @@ def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
     model = WarehouseProjectModel()
     _from_terraform(model, ctx)
     _from_sql(model, ctx)
+    _from_snowflake(model, ctx)
     setattr(ctx, _CACHE_ATTR, model)
     return model

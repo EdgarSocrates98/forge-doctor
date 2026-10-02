@@ -27,6 +27,7 @@ from forge_doctor.checks import (
     python_env,
     repository,
     serverless,
+    snowflake,
     spark,
     stepfunctions,
     streaming,
@@ -64,6 +65,7 @@ BUILTIN_MODULES = (
     platforms,
     policy_pack,
     serverless,
+    snowflake,
     warehouse,
 )
 

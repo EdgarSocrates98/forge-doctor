@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.03",
+  "verified_at": "2026-10-03",
+  "sources": [
+    "https://docs.snowflake.com/en/user-guide/warehouses",
+    "https://docs.snowflake.com/en/user-guide/data-time-travel",
+    "https://docs.snowflake.com/en/user-guide/data-clone",
+    "https://docs.snowflake.com/en/user-guide/data-pipelines-snowpipe",
+    "https://docs.snowflake.com/en/user-guide/data-pipelines-streams",
+    "https://docs.snowflake.com/en/user-guide/data-pipelines-tasks",
+    "https://docs.snowflake.com/en/user-guide/tables-clustering-keys",
+    "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Time travel (up to 90 days on Enterprise+) is a core Snowflake feature.",
+      "source": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+    },
+    {
+      "id": "ZERO_COPY_CLONE",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Zero-copy cloning of databases/schemas/tables is native.",
+      "source": "https://docs.snowflake.com/en/user-guide/data-clone"
+    },
+    {
+      "id": "SNOWPIPE",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Snowpipe (auto-ingest + REST) is the managed load service.",
+      "source": "https://docs.snowflake.com/en/user-guide/data-pipelines-snowpipe"
+    },
+    {
+      "id": "STREAMS_AND_TASKS",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Streams (CDC) and tasks (scheduled/dag) are built-in primitives.",
+      "source": "https://docs.snowflake.com/en/user-guide/data-pipelines-streams"
+    },
+    {
+      "id": "CLUSTERING_KEYS",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Explicit clustering keys + automatic reclustering are supported.",
+      "source": "https://docs.snowflake.com/en/user-guide/tables-clustering-keys"
+    },
+    {
+      "id": "RESULT_CACHE",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Persisted 24h result cache is automatic for repeated queries.",
+      "source": "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+    },
+    {
+      "id": "MULTI_CLUSTER_WAREHOUSE",
+      "platform": "snowflake",
+      "status": "conditional",
+      "reason": "Multi-cluster warehouses require Enterprise edition or higher.",
+      "conditions": [
+        {
+          "attribute": "edition",
+          "op": "in",
+          "value": "enterprise,business_critical",
+          "status_on_fail": "unsupported",
+          "reason": "edition below Enterprise lacks multi-cluster warehouses"
+        }
+      ],
+      "source": "https://docs.snowflake.com/en/user-guide/warehouses"
+    },
+    {
+      "id": "SHARING",
+      "platform": "snowflake",
+      "status": "supported",
+      "reason": "Secure data sharing / listings are built into the platform.",
+      "source": "https://docs.snowflake.com/en/user-guide/data-sharing"
+    }
+  ]
+}

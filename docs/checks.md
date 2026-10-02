@@ -1452,3 +1452,40 @@ an external dependency (undiagnosed) or a broken reference.
 Warehouse/cluster compute exists with no queue, reservation, or WLM
 config observed.
 **Fix:** attach workload-management config to the compute resource.
+
+## Snowflake (SnowflakeProjectModel — vendor adapter on the warehouse core)
+
+Evidence: Snowflake-only DDL shapes in `.sql` (`CREATE
+WAREHOUSE|STAGE|PIPE|STREAM|TASK`, `COPY INTO`, `CREATE [MATERIALIZED]
+VIEW`), Terraform `snowflake_*` resources (size, auto_suspend/resume,
+database, schema, stage, pipe, task, grants), and observed metadata
+exports (`SHOW`/`INFORMATION_SCHEMA` rows as JSON/CSV under
+`snowflake/`, `.forge-doctor/evidence/`, or `information_schema*`
+names). A `.sql` file counts as Snowflake only when it carries a
+vendor-exclusive marker — non-Snowflake SQL never trips these rules.
+
+### SNOW000 — Snowflake surface · pass/info
+Anchor census: warehouses, namespaces, tables, views, vendor objects,
+COPY INTO statements, observed rows.
+
+### SNOW001 — Warehouse without auto_suspend · warning
+No positive `auto_suspend` — credits burn while the warehouse idles.
+**Fix:** set `AUTO_SUSPEND = <seconds>` (e.g. 300).
+
+### SNOW002 — auto_suspend without auto_resume · info
+Suspends but never auto-resumes — asymmetric lifecycle config.
+**Fix:** set `AUTO_RESUME = TRUE` alongside auto_suspend.
+
+### SNOW003 — Large table without clustering · warning
+Observed table ≥1 GB with no clustering keys — pruning can't help it.
+**Fix:** `CLUSTER BY (...)` on the dominant filter/join columns.
+
+### SNOW004 — COPY INTO insecure stage · warning
+COPY reads a literal URI, a user/table stage (`@~`/`@%`/`@*public*`),
+or a declared stage with no `storage_integration`/`credentials`.
+**Fix:** use an internal stage backed by a storage integration.
+
+### SNOW005 — SELECT * in persisted DDL · warning
+A view/materialized view/procedure selects `*` — silent breakage when
+the base gains columns.
+**Fix:** name the column list explicitly in the DDL.

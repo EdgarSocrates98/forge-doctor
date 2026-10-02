@@ -742,6 +742,67 @@ def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                         )
                     )
 
+    # Vendor objects the shared model doesn't carry (stage/pipe/stream/
+    # task/role) - emitted by the vendor model so graph consumers see them.
+    from forge_doctor.analyzers.snowflake_model import snowflake_model
+
+    sf = snowflake_model(ctx)
+    if sf.has_evidence:
+        _SNOW_KINDS = {
+            "stage": K.STORAGE_LOCATION,
+            "stream": K.STREAM,
+            "pipe": K.TASK,
+            "task": K.TASK,
+            "role": K.PRINCIPAL,
+            "grant": K.PRINCIPAL,
+        }
+        for obj in sf.objects:
+            ent_kind = _SNOW_KINDS.get(obj.kind)
+            if ent_kind is None:
+                continue
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"snowflake/{obj.kind}:{obj.name}",
+                obj.file,
+                obj.line,
+                platform="snowflake",
+            )
+            g.add_entity(e)
+            contains(wh("snowflake"), e.id, _STA if obj.source == "sql" else _CFG)
+            # pipe: its embedded COPY INTO target becomes a WRITES_TO edge
+            if obj.kind == "pipe":
+                targets = {
+                    copy.target
+                    for copy in sf.copies
+                    if copy.file == obj.file and copy.line == obj.line and copy.target
+                }
+                for t in model.tables:
+                    if t.platform == "snowflake" and t.name in targets:
+                        g.add_relationship(
+                            Relationship(
+                                src=e.id,
+                                dst=f"table:warehouse:{t.platform}/{t.name}",
+                                kind=R.WRITES_TO,
+                                evidence_kind=_STA,
+                            )
+                        )
+            # stream ... ON TABLE -> READS_FROM
+            if obj.kind == "stream":
+                for t in model.tables:
+                    if t.platform == "snowflake" and t.name in {
+                        obj.attr("on_table"),
+                        obj.attr("table"),
+                    } - {""}:
+                        g.add_relationship(
+                            Relationship(
+                                src=e.id,
+                                dst=f"table:warehouse:{t.platform}/{t.name}",
+                                kind=R.READS_FROM,
+                                evidence_kind=_STA,
+                            )
+                        )
+
 
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model

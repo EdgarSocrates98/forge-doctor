@@ -594,7 +594,84 @@ class StreamMetricsAdapter:
         return model
 
 
+# --- Snowflake query history exports ------------------------------------------
+
+
+class SnowflakeHistoryAdapter:
+    """Snowflake QUERY_HISTORY / INFORMATION_SCHEMA export rows.
+
+    Recognizes JSON arrays (or objects with ``rows``/``data``) or CSV with
+    ``QUERY_ID``/``QUERY_TEXT``-style headers — deterministic, offline.
+    """
+
+    name = "snowflake_query_history"
+
+    _FIELDS = re.compile(
+        r'"(query_id|query_text|warehouse_name|execution_time|bytes_scanned)"',
+        re.IGNORECASE,
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return (
+            ("query_id" in head or "queryid" in head)
+            and ("query_text" in head or "execution_time" in head)
+        ) or bool(self._FIELDS.search(text[:4000]))
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        rows: list[dict[str, Any]] = []
+        data = _json_doc(text)
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("rows", "data", "results"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+        if not rows:
+            import csv
+            import io
+
+            try:
+                reader = csv.DictReader(io.StringIO(text))
+                rows = [dict(r) for r in reader if r]
+            except csv.Error:
+                rows = []
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            qid = str(low.get("query_id") or low.get("queryid") or "")
+            scope = str(low.get("warehouse_name") or low.get("warehouse") or "")
+            ex_ms = _num(low.get("execution_time") or low.get("total_elapsed_time"))
+            scanned = _num(low.get("bytes_scanned") or low.get("bytes"))
+            if qid:
+                model.executions.append(
+                    RuntimeExecution(id=qid, kind="query", state="completed", duration_ms=ex_ms)
+                )
+            if ex_ms is not None:
+                model.metrics.append(
+                    ExecutionMetric("execution_time", ex_ms, "ms", scope=qid or scope)
+                )
+            if scanned is not None:
+                model.metrics.append(
+                    ExecutionMetric("bytes_scanned", scanned, "bytes", scope=qid or scope)
+                )
+            err = str(low.get("error_code") or low.get("error_message") or "")
+            if err and err.lower() not in {"0", "none", "null"}:
+                model.errors.append(
+                    ExecutionError(
+                        code=err,
+                        message=str(low.get("error_message") or err),
+                        execution_id=qid,
+                    )
+                )
+        if rows:
+            model.identifiers["rows"] = str(len(rows))
+        return model
+
+
 ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
+    SnowflakeHistoryAdapter(),
     SparkEventLogAdapter(),
     AthenaStatsAdapter(),
     StepFunctionsHistoryAdapter(),
