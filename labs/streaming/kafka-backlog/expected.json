@@ -1,11 +1,17 @@
 {
   "name": "kafka-backlog",
   "description": "Kafka source to Delta sink; runtime progress shows sustained backlog",
-  "expected_findings": ["KFK003", "KFK006"],
+  "expected_findings": [
+    "KFK003",
+    "KFK004",
+    "KFK006"
+  ],
   "forbidden_findings": [],
   "expected_graph_edges": [
     "consumes|stream:spark_ss:stream.py:4:ss->stream:kafka:orders",
     "produces|stream:spark_ss:stream.py:4:ss->table:delta:s3://out/orders"
   ],
-  "expected_root_causes": ["RC_STREAM_COMMITS"]
+  "expected_root_causes": [
+    "RC_STREAM_COMMITS"
+  ]
 }

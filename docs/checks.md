@@ -1227,6 +1227,20 @@ but undeclared findings are reported as `extra` for FP analysis.
 Optional `runtime/` artifact dirs feed root-cause clustering.
 `lab list` / `lab report` / `--json` supported; exit code 1 on failure.
 
+`forge-doctor lab metrics` rolls the comparisons into quality numbers
+per domain plus a TOTAL row:
+
+- **precision / recall / FPR** — FP candidates are undeclared
+  WARNING+ findings not covered by `allowed_findings` (scenario-level)
+  or `labs/_defaults.json` (lab-level noise budget). FPR is measured
+  against `forbidden_findings` declarations.
+- **parser coverage** — fraction of `.py` files with a parsed AST.
+- **graph edge recall / capability accuracy / root-cause recall** —
+  matched expectations per category.
+
+`-` marks a metric with zero denominator (nothing to measure).
+`--json` emits the same numbers for CI.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

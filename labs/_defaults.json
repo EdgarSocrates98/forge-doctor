@@ -1,0 +1,5 @@
+{
+  "name": "lab-defaults",
+  "description": "Repo-generic warnings allowed in every scenario (not FPs).",
+  "allowed_findings": ["REP001", "REP002", "PY002", "SQL001"]
+}

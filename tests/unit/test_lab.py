@@ -176,3 +176,77 @@ def test_lab_run_named_filter(tmp_path: Path) -> None:
     _scenario(tmp_path, "two", {"expected_findings": ["NOPE"]}, {"a.py": _SPARK})
     lab = run_lab(tmp_path, scenario="one")
     assert len(lab.reports) == 1 and lab.reports[0].passed
+
+
+# --- metrics (R2-P2) ----------------------------------------------------------
+
+
+def test_metrics_perfect_run(tmp_path: Path) -> None:
+    from forge_doctor.core.lab import run_lab
+    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+
+    _scenario(
+        tmp_path,
+        "spark-ok",
+        {
+            "expected_findings": ["SPARK003", "SPARK001"],
+            "forbidden_findings": ["DELTA001"],
+            "allowed_findings": ["REP001", "REP002", "PY002"],
+        },
+        {"jobs.py": _SPARK + "df.collect()\n"},
+    )
+    lab = run_lab(tmp_path)
+    rows = compute_metrics(lab, forbidden_declarations(lab))
+    total = rows[-1]
+    assert total.name == "TOTAL"
+    assert total.precision == 1.0 and total.recall == 1.0
+    assert total.fpr == 0.0
+    assert total.parser_coverage == 1.0
+
+
+def test_metrics_missed_finding_drops_recall(tmp_path: Path) -> None:
+    from forge_doctor.core.lab import run_lab
+    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+
+    _scenario(
+        tmp_path,
+        "spark-miss",
+        {"expected_findings": ["SPARK003", "SPARK099"]},
+        {"jobs.py": _SPARK},
+    )
+    lab = run_lab(tmp_path)
+    total = compute_metrics(lab, forbidden_declarations(lab))[-1]
+    assert total.recall == 0.5
+    assert total.missed == 1
+
+
+def test_metrics_forbidden_hit_and_defaults(tmp_path: Path) -> None:
+    from forge_doctor.core.lab import run_lab
+    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+
+    # lab-level allowlist: REP002 is benign noise, never an FP
+    (tmp_path / "_defaults.json").write_text(
+        '{"allowed_findings": ["REP001", "REP002", "PY002"]}', encoding="utf-8"
+    )
+    _scenario(
+        tmp_path,
+        "fp",
+        {"expected_findings": ["SPARK003"], "forbidden_findings": ["SPARK001"]},
+        {"jobs.py": _SPARK + "df.collect()\n"},  # SPARK001 fires -> forbidden hit
+    )
+    lab = run_lab(tmp_path)
+    total = compute_metrics(lab, forbidden_declarations(lab))[-1]
+    assert total.forbidden_hits == 1 and total.fpr == 1.0
+    assert total.fp_candidates >= 1  # SPARK001 fired unallowed
+
+
+def test_metrics_none_when_no_denominator(tmp_path: Path) -> None:
+    from forge_doctor.core.lab import run_lab
+    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+
+    _scenario(tmp_path, "empty", {}, {"a.tf": "locals {}\n"})
+    lab = run_lab(tmp_path)
+    total = compute_metrics(lab, forbidden_declarations(lab))[-1]
+    assert total.precision == 0.0  # unallowed warnings fired with no expectations
+    assert total.fpr is None
+    assert total.parser_coverage is None

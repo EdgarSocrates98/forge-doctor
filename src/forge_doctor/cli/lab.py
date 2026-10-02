@@ -115,6 +115,66 @@ def lab_run(
         raise typer.Exit(1)
 
 
+def _pct(v: float | None) -> str:
+    return f"{v * 100:.1f}%" if v is not None else "-"
+
+
+@lab_app.command(name="metrics")
+def lab_metrics(labs: _LabsOpt = Path("labs"), as_json: _JsonOpt = False) -> None:
+    """Precision/recall/FP rates and coverage per domain + total."""
+    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+
+    root = labs if labs != Path("labs") else _default_labs()
+    report = run_lab(root)
+    rows = compute_metrics(report, forbidden_declarations(report))
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    r.name: {
+                        "scenarios": r.scenarios,
+                        "expected_findings": r.expected_findings,
+                        "detected_correct": r.detected_correct,
+                        "missed": r.missed,
+                        "fp_candidates": r.fp_candidates,
+                        "forbidden_hits": r.forbidden_hits,
+                        "precision": r.precision,
+                        "recall": r.recall,
+                        "fpr": r.fpr,
+                        "parser_coverage": r.parser_coverage,
+                        "graph_recall": r.graph_recall,
+                        "capability_accuracy": r.capability_accuracy,
+                        "root_cause_recall": r.root_cause_recall,
+                    }
+                    for r in rows
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Forge Lab metrics[/bold]  {root}")
+    for r in rows:
+        console.print(f"\n  [bold]{r.name}[/bold]  ({r.scenarios} scenario(s))")
+        console.print(
+            f"    expected={r.expected_findings} detected={r.detected_correct} "
+            f"missed={r.missed} fp_candidates={r.fp_candidates} "
+            f"forbidden={r.forbidden_hits}/{r.forbidden_declared}"
+        )
+        console.print(
+            f"    precision={_pct(r.precision)} recall={_pct(r.recall)} "
+            f"fpr={_pct(r.fpr)} parser_cov={_pct(r.parser_coverage)}"
+        )
+        if r.expected_edges or r.expected_caps or r.expected_causes:
+            console.print(
+                f"    graph_recall={_pct(r.graph_recall)} "
+                f"capability_acc={_pct(r.capability_accuracy)} "
+                f"root_cause_recall={_pct(r.root_cause_recall)}"
+            )
+    console.print()
+
+
 @lab_app.command(name="report")
 def lab_report(labs: _LabsOpt = Path("labs"), as_json: _JsonOpt = False) -> None:
     """Alias for `lab run` over every scenario (summary view)."""

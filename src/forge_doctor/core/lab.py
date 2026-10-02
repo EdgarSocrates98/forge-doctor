@@ -51,6 +51,9 @@ class GroundTruth:
     expected_graph_edges: tuple[str, ...] = ()
     expected_capabilities: tuple[str, ...] = ()
     expected_root_causes: tuple[str, ...] = ()
+    # Detected ids that are known-benign in this scenario (repo-generic
+    # warnings like REP001). Extras not covered here count as FP candidates.
+    allowed_findings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -87,6 +90,7 @@ class ScenarioReport:
     capabilities: CategoryResult = field(default_factory=CategoryResult)
     root_causes: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
+    stats: dict[str, int] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
@@ -153,6 +157,7 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_graph_edges=_lst("expected_graph_edges"),
         expected_capabilities=_lst("expected_capabilities"),
         expected_root_causes=_lst("expected_root_causes"),
+        allowed_findings=_lst("allowed_findings"),
     )
 
 
@@ -274,11 +279,21 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
             fcat.forbidden_hit.append(entry)
     expected_ids = {parse_finding_expectation(e).check_id for e in truth.expected_findings}
     fcat.extra = sorted(cid for cid in actual_ids if cid not in expected_ids)
+    # FP candidates: undeclared findings at WARNING+ severity (INFO anchors
+    # describe surface, not defects, so they never count as FPs).
+    warn_ids = {r.check_id for r in results if r.severity in (Severity.WARNING, Severity.ERROR)}
+    allowed = set(truth.allowed_findings)
+    unaccounted = [c for c in fcat.extra if c not in allowed]
+    report.stats["fp_candidates"] = len([c for c in unaccounted if c in warn_ids])
+    report.stats["extra_info"] = len([c for c in unaccounted if c not in warn_ids])
+    report.stats["allowed_hits"] = len([c for c in fcat.extra if c in allowed])
+    fcat.extra = unaccounted  # report only genuinely unreviewed extras
 
+    edges = _graph_edge_keys(ctx)
+    report.stats["graph_edges"] = len(edges)
+    gcat = report.graph_edges
+    gcat.actual = sorted(edges)
     if truth.expected_graph_edges:
-        edges = _graph_edge_keys(ctx)
-        gcat = report.graph_edges
-        gcat.actual = sorted(edges)
         gcat.expected = list(truth.expected_graph_edges)
         gcat.missed = [e for e in truth.expected_graph_edges if e not in edges]
 
@@ -296,9 +311,19 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
             if actual_status != expected_status.strip().lower():
                 ccat.missed.append(f"{entry} (got {actual_status})")
 
+    # Engine stats for the metrics layer (Phase 2): parser coverage,
+    # graph size, runtime correlation surface.
+    from forge_doctor.analyzers.index import project_index
+
+    modules = project_index(ctx).modules
+    py_files = len(modules)
+    report.stats["py_files"] = py_files
+    report.stats["py_parsed"] = sum(1 for m in modules.values() if m.tree is not None)
+
+    models = _runtime_models(scenario)
+    report.stats["runtime_models"] = len(models)
     if truth.expected_root_causes:
         rcat = report.root_causes
-        models = _runtime_models(scenario)
         clusters = cluster_findings(results, models)
         cluster_ids = sorted({c.id for c in clusters})
         rcat.actual = cluster_ids
@@ -312,11 +337,34 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
     return report
 
 
+DEFAULTS_FILE = "_defaults.json"
+
+
+def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
+    """Layer ``labs/_defaults.json`` allowed findings under the scenario's."""
+    defaults = load_ground_truth(labs_root / DEFAULTS_FILE)
+    if not defaults.allowed_findings:
+        return truth
+    return GroundTruth(
+        name=truth.name,
+        description=truth.description,
+        expected_findings=truth.expected_findings,
+        forbidden_findings=truth.forbidden_findings,
+        expected_graph_edges=truth.expected_graph_edges,
+        expected_capabilities=truth.expected_capabilities,
+        expected_root_causes=truth.expected_root_causes,
+        allowed_findings=tuple(
+            sorted(set(defaults.allowed_findings) | set(truth.allowed_findings))
+        ),
+    )
+
+
 def run_lab(labs_root: Path, scenario: str | None = None) -> LabReport:
     """Run every discovered scenario (or a named one) under ``labs_root``."""
     report = LabReport(root=labs_root)
     for directory in discover_scenarios(labs_root):
         if scenario and directory.name != scenario:
             continue
-        report.reports.append(run_scenario(directory))
+        truth = _merge_defaults(load_ground_truth(directory / EXPECTED_FILE), labs_root)
+        report.reports.append(run_scenario(directory, truth))
     return report

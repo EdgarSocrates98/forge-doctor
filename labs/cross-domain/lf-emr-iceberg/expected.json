@@ -1,7 +1,12 @@
 {
   "name": "lf-emr-iceberg",
   "description": "EMR cluster writing Iceberg via Glue catalog with LF grant",
-  "expected_findings": ["ICE008", "EMR000", "LF010"],
+  "expected_findings": [
+    "EMR000",
+    "ICE008",
+    "ICE012",
+    "LF010"
+  ],
   "forbidden_findings": [],
   "expected_graph_edges": [
     "governs|catalog:iceberg:lake->table:iceberg:lake.db.events",
