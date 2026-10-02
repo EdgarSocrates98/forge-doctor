@@ -6,7 +6,7 @@ risk: high
 grill: completed
 verification:
   - python -m pytest tests/unit/test_cache.py -q
-  - python -m pytest tests/unit/test_index.py tests/unit/test_lineage.py -q
+  - python -m pytest tests/unit/test_cache.py tests/unit/test_lineage.py -q
   - python -m pytest -x -q
 ---
 
