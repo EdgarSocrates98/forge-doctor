@@ -153,6 +153,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reasons. `--json` emits both sides plus deltas. The original
   fixture is never touched; hypotheses are pure file edits — no live
   runtime measurement, no subprocesses.
+- **Knowledge supply chain** — the `knowledge` group gains
+  `new <domain> [--kind]` (pack scaffold with provenance + positive
+  examples), `diff <a> <b>` (semantic entry diff — added/removed/
+  changed rows keyed by section:id, meta fields excluded),
+  `test` (conformance: structure, `re:` compile, examples match a
+  pattern, capability assertions re-evaluate per declared version via
+  the real registry), and `publish <domain> [--bump]` (freshness
+  checklist + optional pack_version/verified_at rewrite; dry-run only,
+  distribution stays manual). Entries relying only on `re:` patterns
+  without an `examples` fixture report as warnings.
 
 ### Fixed
 

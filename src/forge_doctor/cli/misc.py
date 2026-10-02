@@ -4,7 +4,7 @@ lineage, schema, knowledge, sbom, mcp, lsp, doctor, graph, diagnose, trace."""
 from __future__ import annotations
 
 import importlib.util
-import shutil
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
@@ -15,24 +15,20 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from forge_doctor import __version__
 from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import (
-    OutputOpt,
     PathArg,
     _build_registry,
     _ref_schemas,
     _stderr,
 )
 from forge_doctor.core.cache import ScanCache
-from forge_doctor.core.config import PluginRules
 from forge_doctor.core.context import ProjectContext
 from forge_doctor.core.project_info import collect_info
 from forge_doctor.core.runner import CheckRunner
 from forge_doctor.core.scaffold import scaffold
 from forge_doctor.output.summary import INTERNAL_ERROR_EXIT
-from forge_doctor.plugins.discovery import load_plugins
 
 
 @app.command(name="init")
@@ -559,332 +555,126 @@ def knowledge_verify() -> None:
         raise typer.Exit(1)
 
 
-@app.command(name="sbom")
-def sbom_cmd(
-    path: PathArg = Path("."),
-    fmt: Annotated[str, typer.Option("--format", "-f", help="cyclonedx|text")] = "cyclonedx",
-    output: OutputOpt = None,
-) -> None:
-    """Emit a CycloneDX 1.5 SBOM: deps, plugins, knowledge packs, images."""
-    import json as _json
-
-    from forge_doctor.core.sbom import build_sbom
-
-    if not path.is_dir():
-        _stderr.print(f"[red]Not a directory:[/red] {path}")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-    bom = build_sbom(ProjectContext(root=path))
-    if fmt == "text":
-        console = Console()
-        table = Table(title="SBOM components", title_justify="left")
-        table.add_column("Type")
-        table.add_column("Name", style="bold")
-        table.add_column("Version")
-        for c in bom["components"]:
-            table.add_row(c["type"], c["name"], str(c.get("version", "-")))
-        console.print(table)
-        console.print(f"\n{len(bom['components'])} components")
-        return
-    payload = _json.dumps(bom, indent=2, ensure_ascii=False)
-    if output:
-        output.write_text(payload + "\n", encoding="utf-8")
-        Console().print(f"[green]SBOM written:[/green] {output.resolve()}")
-    else:
-        typer.echo(payload)
-
-
-@app.command(name="mcp")
-def mcp_cmd(
-    root: Annotated[
-        Path | None,
-        typer.Option(
-            "--root",
-            help="Sandbox all tool path arguments to this directory tree.",
-        ),
+@knowledge_app.command(name="new")
+def knowledge_new(
+    domain: Annotated[str, typer.Argument(help="Pack domain (e.g. snowflake).")],
+    kind: Annotated[
+        str, typer.Option("--kind", help="versions|errors|capabilities|compatibility")
+    ] = "versions",
+    directory: Annotated[
+        Path | None, typer.Option("--dir", help="Knowledge root (default: bundled).")
     ] = None,
 ) -> None:
-    """Start a zero-dep MCP (JSON-RPC stdio) server for agent integrations."""
-    from forge_doctor.integrations.mcp_server import serve
+    """Scaffold a new knowledge pack with provenance fields + examples."""
+    from forge_doctor.core.knowledge import SCAFFOLD_KINDS, write_scaffold
 
-    if root is not None and not root.is_dir():
-        _stderr.print(f"[red]Not a directory:[/red] {root}")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-    serve(root=root)
-
-
-@app.command(name="lsp")
-def lsp_cmd() -> None:
-    """Start a stdio LSP server (requires the optional 'lsp' extra)."""
-    from forge_doctor.integrations.lsp_server import run_stdio
-
-    run_stdio()
-
-
-@app.command(name="doctor")
-def doctor_cmd(path: PathArg = Path(".")) -> None:
-    """Self-check: config, plugins, cache dir, git, environment health."""
+    root = directory or _bundled_knowledge_root()
     console = Console()
-    checks: list[tuple[str, str, str]] = []
-
-    git_path = shutil.which("git")
-    checks.append(("git", "ok" if git_path else "missing", git_path or "not on PATH"))
-
-    rules = PluginRules()
-    if path.is_dir():
-        ctx = ProjectContext(root=path)
-        try:
-            cfg = ctx.config
-            rules = cfg.plugins
-            checks.append(
-                (
-                    "config",
-                    "ok",
-                    f"{len(cfg.suppressions)} suppressions, {len(cfg.policy.rules)} rule overrides",
-                )
-            )
-        except Exception as exc:
-            checks.append(("config", "error", str(exc)))
-        cache = ScanCache(path)
-        try:
-            cache.path.parent.mkdir(parents=True, exist_ok=True)
-            probe = cache.path.parent / ".probe"
-            probe.write_text("ok")
-            probe.unlink()
-            checks.append(("cache dir", "ok", cache.path.parent.as_posix()))
-        except OSError as exc:
-            checks.append(("cache dir", "error", str(exc)))
-        checks.append(("project files", "ok", f"{len(ctx.files)} files indexed"))
-    else:
-        checks.append(("project", "error", f"{path} is not a directory"))
-
-    _checks, infos, errors = load_plugins(trusted=rules.trusted, allow=rules.allow)
-    if infos or errors:
-        bad = [i.name for i in infos if i.status and "untrusted" not in i.status] + errors
-        checks.append(
-            (
-                "plugins",
-                "error" if bad else "ok",
-                f"{len(infos)} discovered, {len(bad)} problem(s)",
-            )
-        )
-    else:
-        checks.append(("plugins", "ok", "none installed"))
-
-    from forge_doctor.core.knowledge import list_packs, verify_pack
-
-    stale = [f"{d}/{n}" for d, n, _p in list_packs() for _ in verify_pack(d, n)]
-    checks.append(("knowledge packs", "warning" if stale else "ok", f"{len(stale)} issue(s)"))
-
-    table = Table(title="forge-doctor doctor", title_justify="left")
-    table.add_column("Check", style="bold")
-    table.add_column("Status")
-    table.add_column("Detail", style="dim")
-    styles = {"ok": "green", "warning": "yellow", "error": "red", "missing": "red"}
-    for name, status, detail in checks:
-        table.add_row(name, f"[{styles.get(status, 'white')}]{status}[/]", detail)
-    console.print(table)
-    if any(s == "error" for _, s, _ in checks):
-        raise typer.Exit(1)
+    try:
+        target = write_scaffold(root, domain, kind)
+    except FileExistsError as exc:
+        _stderr.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    except ValueError as exc:
+        _stderr.print(f"[red]{exc}[/red]  kinds: {', '.join(SCAFFOLD_KINDS)}")
+        raise typer.Exit(1) from exc
+    console.print(f"[green]created[/green] {target}")
 
 
-@app.command(name="version")
-def version_cmd() -> None:
-    """Print the installed Forge Doctor version."""
-    typer.echo(f"forge-doctor {__version__}")
+def _bundled_knowledge_root() -> Path:
+    from importlib.resources import files
+
+    return Path(str(files("forge_doctor") / "knowledge"))
 
 
-@app.command(name="diagnose")
-def diagnose_cmd(
-    source: Annotated[str, typer.Argument(help="Log file path, or '-' to read stdin.")],
-    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
-    path: Annotated[
-        Path, typer.Option("--path", help="Project root for repo-evidence correlations.")
-    ] = Path("."),
+@knowledge_app.command(name="diff")
+def knowledge_diff(
+    a: Annotated[str, typer.Argument(help="Pack ref: <domain>/<name> or a JSON path.")],
+    b: Annotated[str, typer.Argument(help="Pack ref: <domain>/<name> or a JSON path.")],
+    as_json: Annotated[bool, typer.Option("--json")] = False,
 ) -> None:
-    """Fingerprint log errors against known signatures (deterministic, offline)."""
-    import json as _json
-    import sys
+    """Semantic pack diff: entries added/removed/changed (not text diff)."""
+    from forge_doctor.core.knowledge import diff_packs, load_pack_ref
 
-    from forge_doctor.core.diagnose import diagnose_text, project_correlations
-
-    if source == "-":
-        text = sys.stdin.read()
-    else:
-        log_path = Path(source)
-        if not log_path.is_file():
-            _stderr.print(f"[red]Not a file:[/red] {source}")
-            raise typer.Exit(INTERNAL_ERROR_EXIT)
-        text = log_path.read_text(encoding="utf-8", errors="replace")
-
-    diagnoses = diagnose_text(text)
-    # Repo-evidence correlations only make sense once a governed-domain
-    # signature matched; skip the project scan entirely otherwise.
-    correlations: list[str] = []
-    if path.is_dir() and any(d.signature.domain == "lakeformation" for d in diagnoses):
-        correlations = project_correlations(ProjectContext(root=path), diagnoses)
-    if fmt == "json":
-        typer.echo(
-            _json.dumps(
-                {
-                    "tool": "forge-doctor",
-                    "schema_version": SCHEMA_VERSION,
-                    "findings": [
-                        {
-                            "id": d.signature.id,
-                            "title": d.signature.title,
-                            "severity": d.signature.severity,
-                            "domain": d.signature.domain,
-                            "count": d.count,
-                            "causes": list(d.signature.causes),
-                            "fixes": list(d.signature.fixes),
-                            "related": list(d.signature.related),
-                            "samples": d.samples,
-                        }
-                        for d in diagnoses
-                    ],
-                    "correlations": correlations,
-                },
-                indent=2,
-                ensure_ascii=False,
-            )
-        )
-        return
-
-    console = Console()
-    if not diagnoses:
-        console.print("[green]No known error signatures matched.[/green]")
-        return
-    table = Table(title="Detected errors", title_justify="left")
-    table.add_column("Id", style="dim")
-    table.add_column("Count", justify="right")
-    table.add_column("Error", style="bold")
-    table.add_column("Severity")
-    for d in diagnoses:
-        style = {"error": "red", "warning": "yellow"}.get(d.signature.severity, "white")
-        table.add_row(
-            d.signature.id, str(d.count), d.signature.title, f"[{style}]{d.signature.severity}[/]"
-        )
-    console.print(table)
-    for d in diagnoses:
-        console.print(f"\n[bold]{d.signature.id}[/bold] {d.signature.title}")
-        for cause in d.signature.causes:
-            console.print(f"  [dim]->[/dim] {cause}")
-        for fix_hint in d.signature.fixes:
-            console.print(f"  [dim]fix:[/dim] {fix_hint}")
-        if d.signature.related:
-            console.print(f"  [dim]related: {', '.join(d.signature.related)}[/dim]")
-    for line in correlations:
-        console.print(f"\n[yellow]correlation:[/yellow] {line}")
-    raise typer.Exit(1)
-
-
-@app.command(name="trace")
-def trace_cmd(
-    check_id: Annotated[str, typer.Argument(help="Check id, e.g. SPARK001.")],
-    location: Annotated[str, typer.Argument(help="file:line, e.g. jobs/etl.py:42.")],
-    path: Annotated[Path, typer.Option("--path", help="Project root.")] = Path("."),
-    as_json: Annotated[bool, typer.Option("--json", help="Emit structured chain.")] = False,
-) -> None:
-    """Explain ONE finding: evidence, enclosing symbol, receiver chain."""
-    import json as _json
-
-    if not path.is_dir():
-        _stderr.print(f"[red]Not a directory:[/red] {path}")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-    file_part, sep, line_part = location.rpartition(":")
-    if not sep or not line_part.isdigit():
-        _stderr.print("[red]Location must be file:line (e.g. jobs/etl.py:42).[/red]")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-    target_file = Path(file_part).as_posix().removeprefix("./")
-    target_line = int(line_part)
-
-    ctx = ProjectContext(root=path)
-    registry, _ = _build_registry(config=ctx.config)
-    check = registry.get(check_id.upper())
-    if check is None:
-        _stderr.print(f"[red]Unknown check id:[/red] {check_id}")
-        raise typer.Exit(INTERNAL_ERROR_EXIT)
-
-    results = [
-        r
-        for r in check.run(ctx)
-        if r.file is not None and r.file.as_posix() == target_file and r.line == target_line
-    ]
-    if not results:
-        _stderr.print(f"[red]No {check.id} finding at[/red] {target_file}:{target_line}")
+    old, new = load_pack_ref(a), load_pack_ref(b)
+    if old is None or new is None:
+        _stderr.print("[red]could not load a pack ref[/red] (use domain/name or a JSON path)")
         raise typer.Exit(1)
-
-    result = results[0]
-    from forge_doctor.analyzers.index import project_index
-    from forge_doctor.core.fingerprint import resolve_symbol
-
-    symbol = result.symbol or resolve_symbol(result, ctx) or "<module>"
-    module = project_index(ctx).module(Path(target_file))
-    receiver = None
-    chain: list[dict[str, object]] = []
-    imports: list[str] = []
-    if module is not None:
-        receiver = (
-            result.evidence.split(".")[0] if result.evidence and "." in result.evidence else None
-        )
-        if receiver:
-            chain = [
-                {
-                    "target": a.target,
-                    "line": a.line,
-                    "source": a.value_call or a.value_root or "?",
-                }
-                for a in module.assigns
-                if a.target == receiver
-            ]
-        imports = [
-            (f"from {i.module} import {i.name}" if i.is_from else f"import {i.module}")
-            for i in module.imports
-        ]
-
+    rows = diff_packs(old, new)
     if as_json:
-        typer.echo(
-            _json.dumps(
-                {
-                    "check_id": result.check_id,
-                    "title": result.title,
-                    "file": target_file,
-                    "line": target_line,
-                    "symbol": symbol,
-                    "evidence": result.evidence,
-                    "evidence_kind": result.evidence_kind.value if result.evidence_kind else None,
-                    "receiver": receiver,
-                    "confidence": result.confidence.value if result.confidence else None,
-                    "assignment_chain": chain,
-                    "imports": imports,
-                    "message": result.message,
-                    "recommendation": result.recommendation,
-                },
-                indent=2,
-                ensure_ascii=False,
-            )
-        )
+        typer.echo(json.dumps(rows, indent=2))
         return
-
     console = Console()
-    console.print(f"\n[bold]{result.check_id}[/bold] {result.title}")
-    console.print(f"[dim]{target_file}:{target_line} in {symbol}[/dim]\n")
-    if result.evidence:
-        console.print(f"  [cyan]evidence[/cyan]  {result.evidence}")
-    if result.evidence_kind:
-        console.print(f"  [cyan]kind[/cyan]      {result.evidence_kind.value}")
-    if receiver:
-        conf = result.confidence.value if result.confidence else "?"
-        console.print(f"  [cyan]receiver[/cyan]  {receiver} (confidence: {conf})")
-    console.print(f"  [cyan]message[/cyan]   {result.message}")
-    if chain:
-        console.print("  [cyan]assignments[/cyan]")
-        for step in chain:
-            console.print(f"    line {step['line']}: {step['target']} = {step['source']}")
-    if imports:
-        console.print("  [cyan]imports[/cyan]")
-        for entry in imports[:8]:
-            console.print(f"    {entry}")
-    if result.recommendation:
-        console.print(f"\n[green]fix[/green] {result.recommendation}")
-    console.print()
+    if not rows:
+        console.print("[green]no content differences[/green]")
+        return
+    for row in rows:
+        color = {"added": "green", "removed": "red"}.get(row["change"], "yellow")
+        console.print(f"  [{color}]{row['change']}[/{color}] {row['section']}:{row['id']}")
+        for detail in row["details"]:
+            console.print(f"      [dim]{detail}[/dim]")
+
+
+@knowledge_app.command(name="test")
+def knowledge_test(as_json: Annotated[bool, typer.Option("--json")] = False) -> None:
+    """Pack conformance suite: structure, regexes, examples, capabilities."""
+    from forge_doctor.core.knowledge import conformance
+
+    report = conformance()
+    if as_json:
+        typer.echo(json.dumps(report, indent=2))
+        if report["issues"]:
+            raise typer.Exit(1)
+        return
+    console = Console()
+    issues, warnings = report["issues"], report["warnings"]
+    for issue in issues:
+        console.print(f"  [red]issue[/red]   {issue}")
+    for warning in warnings:
+        console.print(f"  [yellow]warning[/yellow] {warning}")
+    console.print(f"\n  {len(issues)} issue(s), {len(warnings)} warning(s)")
+    if issues:
+        raise typer.Exit(1)
+
+
+@knowledge_app.command(name="publish")
+def knowledge_publish(
+    domain: Annotated[str, typer.Argument(help="Pack domain to validate for publish.")],
+    bump: Annotated[bool, typer.Option("--bump", help="Rewrite pack_version/verified_at.")] = False,
+    directory: Annotated[
+        Path | None, typer.Option("--dir", help="Knowledge root (default: bundled).")
+    ] = None,
+    as_json: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Publish checklist: freshness fields valid, conformance clean."""
+    from forge_doctor.core.knowledge import bump_pack, publish_checklist
+
+    report = publish_checklist(domain)
+    if "error" in report:
+        _stderr.print(f"[red]{report['error']}[/red] for domain {domain}")
+        raise typer.Exit(1)
+    written: list[str] = []
+    if bump and report["ready"]:
+        root = directory or _bundled_knowledge_root()
+        written = [p.as_posix() for p in bump_pack(root, domain)]
+    if as_json:
+        typer.echo(json.dumps({**report, "written": written}, indent=2))
+        if not report["ready"]:
+            raise typer.Exit(1)
+        return
+    console = Console()
+    console.print(f"[bold]Publish checklist[/bold]  {domain}")
+    for row in report["packs"]:
+        status = "[green]ok[/green]" if row["ok"] else "[red]blocked[/red]"
+        console.print(
+            f"  {status} {row['pack']}  v{row['pack_version']} "
+            f"verified {row['verified_at']} sources={row['sources']}"
+        )
+        for issue in row["issues"]:
+            console.print(f"      [dim]{issue}[/dim]")
+    console.print(f"  next pack_version: {report['next_pack_version']}")
+    if written:
+        console.print(f"  [green]bumped[/green] {len(written)} pack(s)")
+    console.print(f"  [dim]{report['note']}[/dim]")
+    if not report["ready"]:
+        raise typer.Exit(1)
