@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/data-sharing.html"
+  ],
+  "domain": "lakeformation",
+  "cross_account": [
+    {
+      "step": "producer-ram-share",
+      "description": "Producer account creates an aws_ram_resource_share + aws_ram_resource_association for the catalog/database/table, and an aws_ram_principal_association for the consumer account id.",
+      "evidence": ["aws_ram_resource_share", "aws_ram_resource_association", "aws_ram_principal_association"]
+    },
+    {
+      "step": "producer-grant",
+      "description": "Producer grants DESCRIBE (and SELECT etc. as needed) to the consumer account id - a bare 12-digit principal or IAM ARN in another account.",
+      "evidence": ["aws_lakeformation_permissions principal=<account-id>"]
+    },
+    {
+      "step": "consumer-resource-link",
+      "description": "Consumer creates a resource link: aws_glue_catalog_database with target_database { catalog_id, database_name } pointing at the producer catalog.",
+      "evidence": ["aws_glue_catalog_database.target_database", "AWS::Glue::Database DatabaseInput.TargetDatabase"]
+    },
+    {
+      "step": "consumer-grant",
+      "description": "Consumer grants local principals on the resource link name - without this grant the link resolves but is unreachable by users.",
+      "evidence": ["aws_lakeformation_permissions on the link name"]
+    },
+    {
+      "step": "s3-location",
+      "description": "The underlying S3 location must be registered in the producer's Lake Formation and the consumer role needs S3 access via LF credential vending or bucket policy.",
+      "evidence": ["aws_lakeformation_resource arn=arn:aws:s3:::*"]
+    }
+  ]
+}

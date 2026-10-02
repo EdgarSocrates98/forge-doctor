@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/lf-permissions-reference.html",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/granting-catalog-permissions.html"
+  ],
+  "domain": "lakeformation",
+  "permissions": [
+    {
+      "name": "ALL",
+      "scope": "catalog",
+      "note": "Super permission; combining ALTER+DROP+CREATE+DESCRIBE semantics on the resource."
+    },
+    {
+      "name": "CREATE_DATABASE",
+      "scope": "catalog",
+      "note": "Catalog-level grant; lets the principal create databases in the data catalog."
+    },
+    {
+      "name": "CREATE_TABLE",
+      "scope": "database",
+      "note": "Database-level grant required before table creation."
+    },
+    {
+      "name": "SELECT",
+      "scope": "table",
+      "note": "Read grant; column-scoped when granted on table_with_columns, row-scoped when combined with a data_cells_filter."
+    },
+    {
+      "name": "INSERT",
+      "scope": "table",
+      "note": "Write grant; on governed tables also requires the location grant for credentials vending."
+    },
+    {
+      "name": "DATA_LOCATION_ACCESS",
+      "scope": "data_location",
+      "note": "Lets the principal create tables/databases whose location sits under a registered S3 path."
+    },
+    {
+      "name": "ALTER",
+      "scope": "table",
+      "note": "Schema/metadata mutation grant; excludes data access."
+    },
+    {
+      "name": "DROP",
+      "scope": "table",
+      "note": "Deletion grant on database/table metadata."
+    },
+    {
+      "name": "DESCRIBE",
+      "scope": "catalog",
+      "note": "Metadata visibility only; the minimum grant for a consumer account on a shared resource."
+    },
+    {
+      "name": "ASSOCIATE_TAG",
+      "scope": "lf_tag",
+      "note": "Lets a principal attach an LF tag to resources - required for LF-TBAC authoring."
+    },
+    {
+      "name": "GRANT_WITH_LF_TAG_EXPRESSION",
+      "scope": "lf_tag_expression",
+      "note": "Grant by tag expression rather than named resource - the LF-TBAC path."
+    }
+  ]
+}

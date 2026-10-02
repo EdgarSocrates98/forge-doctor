@@ -676,6 +676,64 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         )
 
 
+def _lakeformation(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor.analyzers.lakeformation_model import lakeformation_model
+
+    model = lakeformation_model(ctx)
+    for grant in model.grants:
+        if not grant.principal:
+            continue
+        principal = _e(K.PRINCIPAL, "lakeformation", grant.principal, grant.file, grant.line)
+        g.add_entity(principal)
+        # Grant target -> canonical entity: catalog on database/table kinds,
+        # storage_location on registered s3 arns.
+        dst: Entity | None = None
+        if grant.resource_kind in ("database", "table", "columns"):
+            name = grant.resource_name.split(".")[0] or grant.resource_name
+            dst = _e(K.CATALOG, "glue", name, grant.file, grant.line)
+        elif grant.resource_kind == "data_location":
+            dst = _e(K.STORAGE_LOCATION, "s3", grant.resource_name)
+        elif grant.resource_kind == "catalog":
+            dst = _e(K.CATALOG, "glue", grant.resource_name or "account")
+        if dst is not None:
+            g.add_entity(dst)
+            g.add_relationship(
+                Relationship(
+                    src=principal.id,
+                    dst=dst.id,
+                    kind=R.GOVERNS,
+                    evidence_kind=_CFG,
+                    attrs=(("permissions", "+".join(grant.permissions)),),
+                )
+            )
+    for loc in model.data_locations:
+        g.add_entity(
+            _e(
+                K.STORAGE_LOCATION,
+                "lakeformation",
+                loc.arn,
+                loc.file,
+                loc.line,
+                registered="true",
+            )
+        )
+    for link in model.resource_links:
+        link_e = _e(K.CATALOG, "lakeformation", link.name, link.file, link.line)
+        g.add_entity(link_e)
+        if link.target_catalog:
+            remote = _e(K.CATALOG, "glue", f"{link.target_catalog}:{link.target_database}")
+            g.add_entity(remote)
+            g.add_relationship(
+                Relationship(
+                    src=link_e.id,
+                    dst=remote.id,
+                    kind=R.DEPENDS_ON,
+                    evidence_kind=_CFG,
+                    attrs=(("resource_link", "true"),),
+                )
+            )
+
+
 def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
     """Fuse every domain model into one canonical graph (memoized)."""
     cached = getattr(ctx, _CACHE_ATTR, None)
@@ -690,6 +748,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _graph_intel,
         _dynamodb,
         _neptune,
+        _lakeformation,
         _sql,
         _iceberg,
         _parquet,

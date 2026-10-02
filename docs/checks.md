@@ -938,6 +938,34 @@ contract exists) compares it against declared (Terraform), implemented
 Absent contract, missing runtime, or missing config evidence never
 produces drift — unknown stays unknown.
 
+## Lake Formation
+
+`forge-doctor lakeformation` builds a `LakeFormationProjectModel` from
+Terraform (`aws_lakeformation_*`, `aws_glue_catalog_*`, `aws_ram_*`,
+IAM policies naming `lakeformation:`/`glue:` actions), CloudFormation
+(`AWS::LakeFormation::*`, `AWS::Glue::*`, `AWS::RAM::*`), and boto3
+`lakeformation`/`glue` call-sites — grants, admins, default permissions,
+registered data locations, resource links, LF tags, data-cells filters,
+RAM shares, and the consumer/producer cross-account paths. FGAC/FTA
+support per engine is capability-driven
+(`knowledge/capabilities/lakeformation.json`), evaluated through the
+registry rather than hardcoded in checks. In the platform graph, grants
+become `principal -[GOVERNS]-> catalog/location` edges and resource
+links become `DEPENDS_ON` edges to the producer catalog.
+
+- **LF000** Lake Formation usage census · info (anchor)
+- **LF001** resource-link/cross-account target without RAM evidence · warning
+- **LF002** `IAMAllowedPrincipals` alongside FGAC/LF-tag evidence · warning
+- **LF010** grants/locations present, no `data_lake_settings` declared · info
+- **LF011** `IAMAllowedPrincipals` retained in default permissions · warning
+- **LF012** resource link referenced by no grant · warning
+- **LF013** grant to external account without RAM principal association · warning
+- **LF014** `data_location` grant on an unregistered S3 arn · warning
+- **LF015** `lf_tag` grant on an undefined tag key / LF-TBAC summary · warning/info
+- **LF016** data-cells filter referenced by no grant · info
+- **LF017** hybrid access: IAM defaults retained while FGAC/LF-TBAC in use · warning
+- **LF018** grant option delegated to an external account · warning
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

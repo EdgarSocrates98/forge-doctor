@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/lf-permissions-reference.html",
+    "https://docs.aws.amazon.com/athena/latest/ug/engine-versions-reference.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-lake-formation.html",
+    "https://docs.aws.amazon.com/glue/latest/dg/lake-formation-permissions.html",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html"
+  ],
+  "domain": "lakeformation",
+  "capabilities": [
+    {
+      "id": "LAKEFORMATION_FGAC",
+      "platform": "athena",
+      "status": "conditional",
+      "versions": {"1": "unsupported", "2": "unsupported", "3": "supported"},
+      "reason": "Athena applies Lake Formation fine-grained filtering (column-level, row-level) only on engine version 3; engines v1/v2 fall back to coarse IAM/table-level access.",
+      "limitations": [
+        "Engine v3 must be selected on the workgroup.",
+        "Querying a governed table with insufficient LF permissions fails the query rather than silently filtering."
+      ],
+      "source": "https://docs.aws.amazon.com/athena/latest/ug/fine-grained-security-athena.html"
+    },
+    {
+      "id": "LAKEFORMATION_FGAC",
+      "platform": "glue",
+      "status": "conditional",
+      "versions": {"3.0": "conditional", "4.0": "conditional", "5.0": "supported"},
+      "reason": "Glue 5.0 added native Lake Formation fine-grained access control for Spark jobs; earlier versions enforce LF only for catalog resolution and governed-table writes.",
+      "limitations": [
+        "Glue <5.0 reads data via the job role's IAM/S3 permissions, not per-principal LF grants, unless the job uses the LF integration path.",
+        "Glue 5.0 FGAC requires the job to run under an LF-registered access model."
+      ],
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/lake-formation-permissions.html"
+    },
+    {
+      "id": "LAKEFORMATION_FGAC",
+      "platform": "emr",
+      "status": "conditional",
+      "versions": {"5.31": "unsupported", "5.32": "conditional", "6.0": "conditional", "7.0": "conditional"},
+      "reason": "EMR on EC2 integrates with Lake Formation for Spark/EMRFS access from release 5.32, but only when a security configuration with the LF integration is attached.",
+      "limitations": [
+        "Requires a security configuration enabling Lake Formation and an IAM role for the integration.",
+        "Hive and Presto on EMR have different LF support matrices than Spark."
+      ],
+      "source": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-lake-formation.html"
+    },
+    {
+      "id": "LAKEFORMATION_FTA",
+      "platform": "athena",
+      "status": "conditional",
+      "versions": {"1": "unsupported", "2": "unsupported", "3": "conditional"},
+      "reason": "Filtered (partial) access to governed tables is only possible through engine v3 with row/column filters defined via data cells filters; whole-table DENY semantics are unchanged.",
+      "limitations": ["Row filters require an aws_lakeformation_data_cells_filter referenced by a grant."],
+      "source": "https://docs.aws.amazon.com/lake-formation/latest/dg/data-cells-filtering.html"
+    },
+    {
+      "id": "LAKEFORMATION_FTA",
+      "platform": "glue",
+      "status": "conditional",
+      "versions": {"3.0": "conditional", "4.0": "conditional", "5.0": "conditional"},
+      "reason": "Glue reads on governed tables honor data-cells filters only on the LF-integrated path (Glue 5.0 native FGAC or governed-table jobs); plain DynamicFrame reads bypass filters.",
+      "limitations": ["Jobs reading via IAM on unregistered S3 paths bypass LF entirely."],
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/lake-formation-permissions.html"
+    },
+    {
+      "id": "LAKEFORMATION_HYBRID_ACCESS",
+      "platform": "lakeformation",
+      "status": "supported",
+      "reason": "Hybrid access mode lets a data location serve both IAM-governed and LF-governed principals while workloads migrate; it is a registration/catalog setting, not a versioned engine feature.",
+      "limitations": [
+        "With IAMAllowedPrincipals defaults retained, new tables are IAM-governed unless explicitly enrolled.",
+        "Effective access under hybrid mode is the union of IAM and LF evaluation - over-broad defaults defeat LF filtering."
+      ],
+      "source": "https://docs.aws.amazon.com/lake-formation/latest/dg/hybrid-access-mode.html"
+    },
+    {
+      "id": "LAKEFORMATION_CROSS_ACCOUNT",
+      "platform": "lakeformation",
+      "status": "conditional",
+      "reason": "Cross-account LF grants require an AWS RAM resource share and, for LF-tag-based sharing across accounts, CROSS_ACCOUNT_VERSION 3 in the catalog settings.",
+      "limitations": [
+        "Named-resource cross-account grants work at version 1+; LF-TBAC across accounts requires version 3.",
+        "The consumer must create a resource link before local principals can query."
+      ],
+      "source": "https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html"
+    }
+  ]
+}

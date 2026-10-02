@@ -340,6 +340,20 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   approved capabilities). ARCH### also run as scan checks when a
   contract exists. CLI: `contract validate <file>` and
   `architecture drift . [--runtime artifact]`.
+- **Lake Formation deep intelligence** — `analyzers/lakeformation_model.py`
+  builds a `LakeFormationProjectModel` (principals, admins, grants,
+  databases/tables/columns, data locations, resource links, LF tags,
+  data-cells filters, RAM shares, IAM `lakeformation:` policy actions,
+  boto3 `grant_permissions`/`register_resource`/`create_database`
+  TargetDatabase call-sites) with nested-block HCL extraction and
+  producer/consumer cross-account resolution. Checks LF010-LF018 cover
+  missing data-lake settings, `IAMAllowedPrincipals` defaults, dangling
+  resource links, external grants without RAM, unregistered data
+  locations, LF-TBAC coverage, unused filters, hybrid overlap, and
+  grant-option escalation. FGAC/FTA capability facts live in
+  `knowledge/capabilities/lakeformation.json`. Platform graph gains
+  principal → GOVERNS edges and resource-link DEPENDS_ON edges. CLI:
+  `lakeformation inspect|permissions|graph|cross-account|compatibility|findings`.
 
 ### Added (0.7.0)
 

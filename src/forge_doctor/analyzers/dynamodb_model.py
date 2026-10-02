@@ -506,7 +506,7 @@ def _tf_stream_consumers(
     """Lambda event-source mappings referencing a dynamodb stream."""
     out = []
     for b in blocks:
-        if b.labels[0] != "aws_lambda_event_source_mapping":
+        if not b.labels or b.labels[0] != "aws_lambda_event_source_mapping":
             continue
         arn = str(b.attrs.get("event_source_arn") or "")
         if "stream" not in arn and "dynamodb" not in arn:

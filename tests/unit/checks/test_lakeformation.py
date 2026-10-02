@@ -95,4 +95,17 @@ def test_hybrid_access_needs_both_legs(tmp_path: Path) -> None:
 
 def test_checks_list_registered() -> None:
     ids = [c.id for c in CHECKS]
-    assert ids == ["LF000", "LF001", "LF002"]
+    assert ids == [
+        "LF000",
+        "LF001",
+        "LF002",
+        "LF010",
+        "LF011",
+        "LF012",
+        "LF013",
+        "LF014",
+        "LF015",
+        "LF016",
+        "LF017",
+        "LF018",
+    ]
