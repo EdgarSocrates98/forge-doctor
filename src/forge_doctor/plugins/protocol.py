@@ -123,6 +123,10 @@ class CheckBase:
     evidence_kind = EvidenceKind.STATIC
     tags: tuple[str, ...] = ()
     docs_uri: str | None = None
+    # Incremental scans: which evidence domains this check observes
+    # (see core.incremental). None = resolved from the module map, or
+    # "unbounded" for plugins (conservative: always rerun).
+    evidence_domains: tuple[str, ...] | None = None
 
     def result(
         self,
