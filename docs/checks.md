@@ -997,6 +997,9 @@ links become `DEPENDS_ON` edges to the producer catalog.
 
 ## EMR
 
+The EMR, Databricks, and Delta Lake sections below all belong to the
+`platforms` check category.
+
 `forge-doctor emr` builds an `EmrProjectModel` from Terraform
 (`aws_emr_cluster`, `aws_emrserverless_application`,
 `aws_emrcontainers_virtual_cluster`, `aws_emr_step`,

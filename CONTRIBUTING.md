@@ -53,6 +53,22 @@ Everything must be green before opening a PR.
 - Prefer `ast` over regex for Python code patterns.
 - Keep it offline: no network calls.
 
+## Beyond checks
+
+- **Knowledge packs** — version facts (runtimes, compat changes, error
+  signatures) live in `src/forge_doctor/knowledge/`; a pack ships schema
+  version + `verified_at` + sources. `forge-doctor knowledge verify` must
+  pass; the engine code does not change when a version goes EOL.
+- **Lab scenarios** — add a dir under `labs/<domain>/` with a fixture
+  project plus `expected.json` ground truth; `forge-doctor lab run` and
+  `lab metrics` measure precision/recall against it.
+- **Golden repos** — add a realistic mini-repo under `golden/repos/` and
+  regenerate its snapshot with `forge-doctor golden update`; review the
+  snapshot diff like code.
+- **Policy packs** — org rules are declarative YAML/JSON in
+  `.forge-doctor/policy/`; see the existing packs and
+  `forge-doctor policy validate`.
+
 ## Tests
 
 - `tests/unit/` — check internals, one behavior each.

@@ -23,6 +23,9 @@ actually fine.
 pipx install forge-doctor
 ```
 
+New here? Walk through [docs/getting-started.md](docs/getting-started.md) —
+install to a gated CI scan in five steps.
+
 Or from source:
 
 ```bash
@@ -56,6 +59,21 @@ forge-doctor compatibility --to 6.0     # Glue env + migration risks
 forge-doctor migrate glue --from 3.0 --to 4.0  # migration intelligence
 forge-doctor workspace .                # discover projects in a monorepo
 forge-doctor workspace scan --path .    # scan every nested project
+forge-doctor workspace inspect .        # cross-repo graph links (defines/implements/invokes)
+forge-doctor diff base...head --semantic  # entity-level diff + blast radius + risk
+forge-doctor remediate .              # deterministic fix plans per finding/root cause
+forge-doctor root-cause .             # correlate findings into causal clusters
+forge-doctor runtime inspect .        # offline runtime evidence (exported artifacts)
+forge-doctor architecture drift .     # drift vs .forge-doctor/contract.yml
+forge-doctor contract validate .      # verify a platform contract file
+forge-doctor capabilities list .      # platform capability registry report
+forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
+forge-doctor migrate plan .           # named deterministic migration plans
+forge-doctor policy list .            # organization policy packs
+forge-doctor lab run                  # Forge Lab scenario suites + ground truth
+forge-doctor golden run               # golden-repo snapshot regression
+forge-doctor bench run .              # performance & scale benchmark
+forge-doctor schema contracts         # JSON Schemas for output artifacts
 forge-doctor info                   # project stats, no checks
 forge-doctor init --name my-etl     # scaffold a new project
 forge-doctor repo                   # category shortcuts
@@ -82,6 +100,21 @@ forge-doctor terraform inspect .    # providers/modules/backends/reference graph
 forge-doctor parquet inspect .      # Parquet dataset stats + codec/write risks
 forge-doctor stepfunctions inspect .# ASL machines: states, integrations, graph risks
 forge-doctor streaming inspect .    # streaming queries: source→sink, checkpoint, watermark
+forge-doctor streaming diagnose .   # progress-metrics diagnostics (rate/state/watermark)
+forge-doctor streaming semantics .  # derived delivery semantics per query
+forge-doctor dynamodb inspect .     # DynamoDB tables + access patterns
+forge-doctor neptune inspect .      # Neptune clusters + query shapes
+forge-doctor lakeformation inspect .# governance, cross-account shares, tag usage
+forge-doctor emr inspect .          # EMR EC2/Serverless/EKS deep model
+forge-doctor databricks inspect .   # jobs/clusters/DBR/UC + bundles
+forge-doctor delta inspect .        # Delta tables, ops, protocol features
+forge-doctor athena inspect .       # workgroups, queries, result locations
+forge-doctor lambda inspect .       # functions, triggers, runtimes, data-plane calls
+forge-doctor kafka inspect .        # MSK clusters/topics/consumer groups
+forge-doctor kinesis inspect .      # streams, EFO, Firehose
+forge-doctor flink inspect .        # Flink jobs, state, checkpoints, savepoints
+forge-doctor data-model inspect .   # cross-domain access-style inspection
+forge-doctor iac                    # IaC checks (Terraform/CloudFormation)
 forge-doctor cache                  # incremental-analysis stats
 forge-doctor sbom                   # CycloneDX 1.5 of the project
 forge-doctor knowledge verify       # pack freshness/provenance
@@ -167,7 +200,18 @@ colors; `--output` also works for plain text reports.
 | terraform | TF000–TF003, TF020–TF022, TF130 | TerraformProjectModel: required_version/providers, module pinning, local backend, reference graph |
 | parquet | PARQ000, PARQ010, PARQ020–PARQ021, PARQ040–PARQ042 | ParquetProjectModel: write APIs, compression, small-file/dataset stats |
 | stepfunctions | SFN000, SFN002–SFN003, SFN005, SFN010, SFN020 | StepFunctionsModel: ASL states/graphs, unreachable/dead-end states, sync timeouts, Distributed Map on Express |
-| streaming | STREAM001–STREAM003, STREAM013–STREAM014, STREAM020, STREAM070 | StreamingProjectModel: Spark SS queries, checkpoint/watermark/stateful evidence, foreachBatch |
+| streaming | STREAM001–STREAM003, STREAM013–STREAM014, STREAM020, STREAM070, STREAM080 | StreamingProjectModel: Spark SS queries, checkpoint/watermark/stateful evidence, foreachBatch, derived delivery semantics |
+| iac | IAC rules | CloudFormation + cross-IaC checks |
+| dynamodb | DDB, DDBGT, DDBSTR rules | DynamoDBProjectModel: tables, indexes, streams, access patterns |
+| neptune | NEP, NEPA, NEPCD, NEPGT rules | NeptuneProjectModel: clusters, query shapes, explain ingest |
+| lakeformation | LF rules | LF permissions, cross-account shares, tag governance |
+| platforms | EMR, DBX, DELTA rules | deep EMR (EC2/Serverless/EKS), Databricks jobs/UC, Delta protocol/features |
+| serverless | ATH, LAM, SFN rules | Athena workgroups, Lambda functions/triggers, ASL machines |
+| streaming-bus | KFK, KIN, FLK, STREAM rules | Kafka/MSK, Kinesis/EFO/Firehose, Flink state/checkpoints |
+| graph | GRAPH rules | graph-model checks (queries, bulk loads, call sites) |
+| platform | PLAT rules | cross-domain correlation (e.g. PLAT008–PLAT011) |
+| architecture | ARCH rules | contract conformance + drift detection |
+| policy | POLICY rules | suppressions audit, org policy-pack violations |
 
 Full per-rule documentation (including *when it's OK*) lives in
 [docs/checks.md](docs/checks.md).
@@ -181,7 +225,7 @@ forge-doctor scan . --format json
 ```json
 {
   "tool": {"name": "forge-doctor", "version": "0.7.0"},
-  "schema_version": "3.0",
+  "schema_version": "1.0",
   "version": "0.7.0",
   "project": {"name": "etl"},
   "summary": {"passed": 17, "info": 3, "warnings": 4, "errors": 0},
@@ -196,7 +240,9 @@ forge-doctor scan . --format json
 }
 ```
 
-The JSON contract is stable and meant for CI, GitHub, and agent consumers.
+The JSON contract is stable and meant for CI, GitHub, and agent consumers —
+`forge-doctor schema contracts` emits the JSON Schemas for every public
+artifact and [docs/api.md](docs/api.md) records the versioning rules.
 Every finding carries a stable `fingerprint`; optional fields (`confidence`,
 `evidence`, `evidence_kind`, `tags`, `docs_uri`, `source`, `fixable`,
 `column`, `end_line`, `end_column`) appear only when set. `is_new`/`baseline`

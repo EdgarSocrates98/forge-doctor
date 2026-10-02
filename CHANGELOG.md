@@ -46,6 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now the single constant behind every `schema_version` JSON key.
   `forge-doctor schema contracts [name]` publishes JSON Schemas for the
   public artifacts; `docs/api.md` records the semver/stability rules.
+- **Docs completeness** — README usage now covers every command group
+  (domain `inspect` CLIs, `lab`/`golden`/`bench`, `policy`, `what-if`,
+  `remediate`, `root-cause`, `runtime`, `contract`/`architecture`,
+  `capabilities`, `schema contracts`, semantic `diff`); the checks table
+  covers all 28 categories; stale `schema_version` in the JSON example
+  fixed. New `docs/getting-started.md` onboarding path; CONTRIBUTING
+  documents knowledge packs, lab scenarios, golden repos, and policy
+  packs. `test_docs.py` enforces docs coverage deterministically —
+  every command, check id, and category must be documented, and doc
+  links must resolve.
 
 ### Fixed
 
