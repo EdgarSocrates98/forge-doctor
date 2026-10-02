@@ -82,6 +82,40 @@ def platform_blast_radius(
         console.print()
 
 
+@platform_app.command(name="findings")
+def platform_findings(
+    path: _PathOpt = Path("."),
+    as_json: Annotated[bool, typer.Option("--json", help="Emit JSON.")] = False,
+) -> None:
+    """Cross-domain platform findings (PLAT### rules)."""
+    from forge_doctor.checks.platform_rules import CHECKS
+    from forge_doctor.cli.common import render_findings
+
+    ctx = ProjectContext(root=path.resolve())
+    results = [r for check in CHECKS for r in check.run(ctx)]
+    if as_json:
+        typer.echo(
+            json.dumps(
+                [
+                    {
+                        "id": r.check_id,
+                        "severity": r.severity.value,
+                        "message": r.message,
+                        "file": r.file.as_posix() if r.file else None,
+                        "line": r.line,
+                        "confidence": r.confidence.value if r.confidence else None,
+                        "evidence_kind": (r.evidence_kind.value if r.evidence_kind else None),
+                    }
+                    for r in results
+                ],
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    render_findings(console, ctx, CHECKS, title="Platform Findings")
+
+
 @platform_app.callback(invoke_without_command=True)
 def _platform_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:

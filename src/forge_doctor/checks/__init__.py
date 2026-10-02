@@ -20,6 +20,7 @@ from forge_doctor.checks import (
     lakeformation,
     neptune,
     parquet,
+    platform_rules,
     python_env,
     repository,
     spark,
@@ -49,6 +50,7 @@ BUILTIN_MODULES = (
     streaming,
     lakeformation,
     graph,
+    platform_rules,
     dynamodb,
     neptune,
 )

@@ -284,6 +284,22 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   Neptune adapters (`graph:neptune:<cluster>`, loader READS S3 / WRITES
   graph, lambda WRITES via handler-module join) — `blast-radius` spans
   Terraform → DynamoDB → stream → Lambda → Neptune.
+- **Cross-Domain Rule Engine** (`core/crossdomain.py` +
+  `checks/platform_rules.py`) — PLAT### findings derived from multiple
+  semantic models, canonical-graph edges, and the capability registry.
+  Each rule declares the entity/relationship/capability prerequisites it
+  needs and fires only when all are present (no fuzzy joins); findings
+  list their contributing facts. First rules: PLAT001 retrying
+  orchestration task + append-only sink, PLAT002 runtime/config
+  capability incompatibility, PLAT003 continuous writer + maintenance
+  gap, PLAT004 duplicate orchestration ownership, PLAT005 IaC runtime vs
+  source assumptions, PLAT006 table-format/consumer mismatch, PLAT007
+  microbatch side-effect idempotency risk. `AirflowTask`/`AirflowDag`
+  gained `target`/`default_retries`; the Airflow adapter now emits
+  task→compute-job INVOKES edges for orchestrating operators
+  (GlueJobOperator, LambdaInvoke*, StepFunction*, EMR, Databricks).
+  CLI: `forge-doctor platform findings` (also runs inside `scan` under
+  the `platform` category).
 
 ### Added (0.7.0)
 

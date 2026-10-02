@@ -91,6 +91,22 @@ def _e(
     )
 
 
+# Airflow operator -> (entity kind, platform domain) for the external
+# resource its ``target`` kwarg names. Only operators whose target maps
+# to a canonical platform entity id produce an edge.
+_AIRFLOW_OPERATOR_TARGETS: dict[str, tuple[K, str]] = {
+    "GlueJobOperator": (K.COMPUTE_JOB, "glue"),
+    "GlueJobRunTrigger": (K.COMPUTE_JOB, "glue"),
+    "LambdaInvokeFunctionOperator": (K.COMPUTE_JOB, "lambda"),
+    "LambdaInvokeAsyncOperator": (K.COMPUTE_JOB, "lambda"),
+    "StepFunctionStartExecutionOperator": (K.WORKFLOW, "stepfunctions"),
+    "EmrAddStepsOperator": (K.COMPUTE_JOB, "emr"),
+    "EmrServerlessStartJobOperator": (K.COMPUTE_JOB, "emr"),
+    "DatabricksRunNowOperator": (K.COMPUTE_JOB, "databricks"),
+    "DatabricksSubmitRunOperator": (K.COMPUTE_JOB, "databricks"),
+}
+
+
 def _airflow(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.airflow_model import airflow_model
 
@@ -125,6 +141,15 @@ def _airflow(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                             evidence_kind=_STA,
                         )
                     )
+        kind_domain = _AIRFLOW_OPERATOR_TARGETS.get(task.operator)
+        if task.target and kind_domain is not None:
+            kind, domain = kind_domain
+            ident = task.target.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+            target = _e(kind, domain, ident or task.target)
+            g.add_entity(target)
+            g.add_relationship(
+                Relationship(src=t.id, dst=target.id, kind=R.INVOKES, evidence_kind=_STA)
+            )
     for edge in model.edges:
         # `a >> b` means b depends on a; edges reference vars or task_ids.
         src_id = task_ids.get(edge.dst)

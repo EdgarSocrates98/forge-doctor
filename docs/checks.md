@@ -811,6 +811,47 @@ flags). `forge-doctor data-model inspect` reports the access-style
 breakdown (key lookups vs bounded queries vs scans vs multi-hop
 traversals) as facts only — no platform recommendation.
 
+## Platform (cross-domain)
+
+PLAT### findings are emitted by the cross-domain rule engine
+(`core/crossdomain.py`): each rule declares the entity kinds,
+relationship kinds, and capability ids it needs, and fires only when all
+prerequisites are observably present. Findings list their contributing
+facts instead of asserting a bare risk label.
+
+### PLAT001 — Orchestration retry + non-idempotent sink · warning
+A retried orchestration task (Airflow `retries>0`, DAG `default_args`
+included) plus append-style Iceberg writes with no merge/overwrite/
+createOrReplace evidence — retries can duplicate rows.
+
+### PLAT002 — Runtime/config feature incompatibility · warning
+Declared runtime version evaluates UNSUPPORTED for a capability the
+source exercises (e.g. Glue 3.0 + Iceberg MERGE/UPDATE/DELETE).
+
+### PLAT003 — Continuous writer + storage maintenance gap · info
+A `processingTime`/`continuous` micro-batch sink to Iceberg/Delta with
+no compaction or snapshot-expiry evidence in the project.
+
+### PLAT004 — Duplicate orchestration ownership · warning
+The same compute job is invoked from two orchestrator domains
+(Airflow / Control-M / Step Functions) — double-run risk.
+
+### PLAT005 — IaC runtime config vs source assumptions · warning/info
+Terraform `aws_lambda_function.runtime` below `requires-python`, or a
+`glue_version` pin in code that differs from the Terraform declaration.
+
+### PLAT006 — Table format + consumer compatibility mismatch · info/warning
+An Iceberg `format-version=2` table has consumers; severity upgrades to
+warning when the capability engine proves the consumer unsupported.
+
+### PLAT007 — Stream sink retry + side-effect idempotency risk · warning
+A microbatch writer sinks into a non-transactional store
+(DynamoDB/Neptune or `foreachBatch`) with no checkpoint or dedup
+(`ConditionExpression`, `batch_id` in the item key) evidence.
+
+`forge-doctor platform findings` renders only this category; the same
+checks also run inside `forge-doctor scan` under `category=platform`.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

@@ -395,6 +395,10 @@ class CapabilityRegistry:
     def platforms(self) -> list[str]:
         return sorted({e.platform for e in self._entries})
 
+    def capabilities(self) -> list[str]:
+        """All capability ids declared across every platform."""
+        return sorted({e.id for e in self._entries})
+
     def explain(
         self,
         platform: str,

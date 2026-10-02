@@ -79,6 +79,7 @@ class AirflowDag:
     start_date_dynamic: bool
     max_active_runs: str
     task_count: int = 0
+    default_retries: str = ""  # retries from default_args when literal
 
 
 @dataclass(frozen=True)
@@ -95,6 +96,7 @@ class AirflowTask:
     retries: str
     has_retry_delay: bool
     wired: bool
+    target: str = ""  # external resource name for orchestrating operators
 
 
 @dataclass(frozen=True)
@@ -171,6 +173,41 @@ def _kwargs(call: ast.Call) -> dict[str, ast.expr]:
 def _lit(value: ast.expr) -> str:
     if isinstance(value, ast.Constant):
         return str(value.value)
+    return ""
+
+
+# Operator class -> kwargs naming the external resource it invokes. Used
+# for orchestration->compute edges (cross-domain rules, platform graph).
+_OPERATOR_TARGET_KWARGS: dict[str, tuple[str, ...]] = {
+    "GlueJobOperator": ("job_name",),
+    "GlueJobRunTrigger": ("job_name",),
+    "LambdaInvokeFunctionOperator": ("function_name",),
+    "LambdaInvokeAsyncOperator": ("function_name",),
+    "StepFunctionStartExecutionOperator": ("state_machine_arn", "state_machine_name"),
+    "EmrAddStepsOperator": ("job_flow_id",),
+    "EmrServerlessStartJobOperator": ("application_id",),
+    "DatabricksRunNowOperator": ("job_id",),
+    "DatabricksSubmitRunOperator": ("notebook_task",),
+    "AthenaOperator": ("query",),
+}
+
+
+def _operator_target(operator: str, kws: dict[str, ast.expr]) -> str:
+    for key in _OPERATOR_TARGET_KWARGS.get(operator, ()):
+        if key in kws:
+            value = _lit(kws[key])
+            if value:
+                return value
+    return ""
+
+
+def _default_args_retries(value: ast.expr | None) -> str:
+    """Literal ``retries`` inside a ``default_args={...}`` dict."""
+    if not isinstance(value, ast.Dict):
+        return ""
+    for key, item in zip(value.keys, value.values, strict=True):
+        if isinstance(key, ast.Constant) and key.value == "retries":
+            return _lit(item)
     return ""
 
 
@@ -431,6 +468,7 @@ class _FileWalk:
             catchup=_truthy(kws["catchup"]) if "catchup" in kws else None,
             start_date_dynamic=_dynamic_date(kws["start_date"]) if "start_date" in kws else False,
             max_active_runs=_lit(kws.get("max_active_runs", ast.Constant(value=""))),
+            default_retries=_default_args_retries(kws.get("default_args")),
         )
         self.dags.append(dag)
         if var:
@@ -461,6 +499,7 @@ class _FileWalk:
             retries=_lit(kws.get("retries", ast.Constant(value=""))),
             has_retry_delay="retry_delay" in kws,
             wired=False,
+            target=_operator_target(operator, kws),
         )
 
     def _edge_chain(self, node: ast.BinOp) -> None:
