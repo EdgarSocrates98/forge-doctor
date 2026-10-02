@@ -57,7 +57,7 @@ def whatif_run(
         console.print()
         console.print(
             f"[bold]What-if[/bold] {report.change.target}.{report.change.property}: "
-            f"{report.change.from_ or 'unobserved'} → {report.change.to}"
+            f"{report.change.from_ or 'unobserved'} -> {report.change.to}"
         )
         if report.affected_entities:
             console.print(f"  affected entities ({len(report.affected_entities)}):")
@@ -88,11 +88,27 @@ def whatif_run(
 
 
 @migrate_app.command(name="plan")
-def migrate_plan(path: _PathOpt = Path(".")) -> None:
-    """Enumerate applicable migration plans for the project."""
+def migrate_plan(
+    path: _PathOpt = Path("."),
+    source: Annotated[
+        str | None,
+        typer.Option("--from", help="Source platform (snowflake|redshift|…)"),
+    ] = None,
+    target: Annotated[
+        str | None,
+        typer.Option("--to", help="Target platform (bigquery|snowflake|…)"),
+    ] = None,
+    fmt: Annotated[
+        str, typer.Option("--format", "-f", help="text|json")
+    ] = "text",
+) -> None:
+    """Enumerate migration plans; --from/--to build a cross-platform plan."""
     ctx = ProjectContext(root=path.resolve())
-    plans = plan_migrations(ctx)
     console = Console()
+    if source and target:
+        _platform_plan(ctx, source, target, fmt, console)
+        return
+    plans = plan_migrations(ctx)
     console.print()
     console.print("[bold]Migration Plans[/bold]")
     if not plans:
@@ -100,7 +116,7 @@ def migrate_plan(path: _PathOpt = Path(".")) -> None:
         return
     for p in plans:
         console.print(
-            f"\n[bold]{p.path_id}[/bold]  {p.source_environment} → {p.target_environment}"
+            f"\n[bold]{p.path_id}[/bold]  {p.source_environment} -> {p.target_environment}"
         )
         if p.affected_entities:
             console.print(f"  affected ({len(p.affected_entities)}):")
@@ -120,3 +136,72 @@ def migrate_plan(path: _PathOpt = Path(".")) -> None:
                 for item in items:
                     console.print(f"    - {item}")
     console.print()
+
+
+def _platform_plan(
+    ctx: ProjectContext, source: str, target: str, fmt: str, console: Console
+) -> None:
+    """`migrate plan --from X --to Y`: deterministic cross-platform report."""
+    from forge_doctor.core.crossmigration import plan_platform_migration
+
+    plan = plan_platform_migration(ctx, source, target)
+    if fmt == "json":
+        import dataclasses
+        import json as _json
+
+        payload = dataclasses.asdict(plan)
+        payload["findings"] = [
+            {
+                "check_id": f.check_id,
+                "severity": f.severity.value,
+                "message": f.message,
+                "recommendation": f.recommendation,
+                "evidence": f.evidence,
+            }
+            for f in plan.findings
+        ]
+        typer.echo(_json.dumps(payload, indent=2, default=str))
+        return
+
+    console.print()
+    console.print(
+        f"[bold]Platform migration[/bold]  {plan.source} -> {plan.target}"
+    )
+    if plan.entity_map:
+        console.print("\n[bold]Entity map[/bold]")
+        for m in plan.entity_map:
+            console.print(
+                f"  {m.source}  ->  {m.target_service or 'UNMAPPED'}  "
+                f"[{m.confidence}]  {m.note}"
+            )
+    deltas = plan.capability_deltas
+    if deltas:
+        console.print("\n[bold]Capability deltas[/bold]")
+        for d in deltas:
+            color = {
+                "lost": "red",
+                "gained": "green",
+                "equivalent": "cyan",
+            }.get(d.delta, "yellow")
+            console.print(
+                f"  [{color}]{d.delta:10}[/{color}] {d.capability}  "
+                f"{d.source_status} -> {d.target_status}"
+            )
+    if plan.stages:
+        console.print("\n[bold]Stages[/bold]")
+        for st in plan.stages:
+            console.print(f"  {st.stage}:")
+            for item in st.items:
+                console.print(f"    - {item}")
+    if plan.findings:
+        console.print("\n[bold]Plan findings[/bold]")
+        for f in plan.findings:
+            console.print(
+                f"  {f.severity.value.upper():7} {f.check_id}  {f.message}"
+            )
+    if not plan.entity_map and not deltas:
+        console.print(f"  no {plan.source} services detected to migrate")
+    console.print()
+    raise typer.Exit(
+        1 if any(f.severity.value == "error" for f in plan.findings) else 0
+    )

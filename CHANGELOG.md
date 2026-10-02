@@ -448,6 +448,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   attributes={"service": "gcs"})` resolves the per-cloud surface.
   New command `forge-doctor cloud inspect`, labs
   `labs/cloud/{azure-only,gcp-only,mixed-parity,linked}`.
+- **Cross-platform migration** (spec 224, roadmap-4 wave 7) —
+  `migrate plan --from <platform> --to <platform>` and
+  `what-if --change platform=<target>` on the abstraction layer.
+  `core/crossmigration.py` builds a deterministic plan document
+  (text + `--format json`): entity map via the spec-223 abstractions
+  (snowflake stage→gcs, stream→pubsub, task→dataproc, warehouse→
+  bigquery…), per-entity advisory notes with confidence, capability
+  deltas from the knowledge packs (lost/gained/equivalent/review), and
+  stages ordered catalog → schema → data → compute → consumers.
+  Plan-scoped `MIGR` findings: `MIGR001` capability or service with no
+  target equivalent (error), `MIGR002` semantic difference needing
+  manual review, `MIGR003` downstream consumers with no target link.
+  No transpiled-DDL claims — notes are advisory with evidence links.
+  Warehouse-domain vendor objects (stages/streams/tasks) now fold into
+  the abstraction view (`storage_location`/`stream`/`task` kinds).
+  Lab `labs/migration/snowflake-to-bigquery` exercises the full path.
 
 ### Fixed
 

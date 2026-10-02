@@ -32,6 +32,9 @@ _TARGETS: dict[str, tuple[str, str, str]] = {
     "lambda": ("lambda", "lambda", "runtime"),
     "emr-release": ("emr", "emr", "release_label"),
     "emr": ("emr", "emr", "release_label"),
+    # spec 224 — cross-platform migration on the abstraction layer
+    "platform": ("platform", "platform", "platform"),
+    "warehouse": ("platform", "platform", "platform"),
 }
 
 
@@ -323,8 +326,71 @@ def _contract_conflicts(ctx: ProjectContext, change: WhatIfChange) -> list[WhatI
     return out
 
 
+def _platform_change_report(
+    ctx: ProjectContext, change: WhatIfChange
+) -> WhatIfReport:
+    """`--change platform=<target>`: cross-platform on the abstraction layer."""
+    from forge_doctor.analyzers.abstractions import abstractions_model
+    from forge_doctor.core.crossmigration import plan_platform_migration
+    from forge_doctor.core.models import Severity
+
+    model = abstractions_model(ctx)
+    wh_sources = sorted(
+        {s.service for s in model.services if s.abstraction == "warehouse"}
+    )
+    source = (
+        wh_sources[0]
+        if len(wh_sources) == 1
+        else (change.from_ or (wh_sources[0] if wh_sources else "unknown"))
+    )
+    plan = plan_platform_migration(ctx, source, change.to)
+    resolved = WhatIfChange(
+        target="platform",
+        property="platform",
+        from_=source,
+        to=change.to,
+        assumptions=change.assumptions,
+    )
+    impacts: list[WhatIfImpact] = []
+    for f in plan.findings:
+        sev = (
+            "blocker"
+            if f.severity == Severity.ERROR
+            else ("warn" if f.severity == Severity.WARNING else "info")
+        )
+        impacts.append(
+            WhatIfImpact("migration", sev, f.message, ((f.evidence or ""),))
+        )
+    for m in plan.entity_map:
+        impacts.append(
+            WhatIfImpact(
+                "drift",
+                "info",
+                f"{m.source} -> {m.target_service or 'UNMAPPED'} "
+                f"[{m.confidence}]",
+                (m.note,),
+            )
+        )
+    sev_rank = {"blocker": 0, "warn": 1, "info": 2}
+    impacts.sort(key=lambda i: (sev_rank.get(i.severity, 3), i.category, i.detail))
+    return WhatIfReport(
+        change=resolved,
+        affected_entities=tuple(m.source for m in plan.entity_map),
+        impacts=tuple(impacts),
+        unsupported_now=tuple(plan.lost_capabilities()),
+        supported_now=tuple(plan.gained_capabilities()),
+        unknown=tuple(
+            f"{d.capability}: {d.target_status}"
+            for d in plan.capability_deltas
+            if d.delta == "review"
+        ),
+    )
+
+
 def evaluate_change(ctx: ProjectContext, change: WhatIfChange) -> WhatIfReport:
     """Full deterministic what-if evaluation for one change."""
+    if change.target == "platform":
+        return _platform_change_report(ctx, change)
     observed = _observed_versions(ctx, change.target, change.property)
     from_ = change.from_ or ",".join(observed) or "unobserved"
     resolved = WhatIfChange(

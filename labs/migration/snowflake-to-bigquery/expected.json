@@ -1,0 +1,6 @@
+{
+  "name": "snowflake-to-bigquery",
+  "description": "Snowflake estate (wh/db/stage/stream/task) feeds the abstraction view; `migrate plan --from snowflake --to bigquery` maps it end-to-end (verified in unit tests)",
+  "expected_findings": ["CLOUD000"],
+  "forbidden_findings": ["CLOUD002"]
+}

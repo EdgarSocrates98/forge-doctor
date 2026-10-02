@@ -84,7 +84,9 @@ forge-doctor twin export .            # deterministic twin snapshot artifact
 forge-doctor advise .                 # ranked, cited actions (decision intelligence)
 forge-doctor optimize .               # ranked optimization candidates + validation commands
 forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
+forge-doctor what-if . --change platform=bigquery  # cross-platform re-target evaluation
 forge-doctor migrate plan .           # named deterministic migration plans
+forge-doctor migrate plan . --from snowflake --to bigquery  # cross-platform plan
 forge-doctor policy list .            # organization policy packs
 forge-doctor policy report .          # compliance: violations + suppression audit
 forge-doctor lab run                  # Forge Lab scenario suites + ground truth

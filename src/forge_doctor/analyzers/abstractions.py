@@ -242,6 +242,20 @@ _PLATFORM_DOMAINS = {
 }
 
 
+# warehouse-domain entity kinds -> abstraction (vendor objects fold too)
+_WAREHOUSE_KIND_ABSTRACTION = {
+    "warehouse": "warehouse",
+    "table": "warehouse",
+    "view": "warehouse",
+    "dataset": "warehouse",
+    "storage_location": "object_storage",
+    "stream": "stream",
+    "task": "compute_engine",
+    "compute_job": "compute_engine",
+    "infrastructure_resource": "compute_engine",
+}
+
+
 def _scan_graph(ctx: ProjectContext, model: CloudAbstractionModel) -> None:
     from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
 
@@ -252,9 +266,11 @@ def _scan_graph(ctx: ProjectContext, model: CloudAbstractionModel) -> None:
     tf_names = {(s.service, s.name.lower()) for s in model.services}
     for e in g.entities():
         attrs = dict(e.attrs)
-        if e.domain == "warehouse" and e.kind.value == "warehouse":
+        if e.domain == "warehouse":
             platform = str(attrs.get("platform") or "")
-            if platform and platform not in _WAREHOUSE_PLATFORM_CLOUD:
+            if not platform:
+                continue  # vendor-neutral row — no service claim
+            if platform not in _WAREHOUSE_PLATFORM_CLOUD:
                 model.unmapped.append(
                     UnmappedService(
                         domain=e.domain,
@@ -264,10 +280,11 @@ def _scan_graph(ctx: ProjectContext, model: CloudAbstractionModel) -> None:
                     )
                 )
                 continue
-            if not platform:
-                continue  # vendor-neutral row — no service claim
+            abstraction = _WAREHOUSE_KIND_ABSTRACTION.get(e.kind.value)
+            if abstraction is None:
+                continue  # principals/schemas — not migration services
             svc = AbstractedService(
-                abstraction="warehouse",
+                abstraction=abstraction,
                 cloud=_WAREHOUSE_PLATFORM_CLOUD[platform],
                 service=platform,
                 name=e.identifier,

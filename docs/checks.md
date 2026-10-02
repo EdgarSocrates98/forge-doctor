@@ -1923,3 +1923,27 @@ The project uses ≥2 real clouds but an abstraction kind exists on only
 one, with no declared replication/migration link (`*replicat*`/
 `*mirror*`/`*failover*`/`geo_location` keys or bodies). **Fix:** deploy
 the equivalent service or declare the link.
+
+## Cross-platform migration (plan-scoped — MIGR###)
+
+MIGR findings are not project-scan checks; they're emitted by
+`forge-doctor migrate plan --from <platform> --to <platform>` and
+`what-if --change platform=<target>` on the abstraction layer. The plan
+maps detected services through the spec-223 abstractions onto the
+target ecosystem, diffs the capability packs (lost / gained /
+equivalent / review), and orders work catalog → schema → data →
+compute → consumers. Plans are reports — never executable deploys.
+
+### MIGR001 — Feature/service with no target equivalent · error
+A capability supported on the source is unsupported on the target, or
+a service has no target ecosystem equivalent — hard blocker.
+**Fix:** compensating pattern or re-scope.
+
+### MIGR002 — Capability semantics differ · warning
+Status differs but isn't a clean loss (conditional/unknown either
+side) — e.g. time-travel window semantics.
+**Fix:** manual semantic review before cutover.
+
+### MIGR003 — Unmapped downstream consumer · warning
+A consumer entity reads migrated assets but has no target link.
+**Fix:** rewire onto the target or run parallel.
