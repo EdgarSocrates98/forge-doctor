@@ -1,0 +1,80 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.03",
+  "verified_at": "2026-10-03",
+  "sources": [
+    "https://en.wikipedia.org/wiki/SQL",
+    "https://en.wikipedia.org/wiki/Data_warehouse",
+    "https://en.wikipedia.org/wiki/Materialized_view"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "SQL_QUERY",
+      "platform": "warehouse",
+      "status": "supported",
+      "reason": "SQL is the shared query surface across analytic warehouses (Snowflake, BigQuery, Redshift).",
+      "source": "https://en.wikipedia.org/wiki/SQL"
+    },
+    {
+      "id": "MATERIALIZED_VIEWS",
+      "platform": "warehouse",
+      "status": "conditional",
+      "reason": "Materialized-view support is vendor-specific; the vendor pack (specs 213-215) decides it.",
+      "conditions": [
+        {
+          "attribute": "vendor",
+          "op": "present",
+          "status_on_fail": "unsupported",
+          "reason": "no vendor attributed - the vendor pack decides"
+        }
+      ],
+      "source": "https://en.wikipedia.org/wiki/Materialized_view"
+    },
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "warehouse",
+      "status": "conditional",
+      "reason": "Time-travel/history surfaces are vendor-specific; the vendor pack decides it.",
+      "conditions": [
+        {
+          "attribute": "vendor",
+          "op": "present",
+          "status_on_fail": "unsupported",
+          "reason": "no vendor attributed - the vendor pack decides"
+        }
+      ],
+      "source": "https://en.wikipedia.org/wiki/Data_warehouse"
+    },
+    {
+      "id": "RESULT_CACHE",
+      "platform": "warehouse",
+      "status": "conditional",
+      "reason": "Result caching semantics are vendor-specific; the vendor pack decides it.",
+      "conditions": [
+        {
+          "attribute": "vendor",
+          "op": "present",
+          "status_on_fail": "unsupported",
+          "reason": "no vendor attributed - the vendor pack decides"
+        }
+      ],
+      "source": "https://en.wikipedia.org/wiki/Data_warehouse"
+    },
+    {
+      "id": "SHARING",
+      "platform": "warehouse",
+      "status": "conditional",
+      "reason": "Cross-account data sharing is vendor-specific; the vendor pack decides it.",
+      "conditions": [
+        {
+          "attribute": "vendor",
+          "op": "present",
+          "status_on_fail": "unsupported",
+          "reason": "no vendor attributed - the vendor pack decides"
+        }
+      ],
+      "source": "https://en.wikipedia.org/wiki/Data_warehouse"
+    }
+  ]
+}

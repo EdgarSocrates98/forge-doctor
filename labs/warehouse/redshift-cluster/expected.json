@@ -1,0 +1,6 @@
+{
+  "name": "redshift-cluster",
+  "description": "Two Redshift compute surfaces with no workload-management evidence",
+  "expected_findings": ["WARE001", "WARE030"],
+  "forbidden_findings": ["WARE020"]
+}

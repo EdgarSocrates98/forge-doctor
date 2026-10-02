@@ -615,6 +615,134 @@ def _sql(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             g.add_relationship(Relationship(src=q.id, dst=t.id, kind=R.WRITES, evidence_kind=_STA))
 
 
+def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Vendor-neutral warehouse entities (spec 212).
+
+    Only vendor-attributed rows emit entities here - generic-dialect SQL
+    stays owned by the ``sql`` domain adapter above.
+    """
+    from forge_doctor.analyzers.warehouse_model import warehouse_model
+
+    model = warehouse_model(ctx)
+    for platform in model.platforms:
+        g.add_entity(_e(K.WAREHOUSE, "warehouse", platform))
+
+    def wh(platform: str) -> str:
+        return f"warehouse:warehouse:{platform}"
+
+    def contains(src: str, dst: str, evidence: EvidenceKind) -> None:
+        if g.entity(src) and g.entity(dst):
+            g.add_relationship(
+                Relationship(src=src, dst=dst, kind=R.CONTAINS, evidence_kind=evidence)
+            )
+
+    for c in model.compute:
+        e = _e(
+            K.WAREHOUSE_COMPUTE,
+            "warehouse",
+            f"{c.platform}/{c.name}",
+            c.file,
+            c.line,
+            platform=c.platform,
+        )
+        g.add_entity(e)
+        contains(wh(c.platform), e.id, _CFG)
+    for ns in model.namespaces:
+        if ns.platform == "sql":
+            continue
+        kind = K.DATABASE if ns.kind == "database" else K.SCHEMA
+        e = _e(
+            kind,
+            "warehouse",
+            f"{ns.platform}/{ns.name}",
+            ns.file,
+            ns.line,
+            platform=ns.platform,
+        )
+        g.add_entity(e)
+        contains(wh(ns.platform), e.id, _CFG)
+    # table/view parents: schema-qualified names nest under their schema
+    schema_ids = {
+        ns.name: f"schema:warehouse:{ns.platform}/{ns.name}"
+        for ns in model.namespaces
+        if ns.kind == "schema" and ns.platform != "sql"
+    }
+    for t in model.tables:
+        if t.platform == "sql":
+            continue
+        e = _e(
+            K.TABLE,
+            "warehouse",
+            f"{t.platform}/{t.name}",
+            t.file,
+            t.line,
+            platform=t.platform,
+            external=str(t.external).lower(),
+        )
+        g.add_entity(e)
+        parent = schema_ids.get(t.name.rpartition(".")[0], wh(t.platform))
+        contains(parent, e.id, _CFG)
+    for v in model.views:
+        if v.platform == "sql":
+            continue
+        e = _e(
+            K.VIEW,
+            "warehouse",
+            f"{v.platform}/{v.name}",
+            v.file,
+            v.line,
+            platform=v.platform,
+            materialized=str(v.materialized).lower(),
+        )
+        g.add_entity(e)
+        contains(wh(v.platform), e.id, _STA if v.file else _DER)
+        # view -> base-table edges (name match on the table's last segment)
+        for base in v.tables_read:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.READS_FROM,
+                            evidence_kind=_STA,
+                        )
+                    )
+    for q in model.queries:
+        if q.platform == "sql":
+            continue
+        e = _e(K.QUERY, "warehouse", q.name, q.file, q.line, platform=q.platform)
+        g.add_entity(e)
+        for base in q.tables_read:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.READS_FROM,
+                            evidence_kind=_STA,
+                        )
+                    )
+        for base in q.tables_written:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.WRITES_TO,
+                            evidence_kind=_STA,
+                        )
+                    )
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1005,6 +1133,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _streaming_bus,
         _serverless,
         _sql,
+        _warehouse,
         _iceberg,
         _parquet,
         _terraform,
@@ -1028,8 +1157,8 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
 # - Data-flow edges (WRITES, PRODUCES) carry impact BOTH ways: a changed
 #   table affects the jobs writing it; a changed writer affects the data
 #   downstream readers consume.
-_IMPACT_INBOUND_ONLY = {R.DEPENDS_ON, R.READS, R.CONSUMES, R.STORED_IN}
-_IMPACT_OUTBOUND_ONLY = {R.INVOKES, R.DEFINES, R.GOVERNS, R.TRIGGERS}
+_IMPACT_INBOUND_ONLY = {R.DEPENDS_ON, R.READS, R.READS_FROM, R.CONSUMES, R.STORED_IN}
+_IMPACT_OUTBOUND_ONLY = {R.INVOKES, R.DEFINES, R.GOVERNS, R.TRIGGERS, R.CONTAINS}
 
 
 def impact_reachable(graph: DataPlatformGraph, entity_id: str) -> set[str]:

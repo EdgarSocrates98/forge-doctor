@@ -36,6 +36,10 @@ construction (`EntityKind`) — producers cannot invent one silently.
 | repo | A repository participating in a workspace. |
 | capability | A platform capability fact evaluated against context. |
 | knowledge_pack | A bundled knowledge pack (capabilities/errors/golden facts). |
+| warehouse | An analytic warehouse platform (Snowflake, BigQuery, Redshift). |
+| warehouse_compute | Warehouse execution resource (warehouse, cluster, workgroup, reservation). |
+| view | A named view or materialized view. |
+| schema | A schema-level namespace inside a warehouse database. |
 <!-- END entity_kinds -->
 
 ## Relationship kinds
@@ -57,6 +61,9 @@ Edges are typed (`RelKind`) and carry the evidence plane they came from.
 | CONSUMES | src consumes records produced upstream (stream consumer). |
 | IMPLEMENTS | src provides the implementation dst declares (repo implements entity). |
 | EVIDENCED_BY | src's claim/status is established by dst (knowledge pack, evidence). |
+| CONTAINS | src contains dst (warehouse contains schema, schema contains table). |
+| READS_FROM | src reads data from dst (query/view reads a table). |
+| WRITES_TO | src writes data into dst (query writes a table, job writes a view). |
 <!-- END relationship_kinds -->
 
 ## Evidence planes
@@ -138,6 +145,7 @@ produced it — free text at construction, so this list is what
 | sqs | Amazon SQS model. |
 | stepfunctions | AWS Step Functions model. |
 | terraform | Terraform IaC model. |
+| warehouse | Vendor-neutral warehouse model (compute, namespaces, tables, views). |
 | workspace | Workspace/repo aggregation model. |
 <!-- END producer_domains -->
 

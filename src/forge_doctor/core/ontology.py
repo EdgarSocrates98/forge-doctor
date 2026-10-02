@@ -71,6 +71,12 @@ _ENTITY_DEFS: dict[EntityKind, str] = {
     EntityKind.REPO: "A repository participating in a workspace.",
     EntityKind.CAPABILITY: "A platform capability fact evaluated against context.",
     EntityKind.KNOWLEDGE_PACK: "A bundled knowledge pack (capabilities/errors/golden facts).",
+    EntityKind.WAREHOUSE: "An analytic warehouse platform (Snowflake, BigQuery, Redshift).",
+    EntityKind.WAREHOUSE_COMPUTE: (
+        "Warehouse execution resource (warehouse, cluster, workgroup, reservation)."
+    ),
+    EntityKind.VIEW: "A named view or materialized view.",
+    EntityKind.SCHEMA: "A schema-level namespace inside a warehouse database.",
 }
 
 # -- Relationship kinds ------------------------------------------------
@@ -88,6 +94,9 @@ _REL_DEFS: dict[RelKind, str] = {
     RelKind.CONSUMES: "src consumes records produced upstream (stream consumer).",
     RelKind.IMPLEMENTS: "src provides the implementation dst declares (repo implements entity).",
     RelKind.EVIDENCED_BY: "src's claim/status is established by dst (knowledge pack, evidence).",
+    RelKind.CONTAINS: "src contains dst (warehouse contains schema, schema contains table).",
+    RelKind.READS_FROM: "src reads data from dst (query/view reads a table).",
+    RelKind.WRITES_TO: "src writes data into dst (query writes a table, job writes a view).",
 }
 
 # -- Evidence planes ----------------------------------------------------
@@ -156,6 +165,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "sqs": "Amazon SQS model.",
     "stepfunctions": "AWS Step Functions model.",
     "terraform": "Terraform IaC model.",
+    "warehouse": "Vendor-neutral warehouse model (compute, namespaces, tables, views).",
     "workspace": "Workspace/repo aggregation model.",
 }
 

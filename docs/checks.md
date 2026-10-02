@@ -1423,3 +1423,32 @@ suppression has no `approved_by`. Approvals live in
 `[[tool.forge-doctor.suppressions]]` — add `approved_by = "name"`.
 
 See `forge-doctor suppressions` for the full audit.
+
+## Warehouse (vendor-neutral WarehouseProjectModel — Terraform + SQL evidence)
+
+`warehouse_model` normalizes analytic-warehouse evidence before the
+vendor adapters land: declarative `snowflake_*` / `google_bigquery_*` /
+`aws_redshift*` Terraform resources map to compute, database, schema,
+table, view, and workload-management facts; warehouse-dialect DDL in
+`.sql` files (sqlglot extra) maps to tables, views, materialized views,
+and external tables. Nothing here is vendor-specific — rows that only
+make sense per-vendor live behind `attrs`.
+
+### WARE001 — Warehouse surface · pass/info
+Anchor: platform count, compute, namespaces, tables, views, queries.
+
+### WARE010 — Unprofiled warehouse table · info
+A declared table has no observed storage/statistics evidence — cost,
+cardinality, and layout decisions run blind.
+**Fix:** ingest table statistics (catalog exports) so checks can
+profile them.
+
+### WARE020 — View references unknown base table · warning
+A view's `tables_read` includes a name absent from the model — either
+an external dependency (undiagnosed) or a broken reference.
+**Fix:** declare the base table or mark the dependency external.
+
+### WARE030 — Compute without workload management · info
+Warehouse/cluster compute exists with no queue, reservation, or WLM
+config observed.
+**Fix:** attach workload-management config to the compute resource.

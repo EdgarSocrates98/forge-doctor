@@ -229,6 +229,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   confidence label from the evidence planes present, and the exact
   `lab experiment`/`what-if` command that validates it. Dedupe per
   (optimization, file); no evidence, no candidates.
+- **Warehouse project model** (spec 212, roadmap-4 wave 1a) —
+  `analyzers/warehouse_model.py` is the vendor-neutral semantic core
+  the vendor adapters populate: Terraform `snowflake_*` /
+  `google_bigquery_*` / `aws_redshift*` resources and warehouse-dialect
+  SQL DDL normalize to compute, database/schema, table, view, query,
+  and workload-management facts. Graph adapter emits new ontology
+  kinds (`warehouse`, `warehouse_compute`, `view`, `schema`) with
+  `CONTAINS`/`READS_FROM`/`WRITES_TO` edges; the capability registry
+  gains the `warehouse` family (`SQL_QUERY` supported; vendor-specific
+  capabilities honest `unknown` until packs land). Generic `WARE###`
+  checks: `WARE001` surface census, `WARE010` unprofiled table,
+  `WARE020` view→unknown base, `WARE030` compute without WLM. New lab
+  scenario `labs/warehouse/redshift-cluster`.
 
 ### Fixed
 

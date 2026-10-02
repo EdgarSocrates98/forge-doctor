@@ -32,6 +32,7 @@ from forge_doctor.checks import (
     streaming,
     streaming_bus,
     terraform,
+    warehouse,
 )
 from forge_doctor.plugins.protocol import Check
 
@@ -63,6 +64,7 @@ BUILTIN_MODULES = (
     platforms,
     policy_pack,
     serverless,
+    warehouse,
 )
 
 

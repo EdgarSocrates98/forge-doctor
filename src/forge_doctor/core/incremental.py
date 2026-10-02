@@ -95,6 +95,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "streaming": frozenset({PYTHON}),
     "streaming_bus": frozenset({PYTHON, CONFIG}),
     "terraform": frozenset({TERRAFORM}),
+    "warehouse": frozenset({TERRAFORM, SQL}),
 }
 
 _UNBOUNDED_SET = frozenset({UNBOUNDED})

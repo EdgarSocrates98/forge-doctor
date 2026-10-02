@@ -47,6 +47,10 @@ class EntityKind(Enum):
     REPO = "repo"
     CAPABILITY = "capability"
     KNOWLEDGE_PACK = "knowledge_pack"
+    WAREHOUSE = "warehouse"
+    WAREHOUSE_COMPUTE = "warehouse_compute"
+    VIEW = "view"
+    SCHEMA = "schema"
 
 
 class RelKind(Enum):
@@ -64,6 +68,9 @@ class RelKind(Enum):
     CONSUMES = "CONSUMES"
     IMPLEMENTS = "IMPLEMENTS"
     EVIDENCED_BY = "EVIDENCED_BY"
+    CONTAINS = "CONTAINS"
+    READS_FROM = "READS_FROM"
+    WRITES_TO = "WRITES_TO"
 
 
 @dataclass(frozen=True)
