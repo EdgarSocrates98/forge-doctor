@@ -31,6 +31,7 @@ from forge_doctor.checks import (
     python_env,
     redshift,
     repository,
+    search,
     serverless,
     snowflake,
     spark,
@@ -79,6 +80,7 @@ BUILTIN_MODULES = (
     warehouse,
     trino,
     analytical,
+    search,
 )
 
 

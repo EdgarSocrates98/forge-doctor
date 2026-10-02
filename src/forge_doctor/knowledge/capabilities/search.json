@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capabilities",
+  "sources": [
+    "https://opensearch.org/docs/latest/search-plugins/knn/",
+    "https://opensearch.org/docs/latest/im-plugin/ism/index/",
+    "https://www.elastic.co/guide/en/elasticsearch/reference/current/dense-vector.html",
+    "https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm.html",
+    "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html"
+  ],
+  "capabilities": [
+    {
+      "id": "VECTOR_SEARCH_KNN",
+      "platform": "opensearch",
+      "status": "supported",
+      "reason": "k-NN plugin built in since OpenSearch 1.0.",
+      "source": "https://opensearch.org/docs/latest/search-plugins/knn/"
+    },
+    {
+      "id": "VECTOR_SEARCH_KNN",
+      "platform": "elasticsearch",
+      "status": "supported",
+      "reason": "dense_vector + kNN search is GA in Elasticsearch 8.x; 7.x is x-pack beta, 6.x lacks it.",
+      "conditions": [
+        {
+          "attribute": "version",
+          "op": "gte",
+          "value": "8.0",
+          "status_on_fail": "conditional",
+          "reason": "kNN search is only GA from 8.0 — 7.x is beta, 6.x unsupported."
+        }
+      ],
+      "source": "https://www.elastic.co/guide/en/elasticsearch/reference/current/dense-vector.html"
+    },
+    {
+      "id": "LIFECYCLE_MANAGEMENT",
+      "platform": "opensearch",
+      "status": "supported",
+      "reason": "ISM policies (states/transitions) manage rollover, retention, snapshots.",
+      "source": "https://opensearch.org/docs/latest/im-plugin/ism/index/"
+    },
+    {
+      "id": "LIFECYCLE_MANAGEMENT",
+      "platform": "elasticsearch",
+      "status": "supported",
+      "reason": "ILM phases (hot/warm/cold/frozen/delete) manage rollover and retention.",
+      "source": "https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm.html"
+    },
+    {
+      "id": "SERVERLESS_DEPLOYMENT",
+      "platform": "opensearch",
+      "status": "supported",
+      "reason": "Amazon OpenSearch Serverless collections (aws_opensearchserverless_collection).",
+      "source": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless.html"
+    },
+    {
+      "id": "SERVERLESS_DEPLOYMENT",
+      "platform": "elasticsearch",
+      "status": "conditional",
+      "reason": "Elastic Serverless is cloud-only on Elastic Cloud; self-managed deployments are not serverless.",
+      "conditions": [
+        {
+          "attribute": "managed_by",
+          "op": "eq",
+          "value": "elastic_cloud",
+          "status_on_fail": "conditional",
+          "reason": "Serverless requires the Elastic Cloud hosted offering."
+        }
+      ],
+      "source": "https://www.elastic.co/guide/en/elasticsearch/reference/current/dense-vector.html"
+    },
+    {
+      "id": "INGEST_PIPELINES",
+      "platform": "opensearch",
+      "status": "supported",
+      "reason": "Ingest node processors transform documents before indexing.",
+      "source": "https://opensearch.org/docs/latest/ingest-pipelines/"
+    },
+    {
+      "id": "INGEST_PIPELINES",
+      "platform": "elasticsearch",
+      "status": "supported",
+      "reason": "Ingest pipelines + processors are core since 5.x.",
+      "source": "https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html"
+    }
+  ]
+}

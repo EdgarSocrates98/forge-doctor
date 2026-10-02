@@ -1,0 +1,6 @@
+{
+  "name": "prod-no-replicas",
+  "description": "Search: prod template w/o replicas, logs-* w/o ISM/ILM coverage, mapping explosion, TF domain w/o encryption/TLS",
+  "expected_findings": ["SRCH001", "SRCH002", "SRCH003", "SRCH004"],
+  "forbidden_findings": []
+}

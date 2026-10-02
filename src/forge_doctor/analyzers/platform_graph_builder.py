@@ -1058,6 +1058,44 @@ def _analytical(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         )
 
 
+def _search(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Search-platform entities (spec 220).
+
+    Indices/templates become ``table:search:<name>`` (a searchable
+    relation), TF domains become ``service:search:<name>``, and index
+    patterns on templates link template -> covered pattern-targets are
+    left to findings (no fabricating covered edges).
+    """
+    from forge_doctor.analyzers.search_model import search_model
+
+    model = search_model(ctx)
+    if not model.has_evidence:
+        return
+    for i in model.indices:
+        g.add_entity(
+            _e(
+                K.TABLE,
+                "search",
+                i.name,
+                i.file,
+                kind=i.kind,
+                vendor=i.vendor,
+                replicas=i.replicas or "-",
+            )
+        )
+    for d in model.domains:
+        g.add_entity(
+            _e(
+                K.INFRASTRUCTURE_RESOURCE,
+                "search",
+                d.name,
+                d.file,
+                d.line,
+                vendor=d.vendor,
+            )
+        )
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1453,6 +1491,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _contracts,
         _trino,
         _analytical,
+        _search,
         _iceberg,
         _parquet,
         _terraform,

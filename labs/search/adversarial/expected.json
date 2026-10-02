@@ -1,0 +1,6 @@
+{
+  "name": "adversarial",
+  "description": "Unrelated JSON with 'mappings'/'policy' keys must not attribute to search platforms",
+  "expected_findings": [],
+  "forbidden_findings": ["SRCH001", "SRCH002", "SRCH003", "SRCH004"]
+}

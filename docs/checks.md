@@ -1777,3 +1777,45 @@ default dynamic partitioning; segment sizes drift.
 `granularitySpec.rollup=false` with ≥3 declared metrics+dims — raw
 events stored unaggregated.
 **Fix:** set `rollup=true` or trim dims/metrics.
+
+## Search platforms (SearchPlatformModel — OpenSearch + Elasticsearch)
+
+One shared `SRCH` check family — the spec's open-question decision:
+vendor-agnostic rules with the vendor named in the message. Evidence is
+compound-gated (high false-positive risk on generic JSON): index docs
+need filename conventions (`*index-template*`/`*mapping*`/… or an
+`opensearch`/`elasticsearch` dir) *and* search key shape
+(`index_patterns`, `template{settings|mappings}`, `settings.index.*`,
+`mappings` with `properties`/`dynamic`). Policies need ISM
+(`states`/`ism_template` → opensearch) or ILM (`phases` →
+elasticsearch) keys. Terraform `aws_opensearch_domain`/
+`aws_elasticsearch_domain`/`elasticsearch_domain`/`opensearch_domain`/
+`aws_opensearchserverless_collection`/`aws_elasticsearch_cluster` are
+domain surfaces. Observed cluster exports only under
+`opensearch/`/`elastic*/`/`.forge-doctor/evidence/` with cluster field
+signals.
+
+### SRCH000 — Search surface · pass/info
+Anchor census: indices/templates, policies, pipelines, domains, vendors.
+
+### SRCH001 — Prod index template without replicas · warning
+A template whose name/patterns contain `prod`/`production` declares no
+`number_of_replicas` (or 0) — shard copies lost on node failure.
+**Fix:** set `index.number_of_replicas` ≥ 1.
+
+### SRCH002 — Wildcard index pattern without lifecycle policy · warning
+A `*`-suffixed or `logs-*`/`metrics-*` pattern has no ISM/ILM policy
+covering it — indices grow forever, no rollover/retention.
+**Fix:** attach an ISM/ILM policy with rollover + delete.
+
+### SRCH003 — Mapping field-explosion risk · warning
+More than five open `object`/untyped nested fields without
+`enabled:false` or `dynamic:false`/`strict` — per-document field count
+multiplies against cluster state.
+**Fix:** pin `dynamic=false`/`strict` or `enabled:false` on verbose
+objects.
+
+### SRCH004 — Search domain without encryption at rest / TLS · warning
+Terraform domain resource lacks `encrypt_at_rest.enabled` or
+`node_to_node_encryption.enabled`.
+**Fix:** enable both blocks.

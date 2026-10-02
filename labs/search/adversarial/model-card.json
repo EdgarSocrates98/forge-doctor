@@ -1,0 +1,1 @@
+{"name": "demo-model", "mappings": {"input": "tensor"}, "description": "unrelated json carrying a 'mappings' key"}

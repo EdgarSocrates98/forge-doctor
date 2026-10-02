@@ -370,6 +370,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inspect`, labs `labs/clickhouse/unkeyed`, `labs/pinot/rt-gap`,
   `labs/druid/unpartitioned`, adversarial `labs/analytical/plain-json`.
   StarRocks/Doris deferred — the model assumes no closed membership.
+- **Search platforms** (spec 220, roadmap-4 wave 3c) —
+  `analyzers/search_model.py` builds a `SearchPlatformModel` over
+  compound-gated JSON evidence (index templates/mappings with
+  `index_patterns`/`settings.index.*`, ISM policies → opensearch, ILM
+  policies → elasticsearch, ingest pipelines) plus Terraform domain
+  resources and observed cluster exports. Vendor attribution uses key
+  shape, then filename/dir conventions; ambiguous evidence gets the
+  `search` marker. Shared `SRCH` check family per the spec's open
+  question: `SRCH001` prod template without replicas, `SRCH002`
+  wildcard/`logs-*` pattern without ISM/ILM coverage, `SRCH003`
+  mapping field-explosion risk, `SRCH004` Terraform domain without
+  encryption/TLS. Capability pack `search.json` covers vector/kNN per
+  vendor+version (ES `version >= 8.0` gated), ISM-vs-ILM, serverless
+  variants. Graph: `table:search:*` + `infrastructure_resource:search:*`.
+  New command `forge-doctor search inspect`, labs
+  `labs/search/{prod-no-replicas,adversarial}` — the adversarial case
+  pins that a bare `"mappings"` key never attributes.
 
 ### Fixed
 
