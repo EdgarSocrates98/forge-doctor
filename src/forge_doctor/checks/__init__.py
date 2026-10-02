@@ -23,6 +23,7 @@ from forge_doctor.checks import (
     parquet,
     platform_rules,
     platforms,
+    policy_pack,
     python_env,
     repository,
     serverless,
@@ -60,6 +61,7 @@ BUILTIN_MODULES = (
     neptune,
     architecture,
     platforms,
+    policy_pack,
     serverless,
 )
 

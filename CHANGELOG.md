@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `runtime`, `engine_version`, `release_label`, `format_version`,
   `spark_version`); `add_entity` merges duplicate-id entities instead of
   discarding later producers' attrs.
+- **Organization policy packs** — declarative `forbid`/`require` rules
+  in `.forge-doctor/policy/*.yml|*.json` (or `policy_packs` config):
+  file-pattern rules, terraform attr checks (`equals`/`matches`/
+  `present`), required files, required file content. Findings carry org
+  rule ids; invalid packs surface as `POLICY010`. New commands:
+  `forge-doctor policy list|eval|validate`.
 
 ### Fixed
 

@@ -65,6 +65,7 @@ class ForgeDoctorConfig:
     plugins_allow: tuple[str, ...] = ()
     plugins: PluginRules = field(default_factory=PluginRules)
     policy: Policy = field(default_factory=Policy)
+    policy_packs: tuple[str, ...] = ()
     suppressions: tuple[Suppression, ...] = ()
 
     @classmethod
@@ -97,6 +98,7 @@ class ForgeDoctorConfig:
             plugins_allow=plugins_allow,
             plugins=plugins,
             policy=_parse_policy(section.get("policy")),
+            policy_packs=_str_list(section.get("policy_packs")),
             suppressions=_parse_suppressions(section.get("suppressions")),
         )
 

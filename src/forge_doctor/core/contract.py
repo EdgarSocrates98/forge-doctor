@@ -81,7 +81,15 @@ def _mini_block(lines: list[tuple[int, str]], pos: int, indent: int) -> tuple[An
                 out = []
             if not isinstance(out, list):
                 raise ValueError(f"cannot mix list items and mappings (line {pos + 1})")
-            out.append(_mini_scalar(content[2:].strip()))
+            body = content[2:].strip()
+            if _looks_like_mapping_item(body):
+                # "- key: value" starts a mapping whose column is ind + 2;
+                # rewrite the line in place and parse it as a block.
+                lines[pos] = (ind + 2, body)
+                child, pos = _mini_block(lines, pos, ind + 2)
+                out.append(child)
+                continue
+            out.append(_mini_scalar(body))
             pos += 1
             continue
         if not isinstance(out, dict) and out is not None:
@@ -102,6 +110,15 @@ def _mini_block(lines: list[tuple[int, str]], pos: int, indent: int) -> tuple[An
         else:
             out[key] = None
     return out, pos
+
+
+def _looks_like_mapping_item(body: str) -> bool:
+    """``- key:`` or ``- key: value`` opens a mapping item; URLs and
+    other ``scheme://x`` scalars must not match (no ``': '`` boundary)."""
+    if body.endswith(":"):
+        return bool(re.match(r"^[\w.-]+$", body[:-1]))
+    key, sep, _rest = body.partition(": ")
+    return bool(sep) and bool(re.match(r"^[\w.-]+$", key))
 
 
 def _mini_scalar(text: str) -> Any:

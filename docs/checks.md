@@ -1329,6 +1329,47 @@ Terraform onto typed entities so a `4.0 → 5.0` bump registers as
 
 ## Policy
 
+### Organization policy packs
+
+Org rules are data, not code — drop `*.yml|*.yaml|*.json` files in
+`.forge-doctor/policy/` (or `policy.yml` / `org-policy.yml` at the
+root, or `[tool.forge-doctor] policy_packs = ["org.yml"]`):
+
+```yaml
+pack: org-security
+version: "1.0"
+rules:
+  - id: ORG001
+    severity: error
+    message: RDS instances must not be publicly accessible
+    forbid:
+      terraform:
+        resource_type: aws_db_instance
+        attr: publicly_accessible
+        op: equals            # equals | matches | present
+        value: "true"
+  - id: ORG002
+    severity: warning
+    message: CODEOWNERS is required
+    require:
+      file: CODEOWNERS
+```
+
+- `forbid.pattern` + `file_glob` — per-line regex violations.
+- `forbid.terraform` — per-resource attr checks.
+- `require.file` — the glob must match ≥1 project file.
+- `require.file_glob` + `contains` — every matching file must contain
+  the regex (zero matches = no violation).
+- `require.terraform` — every resource of the type must satisfy
+  `attr`+`op` (`present` by default).
+
+Findings carry the org rule ids (`ORG001`…) so severity policy and
+suppressions govern them like built-ins. Broken packs surface as a
+`POLICY010` error finding — never silent. Commands: `policy list`,
+`policy eval [-f json]`, `policy validate <file>`.
+
+### POLICY001 — Expired suppression · warning
+
 ### POLICY001 — Expired suppression · warning
 A `[[tool.forge-doctor.suppressions]]` entry past its `expires` date —
 the underlying finding reactivates and this warning fires.
@@ -1336,5 +1377,9 @@ the underlying finding reactivates and this warning fires.
 ### POLICY002 — Unused suppression · info
 A suppression that matched no finding — the exception may be dead weight
 (or the suppressed check is gone).
+
+### POLICY010 — Organization policy packs · error
+Runs every discovered org pack; emits `POLICY010` itself only for an
+invalid pack file — violations carry each rule's own id (`ORG###`).
 
 See `forge-doctor suppressions` for the full audit.

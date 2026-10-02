@@ -25,6 +25,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     platform,
     platforms,
     plugins,
+    policy,
     remediate,
     rootcause,
     runtime,
