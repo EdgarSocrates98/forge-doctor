@@ -125,6 +125,40 @@ Reliability & trust:
 - **v1.0 readiness** — `docs/release.md` checklist; tagging remains a
   human decision.
 
+## Roadmap-3 — extensible operational platform (in progress)
+
+- **P1 Plugin SDK & ecosystem** — shipped: `forge_doctor.sdk` stable
+  surface, `plugins init|lock|verify|install`, strict trust mode.
+- **P2 Enterprise governance** — shipped: pack `extends` layering,
+  `require_approval` + `POLICY011`, `approved_by` on suppressions,
+  `policy report`, named per-branch baselines, `scan --evidence-out`.
+- P3–P10 (specs 204–211): fleet intelligence, historical snapshots &
+  trends, capability-aware change intelligence, continuous incremental
+  analysis, safe-fix (`--dry-run`/`--apply` boundaries), experiment
+  engine, knowledge supply-chain lifecycle, Forge ecosystem contracts.
+
+## Roadmap-4 — data-platform coverage expansion (specs authored)
+
+Generic model first, then vendor adapters (invariant: vendors are
+implementations of neutral abstractions):
+
+- **Wave 1 Warehouses** (212–215): `WarehouseProjectModel` core, then
+  Snowflake, BigQuery, Redshift adapters + capability packs.
+- **Wave 2 Transformation/semantic** (216–217): dbt project model +
+  lineage; data-contract linting + schema-evolution detection.
+- **Wave 3 Federated & serving** (218–220): Trino catalogs/connectors;
+  `AnalyticalEngineModel` for ClickHouse/Pinot/Druid; `SearchPlatformModel`
+  for OpenSearch/Elasticsearch.
+- **Wave 4 Catalog/governance** (221): DataHub/OpenMetadata adapters +
+  declared-vs-actual drift checks; Glue/Unity catalog coverage signals.
+- **Wave 5 Data quality** (222): Deequ/GX/Soda/dbt-test suites as
+  evidence; prod-without-tests and defined-not-run gates.
+- **Wave 6 Multi-cloud abstractions** (223): `ObjectStorage`/
+  `ComputeEngine`/`Catalog`/`Stream`/`OperationalStore`/`Warehouse`
+  across AWS/Azure/GCP — additive view over existing entities.
+- **Wave 7 Cross-platform migration** (224): `migrate plan --from X
+  --to Y` capability-parity plans + `what-if` on abstractions.
+
 ## Next
 
 The engine is stable — new work lands as **data-intelligence packs** on top

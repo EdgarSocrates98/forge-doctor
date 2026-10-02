@@ -270,7 +270,7 @@ def suppressions_cmd(
             s.path or "*",
             s.owner or "-",
             s.expires or "-",
-            s.approved_by or "-",
+            f"[green]{s.approved_by}[/]" if s.approved_by else "[red]UNAPPROVED[/]",
             f"[{style.get(status.status, 'white')}]{status.status.upper()}[/]",
             str(status.matched),
         )
