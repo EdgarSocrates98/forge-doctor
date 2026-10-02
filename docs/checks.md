@@ -913,6 +913,31 @@ Plans are advisory — Forge Doctor never edits code, generates patches,
 commits, deploys, or runs Terraform/migrations. Findings without a
 remediation mapping produce no plan.
 
+## Architecture contract + drift
+
+An optional `platform-contract.yml` at the project root declares the
+*desired* architecture (versioned schema: `contract_version`,
+`pipelines` with compute/storage/orchestration/sla/semantics/ownership/
+capabilities, `datasets`, `governance.allowed_dependencies`).
+`forge-doctor contract validate <file>` checks structure and schema
+version; `forge-doctor architecture drift .` (or a plain `scan` when a
+contract exists) compares it against declared (Terraform), implemented
+(code), and runtime (`--runtime` artifacts) planes:
+
+- **ARCH001** runtime/implemented platform differs from contract · warning
+- **ARCH002** configured version differs from contract version · warning
+- **ARCH003** implemented storage format differs from contract · warning
+- **ARCH004** dependency used but absent from `allowed_dependencies` · warning
+- **ARCH005** runtime execution duration violates contracted SLA · error
+- **ARCH006** `idempotent: true` contract without write evidence · warning
+- **ARCH007** same resource provisioned by multiple owners (Terraform vs
+  manual `boto3 create_*`) · warning
+- **ARCH008** implemented feature outside the pipeline's approved
+  capabilities · info
+
+Absent contract, missing runtime, or missing config evidence never
+produces drift — unknown stays unknown.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

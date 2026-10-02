@@ -103,6 +103,14 @@ class ProjectContext:
         return capability_registry()
 
     @cached_property
+    def contract(self) -> Any:
+        """Parsed ``platform-contract.yml`` when present, else None."""
+        from forge_doctor.core.contract import find_contract, load_contract
+
+        path = find_contract(self.root)
+        return load_contract(path) if path else None
+
+    @cached_property
     def env(self) -> dict[str, str]:
         """Relevant environment variables only - values stay in-process."""
         return {key: os.environ[key] for key in _ENV_KEYS if key in os.environ}

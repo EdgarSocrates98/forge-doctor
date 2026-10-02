@@ -8,6 +8,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     airflow,
     capabilities,
     compatibility,
+    contract,
     controlm,
     datamodel,
     diff,

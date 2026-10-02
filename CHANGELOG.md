@@ -328,6 +328,18 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   Plans are advisory only — what/where/why/how-to-validate; nothing is
   patched, committed, applied, or deployed. CLI:
   `forge-doctor remediate . [--root-cause <id>]` (`--json`).
+- **Architecture contract + drift** — `core/contract.py` parses a
+  versioned `platform-contract.yml` (pipelines with compute platform/
+  version, storage format, orchestration, SLA, semantics, ownership,
+  approved capabilities; governance.allowed_dependencies). `pyyaml` when
+  installed, else a strict minimal parser for the documented shape.
+  `detect_drift` compares desired vs declared/implemented/runtime planes
+  and emits ARCH001-008 drift (platform mismatch, version drift, format
+  drift, undeclared dependency, SLA violation via identity join,
+  idempotency-without-evidence, multi-owner resources, features outside
+  approved capabilities). ARCH### also run as scan checks when a
+  contract exists. CLI: `contract validate <file>` and
+  `architecture drift . [--runtime artifact]`.
 
 ### Added (0.7.0)
 

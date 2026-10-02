@@ -6,6 +6,7 @@ from types import ModuleType
 
 from forge_doctor.checks import (
     airflow,
+    architecture,
     aws,
     ci,
     controlm,
@@ -53,6 +54,7 @@ BUILTIN_MODULES = (
     platform_rules,
     dynamodb,
     neptune,
+    architecture,
 )
 
 
