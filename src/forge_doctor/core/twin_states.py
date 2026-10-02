@@ -435,7 +435,7 @@ class TwinSnapshotDiff:
     drift_introduced: tuple[str, ...] = ()
     drift_resolved: tuple[str, ...] = ()
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self) -> dict[str, list[str]]:
         return {
             "entities_added": list(self.entities_added),
             "entities_removed": list(self.entities_removed),
@@ -451,15 +451,25 @@ def _cap_key(row: str) -> str:
     return row.rsplit("=", 1)[0]
 
 
+def _snap_rows(d: dict[str, object], key: str) -> list[str]:
+    v = d.get(key, [])
+    return [r for r in v if isinstance(r, str)] if isinstance(v, (list, tuple)) else []
+
+
+def _snap_dicts(d: dict[str, object], key: str) -> list[dict[str, object]]:
+    v = d.get(key, [])
+    return [r for r in v if isinstance(r, dict)] if isinstance(v, (list, tuple)) else []
+
+
 def diff_twin_snapshots(a: dict[str, object], b: dict[str, object]) -> TwinSnapshotDiff:
     """Diff two ``twin_state_snapshot`` artifacts (a=older, b=newer)."""
-    ent_a, ent_b = set(a.get("entities", [])), set(b.get("entities", []))
-    rel_a, rel_b = set(a.get("relationships", [])), set(b.get("relationships", []))
-    cap_a = {_cap_key(r): r for r in a.get("capabilities", [])}  # type: ignore[union-attr]
-    cap_b = {_cap_key(r): r for r in b.get("capabilities", [])}  # type: ignore[union-attr]
+    ent_a, ent_b = set(_snap_rows(a, "entities")), set(_snap_rows(b, "entities"))
+    rel_a, rel_b = set(_snap_rows(a, "relationships")), set(_snap_rows(b, "relationships"))
+    cap_a = {_cap_key(r): r for r in _snap_rows(a, "capabilities")}
+    cap_b = {_cap_key(r): r for r in _snap_rows(b, "capabilities")}
     cap_changed = sorted(k for k in cap_a.keys() & cap_b.keys() if cap_a[k] != cap_b[k])
-    drift_a = {json_row_key(r) for r in a.get("drift", [])}  # type: ignore[union-attr]
-    drift_b = {json_row_key(r) for r in b.get("drift", [])}  # type: ignore[union-attr]
+    drift_a = {json_row_key(r) for r in _snap_dicts(a, "drift")}
+    drift_b = {json_row_key(r) for r in _snap_dicts(b, "drift")}
     return TwinSnapshotDiff(
         entities_added=tuple(sorted(ent_b - ent_a)),
         entities_removed=tuple(sorted(ent_a - ent_b)),
@@ -473,9 +483,10 @@ def diff_twin_snapshots(a: dict[str, object], b: dict[str, object]) -> TwinSnaps
 
 def json_row_key(row: dict[str, object]) -> str:
     """Stable identity for a drift row."""
+    states = row.get("states", [])
+    states_s = ",".join(str(s) for s in states) if isinstance(states, (list, tuple)) else ""
     return (
-        f"{row.get('entity')}|{row.get('property')}|"
-        f"{','.join(str(s) for s in row.get('states', []))}|"  # type: ignore[union-attr]
+        f"{row.get('entity')}|{row.get('property')}|{states_s}|"
         f"{row.get('expected')}|{row.get('actual')}"
     )
 

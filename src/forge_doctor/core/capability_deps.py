@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from forge_doctor.core.capabilities import (
     CapabilityContext,
@@ -160,7 +160,7 @@ def _resolve(
     ctx: CapabilityContext,
     visiting: tuple[str, ...],
     rel: CapabilityRel | None,
-    out: dict[str, list],
+    out: dict[str, list[Any]],
 ) -> tuple[DependencyStep, bool]:
     """DFS one capability node; returns ``(step, subtree_blocked)``.
 
@@ -242,7 +242,7 @@ def evaluate_dependencies(
     )
     facts = registry.dependencies(ctx.platform, capability)
     life = lifecycle_status(facts, ctx.version)
-    out: dict[str, list] = {
+    out: dict[str, list[Any]] = {
         "cycles": [],
         "blocked_paths": [],
         "unsatisfied_groups": [],

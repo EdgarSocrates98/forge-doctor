@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -136,6 +136,82 @@ def migrate_plan(
     console.print()
 
 
+@migrate_app.command(name="explain")
+def migrate_explain(
+    path: _PathOpt = Path("."),
+    source: Annotated[
+        str | None,
+        typer.Option("--from", help="Source platform (snowflake|redshift|…)"),
+    ] = None,
+    target: Annotated[
+        str | None,
+        typer.Option("--to", help="Target platform (bigquery|snowflake|…)"),
+    ] = None,
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Explain why each service mapped the way it did (spec 234).
+
+    Per concept: logical concept, mapping/lossiness, capability gaps the
+    target pack cannot satisfy, missing evidence, and the source-side
+    facts that anchored the mapping.
+    """
+    import dataclasses
+    import json as _json
+
+    from forge_doctor.core.crossmigration import plan_platform_migration
+    from forge_doctor.core.migration_v2 import explain_concept
+
+    if not source or not target:
+        _stderr.print("usage: forge-doctor migrate explain --from <src> --to <dst> .")
+        raise typer.Exit(2)
+    ctx = ProjectContext(root=path.resolve())
+    plan = plan_platform_migration(ctx, source, target)
+
+    if fmt == "json":
+        import enum
+
+        def _norm(obj: object) -> Any:
+            if isinstance(obj, enum.Enum):
+                return obj.value
+            if isinstance(obj, (list, tuple)):
+                return [_norm(v) for v in obj]
+            if isinstance(obj, dict):
+                return {k: _norm(v) for k, v in obj.items()}
+            return obj
+
+        payload = {
+            "source": plan.source,
+            "target": plan.target,
+            "readiness": _norm(dataclasses.asdict(plan.readiness))
+            if plan.readiness is not None
+            else None,
+            "concepts": [_norm(dataclasses.asdict(c)) for c in plan.concepts],
+        }
+        typer.echo(_json.dumps(payload, indent=2, default=str))
+        return
+
+    console = Console()
+    console.print()
+    console.print(f"[bold]Migration explain[/bold]  {plan.source} -> {plan.target}")
+    ready = plan.readiness
+    if ready is not None:
+        console.print(
+            f"  readiness: [bold]{ready.status.value}[/bold] "
+            f"({ready.known_count} known, {ready.unknown_count} unknown"
+            f"{', runtime-informed' if ready.runtime_informed else ''})"
+        )
+        for u in ready.unknowns:
+            console.print(f"    unknown: {u}")
+        for ev in ready.required_evidence:
+            console.print(f"    evidence needed: {ev}")
+    if not plan.concepts:
+        console.print("  no source services detected to explain")
+    for concept in plan.concepts:
+        for line in explain_concept(concept):
+            console.print(f"  {line}")
+    console.print()
+
+
 def _platform_plan(
     ctx: ProjectContext, source: str, target: str, fmt: str, console: Console
 ) -> None:
@@ -145,9 +221,19 @@ def _platform_plan(
     plan = plan_platform_migration(ctx, source, target)
     if fmt == "json":
         import dataclasses
+        import enum
         import json as _json
 
-        payload = dataclasses.asdict(plan)
+        def _norm(obj: object) -> Any:
+            if isinstance(obj, enum.Enum):
+                return obj.value
+            if isinstance(obj, (list, tuple)):
+                return [_norm(v) for v in obj]
+            if isinstance(obj, dict):
+                return {k: _norm(v) for k, v in obj.items()}
+            return obj
+
+        payload: dict[str, Any] = _norm(dataclasses.asdict(plan))
         payload["findings"] = [
             {
                 "check_id": f.check_id,
@@ -192,6 +278,13 @@ def _platform_plan(
         console.print("\n[bold]Plan findings[/bold]")
         for f in plan.findings:
             console.print(f"  {f.severity.value.upper():7} {f.check_id}  {f.message}")
+    if plan.sql_findings:
+        console.print("\n[bold]SQL portability[/bold]")
+        for sf in plan.sql_findings[:15]:
+            loc = f"{sf.file}:{sf.line}" if sf.file else ""
+            console.print(f"  {sf.check_id:10} {sf.severity:7} {loc} {sf.message}")
+        if len(plan.sql_findings) > 15:
+            console.print(f"  … +{len(plan.sql_findings) - 15} more")
     if not plan.entity_map and not deltas:
         console.print(f"  no {plan.source} services detected to migrate")
     console.print()

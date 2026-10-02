@@ -679,7 +679,7 @@ def ontology_workloads(
     table.add_column("Served by (platform kinds)")
     table.add_column("Definition", style="dim")
     for row in rows:
-        table.add_row(row["name"], ", ".join(row["platform_kinds"]), row["definition"])
+        table.add_row(str(row["name"]), ", ".join(row["platform_kinds"]), str(row["definition"]))
     console.print(table)
 
 

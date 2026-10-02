@@ -13,11 +13,14 @@ source-evidence links (spec constraint).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.migration_v2 import MigrationConcept, MigrationReadiness
     from forge_doctor.core.models import CheckResult
+    from forge_doctor.core.sql_portability import SqlPortabilityFinding
 
 # target platform -> ecosystem service per abstraction
 _ECOSYSTEM: dict[str, dict[str, str]] = {
@@ -67,6 +70,34 @@ _ECOSYSTEM: dict[str, dict[str, str]] = {
         "catalog": "unity",
         "warehouse": "databricks_sql",
     },
+    # cloud-level targets (spec 234): aws->azure / aws->gcp / azure->gcp
+    "azure": {
+        "object_storage": "adls_gen2",
+        "stream": "eventhubs",
+        "compute_engine": "synapse",
+        "catalog": "purview",
+        "operational_store": "cosmosdb",
+        "warehouse": "synapse_sql",
+        "orchestrator": "adf",
+    },
+    "gcp": {
+        "object_storage": "gcs",
+        "stream": "pubsub",
+        "compute_engine": "dataproc",
+        "catalog": "dataplex",
+        "operational_store": "bigtable",
+        "warehouse": "bigquery",
+        "orchestrator": "composer",
+    },
+    "aws": {
+        "object_storage": "s3",
+        "stream": "kinesis",
+        "compute_engine": "emr",
+        "catalog": "glue",
+        "operational_store": "dynamodb",
+        "warehouse": "redshift",
+        "orchestrator": "stepfunctions",
+    },
 }
 
 # capability-pack platform name per target ecosystem
@@ -77,6 +108,9 @@ _PACK_PLATFORM = {
     "databricks": "databricks",
     "synapse": "synapse",
     "synapse_sql": "synapse",
+    "azure": "adls",
+    "gcp": "pubsub",
+    "aws": "glue",
 }
 
 # (source_service, abstraction) -> required-change note
@@ -109,6 +143,7 @@ _STAGE_FOR = {
     "stream": "data",
     "operational_store": "data",
     "compute_engine": "compute",
+    "orchestrator": "compute",
 }
 
 
@@ -148,6 +183,11 @@ class PlatformMigrationPlan:
     stages: list[StagePlan] = field(default_factory=list)
     unmapped_consumers: list[str] = field(default_factory=list)
     findings: list[CheckResult] = field(default_factory=list)
+    # spec-234 additive fields (JSON serialization stays compatible —
+    # new keys only)
+    concepts: list[MigrationConcept] = field(default_factory=list)
+    readiness: MigrationReadiness | None = None
+    sql_findings: list[SqlPortabilityFinding] = field(default_factory=list)
 
     def lost_capabilities(self) -> list[str]:
         return [d.capability for d in self.capability_deltas if d.delta == "lost"]
@@ -367,4 +407,38 @@ def plan_platform_migration(ctx: ProjectContext, source: str, target: str) -> Pl
     plan.unmapped_consumers = _unmapped_consumers(ctx, source, mapped_names)
     plan.stages = _stage_items(plan)
     plan.findings = _migr_findings(plan)
+
+    # spec 234 — ontology-driven concept mapping + readiness (additive)
+    from forge_doctor.core.migration_v2 import (
+        assess_readiness,
+        detect_runtime_sources,
+        map_service,
+    )
+
+    for s, m in zip(
+        (svc for svc in model.services if svc.service == source or svc.cloud == source),
+        plan.entity_map,
+        strict=True,
+    ):
+        plan.concepts.append(map_service(s.service, m.target_service, abstraction=m.abstraction))
+    plan.readiness = assess_readiness(
+        plan.concepts,
+        plan.lost_capabilities(),
+        runtime_sources=detect_runtime_sources(ctx),
+    )
+
+    # SQL portability when both ends are known dialects — static text
+    # analysis over committed .sql files only.
+    from forge_doctor.core.sql_portability import dialect_capabilities, scan_project_sql
+
+    if dialect_capabilities(source) and dialect_capabilities(target):
+        texts: dict[Path, str] = {}
+        for rel in sorted(ctx.files):
+            if rel.suffix.lower() != ".sql":
+                continue
+            try:
+                texts[rel] = (ctx.root / rel).read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+        plan.sql_findings = scan_project_sql(texts, source, target)
     return plan

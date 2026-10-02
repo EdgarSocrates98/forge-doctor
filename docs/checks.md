@@ -1971,7 +1971,41 @@ and/or `versioning { enabled = true }`.
 `on_delete=cancel` abandons in-flight data on teardown; `drain` finishes
 it. **Fix:** remove `on_delete=cancel` or set `drain`.
 
-## Cross-platform migration (plan-scoped — MIGR###)
+## Cross-platform migration (plan-scoped — MIGR###, SQLPORT###)
+
+`migrate plan`/`migrate explain` also emit SQLPORT findings when both
+`--from` and `--to` name a known SQL dialect (snowflake, bigquery,
+redshift, trino, spark, databricks, clickhouse). Findings come from
+static text analysis of committed `.sql` files — never a transpiler.
+
+### SQLPORT001 — Dialect function without target equivalent · warning
+A source-dialect function (`IFF`, `SAFE_CAST`, `GETDATE`, `EXPLODE`, …)
+appears in SQL with no mapped equivalent on the target.
+
+### SQLPORT002 — MERGE semantics differ · warning
+MERGE exists but target semantics differ (or ClickHouse lacks MERGE
+entirely — MergeTree engines instead).
+
+### SQLPORT003 — QUALIFY unsupported on target · warning
+QUALIFY used where the target dialect lacks it (redshift, trino, spark,
+databricks, clickhouse) — rewrite as a windowed subquery filter.
+
+### SQLPORT004 — Timestamp/timezone model differs · warning
+Explicit tz semantics (`TIMESTAMP_TZ`, `CONVERT_TIMEZONE`, `AT TIME
+ZONE`) meet a different tz model on the target.
+
+### SQLPORT005 — Identifier quoting differs · info
+Double-quoted vs backtick identifiers cross dialects.
+
+### SQLPORT006 — Nested/semi-structured model differs · warning
+STRUCT/VARIANT/ROW/Tuple/object syntax hits a different nested-type
+model on the target.
+
+### SQLPORT007 — NULL ordering defaults differ · warning
+ORDER BY without explicit NULLS FIRST/LAST crosses dialects whose ASC
+null-position defaults disagree.
+
+
 
 MIGR findings are not project-scan checks; they're emitted by
 `forge-doctor migrate plan --from <platform> --to <platform>` and

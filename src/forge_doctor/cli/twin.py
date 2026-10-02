@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.console import Console
@@ -15,6 +15,9 @@ from forge_doctor.cli.common import PathArg, _build_registry, _stderr
 from forge_doctor.core.context import ProjectContext
 from forge_doctor.core.runner import CheckRunner
 from forge_doctor.core.twin import Twin, build_twin, twin_snapshot
+
+if TYPE_CHECKING:
+    from forge_doctor.core.twin_states import TwinFact
 
 twin_app = typer.Typer(name="twin", help="Formal digital twin: validated platform snapshot.")
 app.add_typer(twin_app, name="twin")
@@ -111,7 +114,7 @@ def twin_export(
 # ---------------------------------------------------------------------------
 
 
-def _facts_at(path: Path) -> tuple[ProjectContext, Twin, tuple]:
+def _facts_at(path: Path) -> tuple[ProjectContext, Twin, tuple[TwinFact, ...]]:
     from forge_doctor.core.twin_states import collect_twin_facts
 
     ctx, twin = _twin_at(path)
