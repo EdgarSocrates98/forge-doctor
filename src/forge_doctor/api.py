@@ -26,9 +26,11 @@ from forge_doctor import __version__
 from forge_doctor.core.context import ScanOptions
 from forge_doctor.core.models import ScanReport
 from forge_doctor.core.platform_graph import DataPlatformGraph
+from forge_doctor.output.json_renderer import JSON_SCHEMA_VERSION as SCAN_SCHEMA_VERSION
 
 __all__ = [
     "SCHEMA_VERSION",
+    "SCAN_SCHEMA_VERSION",
     "DataPlatformGraph",
     "ScanOptions",
     "ScanReport",
@@ -40,10 +42,14 @@ __all__ = [
     "what_if",
 ]
 
-# Machine-readable output contract. Bump MINOR for additive fields,
-# MAJOR for removed/renamed fields or changed semantics. Printed as
-# ``schema_version`` in every ``--format json`` output.
+# Machine-readable output contract for the artifact family introduced
+# with the platform graph (lineage/graph/workspace/policy/misc meta
+# payloads). Bump MINOR for additive fields, MAJOR for removed/renamed
+# fields or changed semantics.
 SCHEMA_VERSION = "1.0"
+
+# The ``scan --format json`` report is a separate, older contract
+# versioned independently - re-exported above as ``SCAN_SCHEMA_VERSION``
 
 
 def version() -> str:

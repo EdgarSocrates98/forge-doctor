@@ -12,6 +12,7 @@ def test_public_surface_is_pinned() -> None:
     """``api.__all__`` is the contract - changing it is a semver event."""
     assert set(api.__all__) == {
         "SCHEMA_VERSION",
+        "SCAN_SCHEMA_VERSION",
         "DataPlatformGraph",
         "ScanOptions",
         "ScanReport",
@@ -25,10 +26,14 @@ def test_public_surface_is_pinned() -> None:
 
 
 def test_version_and_schema_version() -> None:
+    from forge_doctor.output.json_renderer import JSON_SCHEMA_VERSION
+
     assert api.version()
     assert api.SCHEMA_VERSION == "1.0"
-    parts = api.SCHEMA_VERSION.split(".")
-    assert len(parts) == 2 and all(p.isdigit() for p in parts)
+    assert api.SCAN_SCHEMA_VERSION == JSON_SCHEMA_VERSION == "3.0"
+    for v in (api.SCHEMA_VERSION, api.SCAN_SCHEMA_VERSION):
+        parts = v.split(".")
+        assert len(parts) == 2 and all(p.isdigit() for p in parts)
 
 
 def test_scan_returns_report(tmp_path: Path) -> None:
@@ -124,3 +129,83 @@ def test_schema_contracts_cli_lists_and_dumps() -> None:
 
     bad = runner.invoke(app, ["schema", "contracts", "nope"])
     assert bad.exit_code != 0
+
+
+# --- minimal JSON Schema validator (no jsonschema dep) ------------------
+
+_TYPE_MAP = {
+    "object": dict,
+    "array": list,
+    "string": str,
+    "integer": int,
+    "boolean": bool,
+    "null": type(None),
+}
+
+
+def _check(instance: object, schema: dict, path: str = "$") -> list[str]:
+    """Validate *instance* against the subset of JSON Schema we publish.
+
+    Supports: type, required, properties, items, const, enum, oneOf.
+    """
+    if "oneOf" in schema:
+        if any(not _check(instance, s, path) for s in schema["oneOf"]):
+            return []
+        return [f"{path}: matches no oneOf branch"]
+
+    errors: list[str] = []
+    stype = schema.get("type")
+    if stype is not None:
+        types = stype if isinstance(stype, list) else [stype]
+        if not any(
+            isinstance(instance, _TYPE_MAP[t])
+            and (t != "boolean" or type(instance) is bool)
+            and (t != "integer" or type(instance) is int)
+            for t in types
+        ):
+            errors.append(f"{path}: expected {types}, got {type(instance).__name__}")
+            return errors
+    if "const" in schema and instance != schema["const"]:
+        errors.append(f"{path}: expected const {schema['const']!r}, got {instance!r}")
+    if "enum" in schema and instance not in schema["enum"]:
+        errors.append(f"{path}: {instance!r} not in {schema['enum']}")
+    if isinstance(instance, dict):
+        for key in schema.get("required", []):
+            if key not in instance:
+                errors.append(f"{path}: missing required key {key!r}")
+        for key, subschema in schema.get("properties", {}).items():
+            if key in instance:
+                errors.extend(_check(instance[key], subschema, f"{path}.{key}"))
+    if isinstance(instance, list) and "items" in schema:
+        for i, item in enumerate(instance):
+            errors.extend(_check(item, schema["items"], f"{path}[{i}]"))
+    return errors
+
+
+def test_scan_report_validates_against_published_schema(tmp_path: Path) -> None:
+    """The real ``render_json`` output must satisfy ``scan-report``."""
+    from forge_doctor.core.schemas import SCAN_REPORT
+    from forge_doctor.output.json_renderer import render_json
+
+    (tmp_path / "main.tf").write_text(
+        'resource "aws_glue_job" "j" {\n  name = "x"\n  glue_version = "4.0"\n}\n'
+    )
+    report = api.scan(tmp_path)
+    payload = json.loads(render_json(report))
+    errors = _check(payload, SCAN_REPORT)
+    assert errors == []
+    assert payload["schema_version"] == api.SCAN_SCHEMA_VERSION
+    assert payload["tool"]["name"] == "forge-doctor"
+    assert isinstance(payload["project"]["name"], str)
+
+
+def test_golden_snapshots_validate_against_published_schema() -> None:
+    """Every committed golden snapshot file satisfies ``golden-snapshot``."""
+    from forge_doctor.core.schemas import GOLDEN_SNAPSHOT
+
+    golden_dir = Path(__file__).resolve().parents[2] / "golden"
+    files = sorted(golden_dir.glob("*/expected/*.json"))
+    assert files, "no golden snapshots found"
+    for path in files:
+        errors = _check(json.loads(path.read_text(encoding="utf-8")), GOLDEN_SNAPSHOT)
+        assert errors == [], f"{path.name}: {errors[:3]}"

@@ -225,7 +225,7 @@ forge-doctor scan . --format json
 ```json
 {
   "tool": {"name": "forge-doctor", "version": "0.7.0"},
-  "schema_version": "1.0",
+  "schema_version": "3.0",
   "version": "0.7.0",
   "project": {"name": "etl"},
   "summary": {"passed": 17, "info": 3, "warnings": 4, "errors": 0},

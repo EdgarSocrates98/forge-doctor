@@ -73,7 +73,11 @@ jobs:
           forge-doctor doctor .
           forge-doctor scan tests/sample_projects/clean_python_project \
             --format json --show-root -o smoke-report.json || test $? -le 1
-          python -c "import json,sys; d=json.load(open('smoke-report.json')); assert d['schema_version']=='3.0'; assert d['tool']['name']=='forge-doctor'; print('smoke ok:', len(d['results']), 'results')"
+          python -c "import json,sys; d=json.load(open('smoke-report.json')); assert d['schema_version']=='3.0'; assert d['tool']['name']=='forge-doctor'; assert set(d['summary'])>={'passed','info','warnings','errors'}; assert isinstance(d['project']['name'],str); print('smoke ok:', len(d['results']), 'results')"
+          forge-doctor schema contracts
+          forge-doctor schema contracts scan-report | python -c "import json,sys; s=json.load(sys.stdin); assert 'results' in s['required']"
+          forge-doctor explain SPARK001 >/dev/null
+          forge-doctor checks >/dev/null
 
   extras-smoke:
     name: extras smoke (watch/lsp/schemas)

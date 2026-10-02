@@ -91,6 +91,40 @@ Ecosystem:
   orchestrator) in json/dot/mermaid.
 - **`doctor`** — environment self-check.
 
+## v0.8–v1.0 — platform intelligence & hardening — shipped (in review)
+
+Platform intelligence (the `DataPlatformGraph` + cross-domain engine):
+
+- Canonical entity/relationship graph across all domain models;
+  `platform graph|blast-radius|findings`.
+- Cross-domain rule engine (PLAT rules), offline runtime evidence
+  (`runtime inspect|diagnose`), finding promotion + root-cause
+  clustering (`root-cause`), deterministic remediation (`remediate`).
+- Architecture contracts + drift (`contract validate`,
+  `architecture drift`); what-if evaluation + named migration plans
+  (`what-if`, `migrate plan`).
+- Deep-intelligence packs: Lake Formation, EMR, Databricks, Delta,
+  Athena, Lambda, Step Functions, Kafka, Kinesis, Flink, streaming
+  delivery semantics.
+
+Reliability & trust:
+
+- **Forge Lab** (`lab run|metrics`) — scenario suites with ground truth;
+  precision/recall per domain.
+- **Golden repos** (`golden run|update`) — snapshot regression over
+  realistic fixture corpora.
+- **Bench** (`bench run`) — cold/warm scan and model timings.
+- **Workspace intelligence** (`workspace inspect`) — cross-repo
+  DEFINES/IMPLEMENTS/INVOKES links.
+- **Semantic diff** (`diff --semantic`) — entity diff + blast radius +
+  risk class for PR review.
+- **Policy packs** (`policy list|eval|validate`) — org-declared
+  forbid/require rules.
+- **Public API** (`forge_doctor.api`) — stable SDK surface + JSON Schema
+  contracts (`schema contracts`); see `docs/api.md`.
+- **v1.0 readiness** — `docs/release.md` checklist; tagging remains a
+  human decision.
+
 ## Next
 
 The engine is stable — new work lands as **data-intelligence packs** on top

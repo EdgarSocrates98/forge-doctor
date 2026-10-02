@@ -56,9 +56,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   packs. `test_docs.py` enforces docs coverage deterministically —
   every command, check id, and category must be documented, and doc
   links must resolve.
+- **v1.0 release hardening** — `SCAN_SCHEMA_VERSION` (`"3.0"`) exported
+  beside `SCHEMA_VERSION` (`"1.0"`): the scan JSON report and the newer
+  artifact family are two independent contracts, now documented as such.
+  Published JSON Schemas corrected to match real output
+  (`scan-report`: tool/project/summary objects; `golden-snapshot`: row
+  arrays + graph object) and enforced by contract tests. CI smoke
+  strengthened: contract-shape asserts plus `schema contracts`,
+  `explain`, `checks` on the installed wheel. New `docs/release.md`
+  v1.0 pre-flight checklist.
 
 ### Fixed
 
+- **Published JSON Schemas contradicted real output** — `scan-report`
+  declared `tool`/`project` as strings (actually objects) and
+  `golden-snapshot` declared a single object with a `tool` key
+  (actually row arrays + a bare entities/relationships object). Both
+  corrected and now enforced by tests validating renderer output and
+  every committed snapshot against the published schemas.
 - **Delta false positive** — generic SQL DML (`MERGE`/`UPDATE`/`DELETE`/
   `OPTIMIZE`/`VACUUM`) is no longer attributed to Delta without any
   project-level delta signal; self-evident syntax (`USING DELTA`,

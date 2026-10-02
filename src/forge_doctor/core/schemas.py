@@ -54,15 +54,63 @@ SCAN_REPORT: dict[str, Any] = {
     "$id": "https://forge-doctor.dev/schemas/scan-report.json",
     "title": "Forge Doctor scan report",
     "type": "object",
-    "required": ["tool", "schema_version", "results"],
+    "required": ["version", "tool", "schema_version", "project", "summary", "results"],
     "properties": {
-        "tool": {"const": "forge-doctor"},
-        "schema_version": {"type": "string"},
         "version": {"type": "string"},
-        "project": {"type": "string"},
+        "tool": {
+            "type": "object",
+            "required": ["name", "version"],
+            "properties": {
+                "name": {"const": "forge-doctor"},
+                "version": {"type": "string"},
+            },
+        },
+        "schema_version": {"type": "string"},
+        "project": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string"},
+                "root": {"type": "string"},
+            },
+        },
+        "summary": {
+            "type": "object",
+            "required": ["passed", "info", "warnings", "errors"],
+            "properties": {
+                "passed": {"type": "integer"},
+                "info": {"type": "integer"},
+                "warnings": {"type": "integer"},
+                "errors": {"type": "integer"},
+                "suppressed": {"type": "integer"},
+            },
+        },
         "results": {"type": "array", "items": _FINDING},
-        "summary": {"type": "object"},
-        "suppressions": {"type": "array"},
+        "suppressions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["rule", "status", "matched"],
+                "properties": {
+                    "rule": {"type": "string"},
+                    "path": {"type": ["string", "null"]},
+                    "status": {"type": "string"},
+                    "matched": {"type": "integer"},
+                    "owner": {"type": ["string", "null"]},
+                    "expires": {"type": ["string", "null"]},
+                    "reason": {"type": ["string", "null"]},
+                },
+            },
+        },
+        "baseline": {
+            "type": "object",
+            "required": ["new", "fixed", "existing"],
+            "properties": {
+                "new": {"type": "integer"},
+                "fixed": {"type": "integer"},
+                "existing": {"type": "integer"},
+            },
+        },
     },
     "additionalProperties": True,
 }
@@ -148,18 +196,46 @@ GOLDEN_SNAPSHOT: dict[str, Any] = {
     "$schema": SCHEMA_DIALECT,
     "$id": "https://forge-doctor.dev/schemas/golden-snapshot.json",
     "title": "Golden repository snapshot file",
-    "type": "object",
-    "properties": {
-        "tool": {"const": "forge-doctor"},
-        "schema_version": {"type": "string"},
-        "items": {"type": "array", "items": {"type": "string"}},
-        "findings": {"type": "array"},
-        "entities": {"type": "array"},
-        "relationships": {"type": "array"},
-        "plans": {"type": "array"},
-        "chains": {"type": "array"},
-    },
-    "additionalProperties": True,
+    "description": (
+        "Each snapshot file under <repo>/expected/ is either a sorted row "
+        "array (findings/migrations/remediations/root_causes) or the graph "
+        "object (entities + relationships)."
+    ),
+    "oneOf": [
+        {
+            "type": "object",
+            "required": ["entities", "relationships"],
+            "properties": {
+                "entities": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "kind", "domain"],
+                        "properties": {
+                            "id": {"type": "string"},
+                            "kind": {"type": "string"},
+                            "domain": {"type": "string"},
+                            "file": {"type": ["string", "null"]},
+                            "line": {"type": ["integer", "null"]},
+                        },
+                    },
+                },
+                "relationships": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["kind", "src", "dst"],
+                        "properties": {
+                            "kind": {"type": "string"},
+                            "src": {"type": "string"},
+                            "dst": {"type": "string"},
+                        },
+                    },
+                },
+            },
+        },
+        {"type": "array", "items": {"type": "object"}},
+    ],
 }
 
 SCHEMAS: dict[str, dict[str, Any]] = {
