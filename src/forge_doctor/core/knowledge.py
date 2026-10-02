@@ -321,9 +321,7 @@ def conformance(
     positive ``examples`` fixture. (Structural/provenance issues come
     from ``verify_pack`` and are merged in.)
     """
-    resolved: list[tuple[str, str, Any]] = (
-        list(list_packs()) if packs is None else packs
-    )
+    resolved: list[tuple[str, str, Any]] = list(list_packs()) if packs is None else packs
     issues: list[str] = []
     warnings: list[str] = []
 

@@ -45,9 +45,7 @@ _DH = [
 
 
 def _detected_table(tmp_path: Path, name: str = "orders") -> None:
-    (tmp_path / "ddl.sql").write_text(
-        f"CREATE TABLE {name} (id INT);\n", encoding="utf-8"
-    )
+    (tmp_path / "ddl.sql").write_text(f"CREATE TABLE {name} (id INT);\n", encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -123,9 +121,7 @@ def test_glue_catalog_export(tmp_path: Path) -> None:
     d = tmp_path / "glue"
     d.mkdir()
     (d / "tables.json").write_text(
-        json.dumps(
-            {"TableList": [{"Name": "orders", "DatabaseName": "dw", "Description": "x"}]}
-        ),
+        json.dumps({"TableList": [{"Name": "orders", "DatabaseName": "dw", "Description": "x"}]}),
         encoding="utf-8",
     )
     ds = metadata_model(_ctx(tmp_path)).datasets[0]
@@ -137,9 +133,7 @@ def test_unity_catalog_export(tmp_path: Path) -> None:
     d = tmp_path / "unity"
     d.mkdir()
     (d / "tables.json").write_text(
-        json.dumps(
-            [{"catalog_name": "main", "schema_name": "dw", "table_name": "orders"}]
-        ),
+        json.dumps([{"catalog_name": "main", "schema_name": "dw", "table_name": "orders"}]),
         encoding="utf-8",
     )
     ds = metadata_model(_ctx(tmp_path)).datasets[0]
@@ -148,9 +142,7 @@ def test_unity_catalog_export(tmp_path: Path) -> None:
 
 
 def test_generic_json_not_attributed(tmp_path: Path) -> None:
-    (tmp_path / "report.json").write_text(
-        '{"entities": ["a"], "owner": "x"}', encoding="utf-8"
-    )
+    (tmp_path / "report.json").write_text('{"entities": ["a"], "owner": "x"}', encoding="utf-8")
     assert not metadata_model(_ctx(tmp_path)).has_evidence
 
 
@@ -167,9 +159,7 @@ def test_recipe_connector_types_only(tmp_path: Path) -> None:
     assert r.source_type == "mysql"
     # secrets never carried into the model (all str fields checked)
     fields = [r.source_type, r.sink_type]
-    fields += [
-        x for d in model.datasets for x in (*d.owners, *d.tags, d.name, d.qualified)
-    ]
+    fields += [x for d in model.datasets for x in (*d.owners, *d.tags, d.name, d.qualified)]
     assert not any("s3cret" in f or "db.internal" in f for f in fields)
 
 
@@ -189,9 +179,7 @@ def test_meta001_stale_entry(tmp_path: Path) -> None:
         "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mysql,dw.ghost,PROD)",
         "aspects": [],
     }
-    (tmp_path / "x.datahub.json").write_text(
-        json.dumps([*_DH, ghost]), encoding="utf-8"
-    )
+    (tmp_path / "x.datahub.json").write_text(json.dumps([*_DH, ghost]), encoding="utf-8")
     found = _findings(tmp_path)
     assert "META001" in found
     assert any("ghost" in m for m in found["META001"])
@@ -262,9 +250,7 @@ def test_meta005_lineage_contradiction(tmp_path: Path) -> None:
                 {
                     "upstreamLineage": {
                         "upstreams": [
-                            {
-                                "dataset": "urn:li:dataset:(urn:li:dataPlatform:mysql,dw.raw,PROD)"
-                            }
+                            {"dataset": "urn:li:dataset:(urn:li:dataPlatform:mysql,dw.raw,PROD)"}
                         ]
                     }
                 }
@@ -293,8 +279,7 @@ def test_meta005_agreeing_lineage_quiet(tmp_path: Path) -> None:
                         "upstreams": [
                             {
                                 "dataset": (
-                                    "urn:li:dataset:(urn:li:dataPlatform:mysql,"
-                                    "dw.customers,PROD)"
+                                    "urn:li:dataset:(urn:li:dataPlatform:mysql,dw.customers,PROD)"
                                 )
                             }
                         ]

@@ -128,9 +128,7 @@ def test_soda_checks(tmp_path: Path) -> None:
 
 def test_soda_adversarial_checks_key(tmp_path: Path) -> None:
     """A CI `checks:` key is not SodaCL."""
-    (tmp_path / "checks.yml").write_text(
-        "checks:\n  strict: true\n", encoding="utf-8"
-    )
+    (tmp_path / "checks.yml").write_text("checks:\n  strict: true\n", encoding="utf-8")
     assert not quality_model(_ctx(tmp_path)).has_evidence
 
 

@@ -154,9 +154,7 @@ def _flag(attrs: dict[str, Any], pat: re.Pattern[str]) -> str:
 
 
 def _linked(attrs: dict[str, Any], body: str) -> bool:
-    return any(_LINK_RE.search(str(k)) for k in attrs) or bool(
-        _LINK_RE.search(body)
-    )
+    return any(_LINK_RE.search(str(k)) for k in attrs) or bool(_LINK_RE.search(body))
 
 
 def _scan_terraform_blocks(ctx: ProjectContext, model: CloudAbstractionModel) -> None:
@@ -308,10 +306,7 @@ def _scan_graph(ctx: ProjectContext, model: CloudAbstractionModel) -> None:
                 )
             )
             continue
-        if (
-            e.kind.value in _UNMAPPED_DATA_KINDS
-            and e.domain in _PLATFORM_DOMAINS
-        ):
+        if e.kind.value in _UNMAPPED_DATA_KINDS and e.domain in _PLATFORM_DOMAINS:
             model.unmapped.append(
                 UnmappedService(
                     domain=e.domain,

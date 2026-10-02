@@ -326,18 +326,14 @@ def _contract_conflicts(ctx: ProjectContext, change: WhatIfChange) -> list[WhatI
     return out
 
 
-def _platform_change_report(
-    ctx: ProjectContext, change: WhatIfChange
-) -> WhatIfReport:
+def _platform_change_report(ctx: ProjectContext, change: WhatIfChange) -> WhatIfReport:
     """`--change platform=<target>`: cross-platform on the abstraction layer."""
     from forge_doctor.analyzers.abstractions import abstractions_model
     from forge_doctor.core.crossmigration import plan_platform_migration
     from forge_doctor.core.models import Severity
 
     model = abstractions_model(ctx)
-    wh_sources = sorted(
-        {s.service for s in model.services if s.abstraction == "warehouse"}
-    )
+    wh_sources = sorted({s.service for s in model.services if s.abstraction == "warehouse"})
     source = (
         wh_sources[0]
         if len(wh_sources) == 1
@@ -358,16 +354,13 @@ def _platform_change_report(
             if f.severity == Severity.ERROR
             else ("warn" if f.severity == Severity.WARNING else "info")
         )
-        impacts.append(
-            WhatIfImpact("migration", sev, f.message, ((f.evidence or ""),))
-        )
+        impacts.append(WhatIfImpact("migration", sev, f.message, ((f.evidence or ""),)))
     for m in plan.entity_map:
         impacts.append(
             WhatIfImpact(
                 "drift",
                 "info",
-                f"{m.source} -> {m.target_service or 'UNMAPPED'} "
-                f"[{m.confidence}]",
+                f"{m.source} -> {m.target_service or 'UNMAPPED'} [{m.confidence}]",
                 (m.note,),
             )
         )

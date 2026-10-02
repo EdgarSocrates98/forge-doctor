@@ -73,9 +73,7 @@ def capability_subgraph(
             and _entity_version(dict(e.attrs)) == version
         ]
         for cap in caps:
-            result = registry.evaluate(
-                cap, CapabilityContext(platform=domain, version=version)
-            )
+            result = registry.evaluate(cap, CapabilityContext(platform=domain, version=version))
             cap_ent = out.add_entity(
                 Entity(
                     kind=EntityKind.CAPABILITY,
@@ -84,11 +82,7 @@ def capability_subgraph(
                     name=f"{domain}/{cap}",
                     attrs=(
                         ("status", result.status.value),
-                        *(
-                            (("version_context", version),)
-                            if version is not None
-                            else ()
-                        ),
+                        *((("version_context", version),) if version is not None else ()),
                     ),
                 )
             )

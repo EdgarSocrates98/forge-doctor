@@ -798,6 +798,8 @@ def knowledge_publish(
     console.print(f"  [dim]{report['note']}[/dim]")
     if not report["ready"]:
         raise typer.Exit(1)
+
+
 @app.command(name="sbom")
 def sbom_cmd(
     path: PathArg = Path("."),

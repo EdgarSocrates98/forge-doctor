@@ -40,9 +40,7 @@ class CloudSurface(_CloudCheck):
         model = abstractions_model(ctx)
         if not model.has_evidence:
             return [self.result(Severity.PASS, "no cloud-platform evidence")]
-        kinds = ", ".join(
-            f"{k}={len(v)}" for k, v in sorted(model.kind_clouds().items())
-        )
+        kinds = ", ".join(f"{k}={len(v)}" for k, v in sorted(model.kind_clouds().items()))
         return [
             self.result(
                 Severity.INFO,
@@ -114,16 +112,12 @@ class SingleCloudAbstraction(_CloudCheck):
             real = kind_clouds - {"vendor"}
             if len(real) != 1:
                 continue
-            members = [
-                s for s in model.services if s.abstraction == kind
-            ]
+            members = [s for s in model.services if s.abstraction == kind]
             if any(s.linked for s in members):
                 continue  # replication/migration link declared
             cloud = sorted(real)[0]
             missing = sorted(clouds - real)
-            names = ", ".join(
-                sorted({f"{s.service}:{s.name}" for s in members})[:4]
-            )
+            names = ", ".join(sorted({f"{s.service}:{s.name}" for s in members})[:4])
             out.append(
                 self.result(
                     Severity.INFO,
@@ -131,10 +125,7 @@ class SingleCloudAbstraction(_CloudCheck):
                     f"{', '.join(missing)} equivalent or declared "
                     "replication/migration link",
                     file=members[0].file if members else None,
-                    evidence=(
-                        f"clouds in estate: {sorted(clouds)}; "
-                        f"{kind} on: {sorted(real)}"
-                    ),
+                    evidence=(f"clouds in estate: {sorted(clouds)}; {kind} on: {sorted(real)}"),
                     evidence_kind=EvidenceKind.CONFIG,
                 )
             )

@@ -61,9 +61,7 @@ def test_capability_deltas() -> None:
 def test_stages_ordered() -> None:
     plan = plan_platform_migration(_ctx(_LAB), "snowflake", "bigquery")
     stages = [s.stage for s in plan.stages]
-    assert stages == sorted(
-        stages, key=["catalog", "schema", "data", "compute", "consumers"].index
-    )
+    assert stages == sorted(stages, key=["catalog", "schema", "data", "compute", "consumers"].index)
     assert "schema" in stages and "compute" in stages
 
 
@@ -124,8 +122,15 @@ def test_migrate_plan_json() -> None:
     result = runner.invoke(
         app,
         [
-            "migrate", "plan", "--from", "snowflake", "--to", "bigquery",
-            "-f", "json", str(_LAB),
+            "migrate",
+            "plan",
+            "--from",
+            "snowflake",
+            "--to",
+            "bigquery",
+            "-f",
+            "json",
+            str(_LAB),
         ],
     )
     assert result.exit_code == 0

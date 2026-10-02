@@ -141,13 +141,12 @@ def _gx_suite_table(doc: dict[str, Any], suite_name: str) -> str:
 
 
 def _is_gx_suite(doc: Any) -> bool:
-    return isinstance(doc, dict) and isinstance(
-        doc.get("expectations"), list
-    ) and (
-        isinstance(doc.get("expectation_suite_name"), str)
-        or any(
-            isinstance(e, dict) and "expectation_type" in e
-            for e in doc["expectations"]
+    return (
+        isinstance(doc, dict)
+        and isinstance(doc.get("expectations"), list)
+        and (
+            isinstance(doc.get("expectation_suite_name"), str)
+            or any(isinstance(e, dict) and "expectation_type" in e for e in doc["expectations"])
         )
     )
 
@@ -234,9 +233,7 @@ def _scan_gx_gates(ctx: ProjectContext, model: DataQualityModel) -> None:
         if not is_ckpt or rel.suffix.lower() not in (".yml", ".yaml", ".json"):
             continue
         text = ctx.read_text(rel)
-        if text is None or (
-            "expectation_suite_name" not in text and "validations" not in text
-        ):
+        if text is None or ("expectation_suite_name" not in text and "validations" not in text):
             continue
         doc = _load_yaml_safe(text) if rel.suffix.lower() != ".json" else None
         if doc is None and rel.suffix.lower() == ".json":
@@ -250,9 +247,7 @@ def _scan_gx_gates(ctx: ProjectContext, model: DataQualityModel) -> None:
         vals = doc.get("validations")
         if isinstance(vals, list):
             for v in vals:
-                if isinstance(v, dict) and isinstance(
-                    v.get("expectation_suite_name"), str
-                ):
+                if isinstance(v, dict) and isinstance(v.get("expectation_suite_name"), str):
                     refs.append(str(v["expectation_suite_name"]))
         if isinstance(doc.get("expectation_suite_name"), str):
             refs.append(str(doc["expectation_suite_name"]))
@@ -297,17 +292,11 @@ def _scan_soda(ctx: ProjectContext, model: DataQualityModel) -> None:
             cols: list[str] = []
             for item in body:
                 if isinstance(item, str):
-                    exps.append(
-                        QualityExpectation(name=item.strip(), file=rel)
-                    )
-                    cols += [
-                        c for c in _SODA_COL_RE.findall(item) if "." not in c
-                    ]
+                    exps.append(QualityExpectation(name=item.strip(), file=rel))
+                    cols += [c for c in _SODA_COL_RE.findall(item) if "." not in c]
                 elif isinstance(item, dict):
                     for ck in item:
-                        exps.append(
-                            QualityExpectation(name=str(ck), file=rel)
-                        )
+                        exps.append(QualityExpectation(name=str(ck), file=rel))
             model.suites.append(
                 QualitySuite(
                     engine="soda",
@@ -349,11 +338,7 @@ def _scan_deequ(ctx: ProjectContext, model: DataQualityModel) -> None:
         exps: list[QualityExpectation] = []
         cols: list[str] = []
         for func, col in _DEEQU_ANALYZER_RE.findall(text):
-            exps.append(
-                QualityExpectation(
-                    name=func.lower(), file=rel, column=col or ""
-                )
-            )
+            exps.append(QualityExpectation(name=func.lower(), file=rel, column=col or ""))
             if col:
                 cols.append(col)
         descs = _DEEQU_CHECK_DESC_RE.findall(text)
@@ -392,9 +377,7 @@ def _scan_dbt(ctx: ProjectContext, model: DataQualityModel) -> None:
                 name=f"dbt:{m.name}",
                 file=m.file,
                 table=m.name,
-                expectations=tuple(
-                    QualityExpectation(name=t, file=m.file) for t in m.tests
-                ),
+                expectations=tuple(QualityExpectation(name=t, file=m.file) for t in m.tests),
             )
         )
     for s in dm.sources:
@@ -477,9 +460,7 @@ def _wire_suites(model: DataQualityModel) -> None:
             if g.engine != s.engine:
                 continue
             # engine-wide invocations (dbt test, soda scan) run every suite
-            if not g.suite_refs or s.name.lower() in {
-                r.lower() for r in g.suite_refs
-            }:
+            if not g.suite_refs or s.name.lower() in {r.lower() for r in g.suite_refs}:
                 wired = True
                 break
         if not wired and s.name.lower() in observed:

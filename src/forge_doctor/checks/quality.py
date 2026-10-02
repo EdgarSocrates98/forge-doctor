@@ -44,9 +44,7 @@ def _entity_names(g: DataPlatformGraph) -> dict[str, Entity]:
     for e in g.entities():
         if e.kind.value not in _DATA_KIND_VALUES or e.domain == "metadata":
             continue
-        tail = (
-            e.identifier.rstrip("/").rsplit("/", 1)[-1].rsplit(".", 1)[-1].lower()
-        )
+        tail = e.identifier.rstrip("/").rsplit("/", 1)[-1].rsplit(".", 1)[-1].lower()
         out.setdefault(tail, e)
         out.setdefault(e.identifier.lower(), e)
     return out
@@ -116,12 +114,7 @@ class ProdTableNoExpectations(_QualityCheck):
                 continue
             if not _is_prod(e):
                 continue
-            tail = (
-                e.identifier.rstrip("/")
-                .rsplit("/", 1)[-1]
-                .rsplit(".", 1)[-1]
-                .lower()
-            )
+            tail = e.identifier.rstrip("/").rsplit("/", 1)[-1].rsplit(".", 1)[-1].lower()
             if tail in covered or e.identifier.lower() in covered:
                 continue
             out.append(
@@ -156,8 +149,7 @@ class SuiteNeverWired(_QualityCheck):
             out.append(
                 self.result(
                     Severity.WARNING,
-                    f"{s.engine} suite '{s.name}' has no gate wiring — "
-                    "defined but never run",
+                    f"{s.engine} suite '{s.name}' has no gate wiring — defined but never run",
                     file=s.file,
                     evidence=f"{len(s.expectations)} expectations declared",
                 )
@@ -215,8 +207,7 @@ class DroppedColumnExpectation(_QualityCheck):
     id = "DQ004"
     title = "Expectation on dropped column"
     why = (
-        "The suite expects a column the detected schema no longer "
-        "carries — contract/quality drift."
+        "The suite expects a column the detected schema no longer carries — contract/quality drift."
     )
     when_ok = "Every column expectation exists in the detected field set."
     fix = "Update the suite or restore the column."
@@ -231,11 +222,7 @@ class DroppedColumnExpectation(_QualityCheck):
             ent = detected.get(s.table.lower())
             if ent is None:
                 continue
-            fields = {
-                k.split(".", 1)[1].lower()
-                for k in _attrs(ent)
-                if k.startswith("field.")
-            }
+            fields = {k.split(".", 1)[1].lower() for k in _attrs(ent) if k.startswith("field.")}
             if not fields:
                 continue  # schema unknown — can't prove drift
             for col in s.columns:
@@ -248,8 +235,7 @@ class DroppedColumnExpectation(_QualityCheck):
                             "lacks it (dropped?)",
                             file=s.file,
                             evidence=(
-                                f"declared column '{col}' vs detected "
-                                f"fields {sorted(fields)[:8]}"
+                                f"declared column '{col}' vs detected fields {sorted(fields)[:8]}"
                             ),
                             evidence_kind=EvidenceKind.OBSERVED_METADATA,
                         )

@@ -65,9 +65,7 @@ def _graph_with_version(version: str = "2.0") -> DataPlatformGraph:
 
 
 def test_supported_carries_deciding_entry() -> None:
-    result = _registry().evaluate(
-        "THING", CapabilityContext(platform="demo", version="2.0")
-    )
+    result = _registry().evaluate("THING", CapabilityContext(platform="demo", version="2.0"))
     assert result.status is CapabilityStatus.SUPPORTED
     assert result.entry_id == "THING"
     assert result.pack == "capabilities/demo"
@@ -92,9 +90,7 @@ def test_unknown_names_missing_evidence_when_clause() -> None:
 
 
 def test_unknown_names_missing_evidence_versions() -> None:
-    result = _registry().evaluate(
-        "THING", CapabilityContext(platform="demo", version="9.9")
-    )
+    result = _registry().evaluate("THING", CapabilityContext(platform="demo", version="9.9"))
     assert result.status is CapabilityStatus.UNKNOWN
     assert any("2.0" in m for m in result.missing_evidence)
 
@@ -108,9 +104,7 @@ def test_subgraph_links_capability_to_pack() -> None:
     assert cap_ids == {"capability:demo:THING", "capability:demo:GATED"}
     edges = [r for r in sub.relationships() if r.kind is RelKind.EVIDENCED_BY]
     pack_edge = next(
-        r
-        for r in edges
-        if r.src == "capability:demo:THING" and ":knowledge:" in r.dst
+        r for r in edges if r.src == "capability:demo:THING" and ":knowledge:" in r.dst
     )
     assert pack_edge.dst == "knowledge_pack:knowledge:capabilities/demo"
     assert dict(pack_edge.attrs)["entry_id"] == "THING"

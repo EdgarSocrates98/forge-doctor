@@ -85,12 +85,8 @@ _CHANGE_NOTES: dict[tuple[str, str], str] = {
         "port DDL — sqlglot dialect notes; review clustering keys, "
         " masking policies, and time-travel window semantics"
     ),
-    ("snowflake", "object_storage"): (
-        "external stage -> target object store + external table def"
-    ),
-    ("snowflake", "stream"): (
-        "Snowflake STREAM object -> target change-capture / pubsub feed"
-    ),
+    ("snowflake", "object_storage"): ("external stage -> target object store + external table def"),
+    ("snowflake", "stream"): ("Snowflake STREAM object -> target change-capture / pubsub feed"),
     ("snowflake", "compute_engine"): (
         "TASK/PIPE -> scheduled job or orchestrator (composer/airflow)"
     ),
@@ -98,13 +94,10 @@ _CHANGE_NOTES: dict[tuple[str, str], str] = {
         "dataset/table -> target schema; slot reservations -> compute units"
     ),
     ("redshift", "warehouse"): (
-        "dist/sort keys -> target partitioning/clustering; STL/SVV "
-        "observability views don't port"
+        "dist/sort keys -> target partitioning/clustering; STL/SVV observability views don't port"
     ),
     ("kinesis", "stream"): "shard topology -> target partitions/topics",
-    ("dynamodb", "operational_store"): (
-        "table + GSIs -> target store; RCU/WCU -> request units"
-    ),
+    ("dynamodb", "operational_store"): ("table + GSIs -> target store; RCU/WCU -> request units"),
     ("glue", "catalog"): "catalog databases/tables -> target metastore",
 }
 
@@ -180,13 +173,10 @@ def _stage_items(plan: PlatformMigrationPlan) -> list[StagePlan]:
         )
     if plan.unmapped_consumers:
         buckets["consumers"] += [
-            f"consumer {c} has no target link — rewire manually"
-            for c in plan.unmapped_consumers
+            f"consumer {c} has no target link — rewire manually" for c in plan.unmapped_consumers
         ]
     return [
-        StagePlan(stage=s, items=tuple(sorted(set(buckets[s]))))
-        for s in _STAGE_ORDER
-        if buckets[s]
+        StagePlan(stage=s, items=tuple(sorted(set(buckets[s])))) for s in _STAGE_ORDER if buckets[s]
     ]
 
 
@@ -196,9 +186,7 @@ def _capability_deltas(source: str, target: str) -> list[CapabilityDelta]:
     reg = capability_registry()
     src_pack = _PACK_PLATFORM.get(source, source)
     tgt_pack = _PACK_PLATFORM.get(target, target)
-    cap_ids = set(reg.capabilities_for(src_pack)) | set(
-        reg.capabilities_for(tgt_pack)
-    )
+    cap_ids = set(reg.capabilities_for(src_pack)) | set(reg.capabilities_for(tgt_pack))
     deltas: list[CapabilityDelta] = []
     for cap in sorted(cap_ids):
         s = reg.evaluate(cap, CapabilityContext(platform=src_pack)).status.value
@@ -222,9 +210,7 @@ def _capability_deltas(source: str, target: str) -> list[CapabilityDelta]:
     return deltas
 
 
-def _unmapped_consumers(
-    ctx: ProjectContext, source: str, mapped_names: set[str]
-) -> list[str]:
+def _unmapped_consumers(ctx: ProjectContext, source: str, mapped_names: set[str]) -> list[str]:
     """Downstream entities reading migrated tables with no target link."""
     from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
     from forge_doctor.core.platform_graph import RelKind
@@ -310,8 +296,7 @@ def _migr_findings(plan: PlatformMigrationPlan) -> list[CheckResult]:
                     "MIGR001",
                     "Service without target equivalent",
                     Severity.ERROR,
-                    f"{m.source} ({m.abstraction}) has no {plan.target} "
-                    "ecosystem equivalent",
+                    f"{m.source} ({m.abstraction}) has no {plan.target} ecosystem equivalent",
                     "Introduce an equivalent service or drop the dependency.",
                     m.note,
                     EvidenceKind.CONFIG,
@@ -348,9 +333,7 @@ def _migr_findings(plan: PlatformMigrationPlan) -> list[CheckResult]:
     return out
 
 
-def plan_platform_migration(
-    ctx: ProjectContext, source: str, target: str
-) -> PlatformMigrationPlan:
+def plan_platform_migration(ctx: ProjectContext, source: str, target: str) -> PlatformMigrationPlan:
     """Build the deterministic cross-platform plan."""
     from forge_doctor.analyzers.abstractions import abstractions_model
 

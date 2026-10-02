@@ -104,9 +104,7 @@ class MetadataSurface(_MetadataCheck):
     def run(self, ctx: ProjectContext) -> list[CheckResult]:
         model = metadata_model(ctx)
         if not model.has_evidence:
-            return [
-                self.result(Severity.PASS, "no metadata-catalog evidence detected")
-            ]
+            return [self.result(Severity.PASS, "no metadata-catalog evidence detected")]
         return [
             self.result(
                 Severity.INFO,
@@ -139,9 +137,7 @@ class StaleCatalogEntry(_MetadataCheck):
             return []  # nothing detected at all — nothing to drift against
         out: list[CheckResult] = []
         for d in model.datasets:
-            if d.name.lower() in detected or (
-                d.qualified and d.qualified.lower() in detected
-            ):
+            if d.name.lower() in detected or (d.qualified and d.qualified.lower() in detected):
                 continue
             out.append(
                 self.result(
@@ -291,11 +287,7 @@ class LineageContradiction(_MetadataCheck):
             detected_ups = _detected_upstreams(g, eid)
             if not detected_ups:
                 continue  # nothing detected — can't contradict
-            missing = [
-                u
-                for u in d.upstreams
-                if u.lower() not in detected_ups
-            ]
+            missing = [u for u in d.upstreams if u.lower() not in detected_ups]
             if missing:
                 out.append(
                     self.result(
@@ -305,8 +297,7 @@ class LineageContradiction(_MetadataCheck):
                         f"{sorted(detected_ups)})",
                         file=d.file,
                         evidence=(
-                            f"declared {sorted(d.upstreams)} "
-                            f"vs detected {sorted(detected_ups)}"
+                            f"declared {sorted(d.upstreams)} vs detected {sorted(detected_ups)}"
                         ),
                         evidence_kind=EvidenceKind.OBSERVED_METADATA,
                     )

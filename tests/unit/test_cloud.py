@@ -91,9 +91,7 @@ def test_cloud002_single_cloud_silent(tmp_path: Path) -> None:
 
 
 def test_cloud002_mixed_parity_gap(tmp_path: Path) -> None:
-    (tmp_path / "main.tf").write_text(
-        _AZ + _GCP + _AWS_KIN, encoding="utf-8"
-    )
+    (tmp_path / "main.tf").write_text(_AZ + _GCP + _AWS_KIN, encoding="utf-8")
     out = _findings(tmp_path)
     assert "CLOUD002" in out
     # object_storage has parity (azure+gcp); stream is aws-only
@@ -102,13 +100,17 @@ def test_cloud002_mixed_parity_gap(tmp_path: Path) -> None:
 
 
 def test_cloud002_linked_suppressed(tmp_path: Path) -> None:
-    tf = _AZ + _GCP + """resource "azurerm_cosmosdb_account" "db" {
+    tf = (
+        _AZ
+        + _GCP
+        + """resource "azurerm_cosmosdb_account" "db" {
   name = "cosmos"
   geo_location {
     failover_priority = 0
   }
 }
 """
+    )
     (tmp_path / "main.tf").write_text(tf, encoding="utf-8")
     out = _findings(tmp_path)
     assert "CLOUD002" not in out
@@ -116,9 +118,7 @@ def test_cloud002_linked_suppressed(tmp_path: Path) -> None:
 
 def test_cloud001_unmapped(tmp_path: Path) -> None:
     """Neptune graph entity: platform domain with no abstraction -> blind spot."""
-    (tmp_path / "schema.cypher").write_text(
-        "CREATE (:Label {id: 'n1'})\n", encoding="utf-8"
-    )
+    (tmp_path / "schema.cypher").write_text("CREATE (:Label {id: 'n1'})\n", encoding="utf-8")
     model = abstractions_model(_ctx(tmp_path))
     # neptune/graph entities are platform domains but unmapped
     assert isinstance(model.unmapped, list)
@@ -128,24 +128,18 @@ def test_capability_cloud_agnostic() -> None:
     from forge_doctor.api import capabilities_evaluate
 
     assert (
-        capabilities_evaluate(
-            "warehouse", "TIME_TRAVEL", attributes={"service": "snowflake"}
-        )
+        capabilities_evaluate("warehouse", "TIME_TRAVEL", attributes={"service": "snowflake"})
         == "supported"
     )
     assert (
-        capabilities_evaluate(
-            "warehouse", "TIME_TRAVEL", attributes={"service": "redshift"}
-        )
+        capabilities_evaluate("warehouse", "TIME_TRAVEL", attributes={"service": "redshift"})
         == "unsupported"
     )
     # absent service -> the base warehouse pack's vendor-gated entry
     # resolves to conditional (needs the service/vendor attribute)
     assert capabilities_evaluate("warehouse", "TIME_TRAVEL") == "conditional"
     assert (
-        capabilities_evaluate(
-            "object_storage", "VERSIONING", attributes={"service": "gcs"}
-        )
+        capabilities_evaluate("object_storage", "VERSIONING", attributes={"service": "gcs"})
         == "supported"
     )
 

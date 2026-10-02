@@ -98,9 +98,7 @@ def migrate_plan(
         str | None,
         typer.Option("--to", help="Target platform (bigquery|snowflake|…)"),
     ] = None,
-    fmt: Annotated[
-        str, typer.Option("--format", "-f", help="text|json")
-    ] = "text",
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
 ) -> None:
     """Enumerate migration plans; --from/--to build a cross-platform plan."""
     ctx = ProjectContext(root=path.resolve())
@@ -164,15 +162,12 @@ def _platform_plan(
         return
 
     console.print()
-    console.print(
-        f"[bold]Platform migration[/bold]  {plan.source} -> {plan.target}"
-    )
+    console.print(f"[bold]Platform migration[/bold]  {plan.source} -> {plan.target}")
     if plan.entity_map:
         console.print("\n[bold]Entity map[/bold]")
         for m in plan.entity_map:
             console.print(
-                f"  {m.source}  ->  {m.target_service or 'UNMAPPED'}  "
-                f"[{m.confidence}]  {m.note}"
+                f"  {m.source}  ->  {m.target_service or 'UNMAPPED'}  [{m.confidence}]  {m.note}"
             )
     deltas = plan.capability_deltas
     if deltas:
@@ -196,12 +191,8 @@ def _platform_plan(
     if plan.findings:
         console.print("\n[bold]Plan findings[/bold]")
         for f in plan.findings:
-            console.print(
-                f"  {f.severity.value.upper():7} {f.check_id}  {f.message}"
-            )
+            console.print(f"  {f.severity.value.upper():7} {f.check_id}  {f.message}")
     if not plan.entity_map and not deltas:
         console.print(f"  no {plan.source} services detected to migrate")
     console.print()
-    raise typer.Exit(
-        1 if any(f.severity.value == "error" for f in plan.findings) else 0
-    )
+    raise typer.Exit(1 if any(f.severity.value == "error" for f in plan.findings) else 0)

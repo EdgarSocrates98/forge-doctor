@@ -83,9 +83,7 @@ class MetadataEstateModel:
 # Shared extraction helpers
 
 
-_URN_RE = re.compile(
-    r"urn:li:dataset:\(\s*urn:li:dataPlatform:([^,]+),\s*([^,]+),\s*(\w+)\s*\)"
-)
+_URN_RE = re.compile(r"urn:li:dataset:\(\s*urn:li:dataPlatform:([^,]+),\s*([^,]+),\s*(\w+)\s*\)")
 
 
 def _tail(name: str) -> str:
@@ -178,9 +176,7 @@ def _upstreams_from(aspects: dict[str, Any]) -> list[str]:
         if isinstance(r, str):
             raw = r
         elif isinstance(r, dict):
-            raw = str(
-                r.get("dataset") or r.get("urn") or r.get("entityUrn") or r.get("name") or ""
-            )
+            raw = str(r.get("dataset") or r.get("urn") or r.get("entityUrn") or r.get("name") or "")
         if not raw:
             continue
         m = _URN_RE.search(raw)
@@ -213,9 +209,7 @@ def _is_datahub_doc(doc: Any) -> bool:
     if isinstance(doc, dict):
         if "entityUrn" in doc or "urn" in doc or "aspects" in doc:
             return True
-        return any(
-            isinstance(doc.get(k), list) for k in ("entities", "datasets", "results")
-        )
+        return any(isinstance(doc.get(k), list) for k in ("entities", "datasets", "results"))
     return False
 
 
