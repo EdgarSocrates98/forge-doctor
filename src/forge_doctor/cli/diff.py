@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import (
     _ref_worktree,
@@ -38,6 +39,9 @@ def diff_cmd(
         bool,
         typer.Option("--semantic", help="Entity-level diff + blast radius (git refs only)."),
     ] = False,
+    fmt: Annotated[
+        str, typer.Option("--format", "-f", help="text|json (semantic diff only)")
+    ] = "text",
 ) -> None:
     """Diff findings: NEW in <new> vs <old>, or in a 'base...head' git range."""
     if new is None:
@@ -50,8 +54,11 @@ def diff_cmd(
         raise typer.Exit(INTERNAL_ERROR_EXIT)
 
     if semantic:
-        _semantic_diff(old, new, path)
+        _semantic_diff(old, new, path, fmt)
         return
+    if fmt != "text":
+        _stderr.print("[red]--format is only supported with --semantic.[/red]")
+        raise typer.Exit(INTERNAL_ERROR_EXIT)
 
     old_side = _resolve_diff_side(old, path)
     new_side = _resolve_diff_side(new, path)
@@ -95,7 +102,7 @@ def diff_cmd(
     raise typer.Exit(1 if added else 0)
 
 
-def _semantic_diff(base_ref: str, head_ref: str, repo: Path) -> None:
+def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") -> None:
     """Entity-level diff between two git refs: changes, blast radius, risk."""
     import subprocess
 
@@ -126,6 +133,55 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path) -> None:
     diff = diff_graphs(base_g, head_g, changed)
     added = len(set(head_items) - set(base_items))
     removed = len(set(base_items) - set(head_items))
+
+    from forge_doctor.core.change_intel import analyze_change
+
+    intel = analyze_change(base_g, head_g)
+
+    if fmt == "json":
+        import dataclasses
+        import json as _json
+
+        typer.echo(
+            _json.dumps(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "base": base_ref,
+                    "head": head_ref,
+                    "risk": diff.risk,
+                    "reasons": list(diff.reasons),
+                    "changed_files": list(diff.changed_files),
+                    "changes": [dataclasses.asdict(c) for c in diff.changes],
+                    "unmapped_files": list(diff.unmapped_files),
+                    "findings_delta": {"added": added, "removed": removed},
+                    "capabilities": [
+                        {
+                            "capability": t.capability,
+                            "platform": t.platform,
+                            "from": t.before,
+                            "to": t.after,
+                        }
+                        for t in intel.capability_transitions
+                    ],
+                    "migration_requirements": [
+                        {
+                            "entity": r.move.entity_id,
+                            "attr": r.move.attr,
+                            "from": r.move.from_version,
+                            "to": r.move.to_version,
+                            "status": r.status,
+                            "required_changes": list(r.required_changes),
+                            "blockers": list(r.blockers),
+                        }
+                        for r in intel.migration_requirements
+                    ],
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        raise typer.Exit(1 if added or diff.risk == RISK_HIGH else 0)
+
     style = {RISK_HIGH: "red", "medium": "yellow", "low": "green"}[diff.risk]
     console.print(
         Panel(
@@ -160,6 +216,27 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path) -> None:
             console.print("[bold]Blast radius[/bold] (depends on changed entities):")
             for eid in impacted:
                 console.print(f"  [dim]->[/dim] {eid}")
+    if intel.capability_transitions:
+        ctable = Table(title="Capability transitions", title_justify="left")
+        ctable.add_column("Capability", style="bold")
+        ctable.add_column("Platform")
+        ctable.add_column("Was")
+        ctable.add_column("Now")
+        for t in intel.capability_transitions:
+            ctable.add_row(t.capability, t.platform, t.before, t.after)
+        console.print(ctable)
+    if intel.migration_requirements:
+        console.print("[bold]Migration requirements[/bold]")
+        for req in intel.migration_requirements:
+            m = req.move
+            console.print(
+                f"  {m.entity_id}: {m.attr} {m.from_version} -> {m.to_version} "
+                f"[dim]({req.status})[/dim]"
+            )
+            for chg in req.required_changes[:5]:
+                console.print(f"    [dim]- {chg}[/dim]")
+            for blocker in req.blockers:
+                console.print(f"    [red]BLOCKER: {blocker}[/red]")
     if diff.unmapped_files:
         console.print(
             f"[dim]{len(diff.unmapped_files)} changed file(s) map to no platform entity[/dim]"

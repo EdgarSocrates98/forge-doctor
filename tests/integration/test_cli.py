@@ -382,6 +382,52 @@ def test_diff_git_refs(tmp_path: Path):
     assert bad.exit_code == 2
 
 
+def test_diff_semantic_change_intel(tmp_path: Path):
+    """glue_version 4.0 -> 5.0 surfaces capability transitions + migration
+    requirements in JSON; exit code still gates on findings/risk only."""
+    import subprocess
+
+    def git(*args: str) -> None:
+        proc = subprocess.run(["git", "-C", str(tmp_path), *args], capture_output=True, text=True)
+        assert proc.returncode == 0, proc.stderr
+
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (tmp_path / "main.tf").write_text(
+        'resource "aws_glue_job" "j" {\n  name = "j"\n  glue_version = "4.0"\n}\n',
+        encoding="utf-8",
+    )
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    (tmp_path / "main.tf").write_text(
+        'resource "aws_glue_job" "j" {\n  name = "j"\n  glue_version = "5.0"\n}\n',
+        encoding="utf-8",
+    )
+    git("add", "-A")
+    git("commit", "-qm", "bump")
+
+    result = runner.invoke(
+        app, ["diff", "HEAD~1...HEAD", "--path", str(tmp_path), "--semantic", "-f", "json"]
+    )
+    payload = json.loads(result.output)
+    assert result.exit_code in (0, 1)
+    caps = {c["capability"]: c for c in payload["capabilities"]}
+    assert caps["LAKEFORMATION_FGAC"]["from"] == "conditional"
+    assert caps["LAKEFORMATION_FGAC"]["to"] == "supported"
+    reqs = payload["migration_requirements"]
+    assert len(reqs) == 1
+    assert reqs[0]["attr"] == "glue_version"
+    assert reqs[0]["from"] == "4.0"
+    assert reqs[0]["to"] == "5.0"
+    assert reqs[0]["status"] == "known"
+    assert any("Python 3.10" in c for c in reqs[0]["required_changes"])
+
+    text = runner.invoke(app, ["diff", "HEAD~1...HEAD", "--path", str(tmp_path), "--semantic"])
+    assert "Capability transitions" in text.output
+    assert "Migration requirements" in text.output
+
+
 def test_diff_requires_two_sides(tmp_path: Path):
     result = runner.invoke(app, ["diff", "justone"])
     assert result.exit_code == 2

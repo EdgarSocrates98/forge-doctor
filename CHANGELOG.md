@@ -102,6 +102,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `history trend` shows per-category counts over the series + a debt
   trajectory. History commands never re-scan; snapshots are only
   written on `--record`.
+- **Change intelligence** — `diff --semantic` now reports capability
+  transitions (capability registry evaluated against each ref's
+  observed per-domain versions, e.g. `LAKEFORMATION_FGAC: conditional
+  -> supported` on a Glue 4.0 -> 5.0 bump) and migration requirements:
+  version moves in entity attrs (`*_version`/`runtime`/`dbr`) are
+  matched against the domain `compatibility` knowledge packs to list
+  required changes and HIGH-severity blockers per changed entity.
+  `diff --semantic -f json` emits `capabilities` +
+  `migration_requirements`; absent or uncovered versions report
+  `unknown`, never fabricated steps. Exit-code semantics unchanged.
 
 ### Fixed
 

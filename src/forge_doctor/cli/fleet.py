@@ -14,6 +14,7 @@ from rich.table import Table
 from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
 from forge_doctor.cli.common import _stderr
+from forge_doctor.core.change_intel import VERSION_ATTRS as _VERSION_ATTRS
 from forge_doctor.core.fleet import (
     FleetManifest,
     FleetManifestError,
@@ -30,18 +31,6 @@ fleet_app = typer.Typer(
 app.add_typer(fleet_app, name="fleet")
 
 ManifestArg = Annotated[Path, typer.Argument(help="Fleet manifest (yaml/json) or a directory.")]
-
-_VERSION_ATTRS = (
-    "version",
-    "glue_version",
-    "runtime_version",
-    "engine_version",
-    "python_version",
-    "node_version",
-    "dbr",
-    "databricks_runtime",
-    "runtime",
-)
 
 
 def _load(spec: Path) -> tuple[FleetManifest, WorkspaceModel]:

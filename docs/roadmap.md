@@ -132,8 +132,16 @@ Reliability & trust:
 - **P2 Enterprise governance** — shipped: pack `extends` layering,
   `require_approval` + `POLICY011`, `approved_by` on suppressions,
   `policy report`, named per-branch baselines, `scan --evidence-out`.
-- P3–P10 (specs 204–211): fleet intelligence, historical snapshots &
-  trends, capability-aware change intelligence, continuous incremental
+- **P3 Fleet intelligence** — shipped: `fleet inspect|query|report`
+  over a manifest of repos; shared `merge_repos` workspace merge.
+- **P4 Historical intelligence** — shipped: `scan --record` snapshots,
+  `history` / `history diff` / `history trend`.
+- **P5 Change intelligence** — shipped: `diff --semantic` adds
+  capability transitions (registry evaluated per ref's observed
+  versions) and migration requirements extracted from the
+  `compatibility` knowledge packs; `-f json` emits
+  `capabilities` + `migration_requirements`.
+- P6–P10 (specs 207–211): continuous incremental
   analysis, safe-fix (`--dry-run`/`--apply` boundaries), experiment
   engine, knowledge supply-chain lifecycle, Forge ecosystem contracts.
 
