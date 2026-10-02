@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/global-tables-transactions.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "mrec-default",
+      "summary": "MREC is the default global-table mode: asynchronous replication, last-writer-wins conflict resolution, strong reads only within a region.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "mrsc-strong",
+      "summary": "MRSC gives strongly consistent cross-region reads via synchronous replication; transaction operations are unsupported and the mode is immutable.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "mrec-txn-region-local",
+      "summary": "MREC transactions are atomic only in the invoking region and are not replicated as a unit.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/global-tables-transactions.html"
+    },
+    {
+      "id": "region-routing",
+      "summary": "Multi-region writes need an explicit region-routing story; implicit routing makes conflict domains invisible.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    }
+  ]
+}

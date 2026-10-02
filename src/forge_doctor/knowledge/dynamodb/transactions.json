@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/global-tables-transactions.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "txn-item-limit",
+      "summary": "TransactWriteItems/TransactGetItems are limited to 100 items per transaction and consume 2x write capacity.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html"
+    },
+    {
+      "id": "txn-mrec-region-local",
+      "summary": "On MREC global tables, transactions are atomic only in the invoking region - they are not replicated as a unit.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "txn-mrsc-unsupported",
+      "summary": "MRSC global tables do not support transaction operations at all; consistency mode is immutable after creation.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "txn-idempotent-tokens",
+      "summary": "ClientRequestToken makes transaction calls idempotent across retries - recommended for retry-prone writers.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html"
+    }
+  ]
+}

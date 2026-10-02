@@ -11,6 +11,7 @@ from forge_doctor.checks import (
     controlm,
     dependencies,
     docker,
+    dynamodb,
     git_checks,
     glue,
     graph,
@@ -47,6 +48,7 @@ BUILTIN_MODULES = (
     streaming,
     lakeformation,
     graph,
+    dynamodb,
 )
 
 

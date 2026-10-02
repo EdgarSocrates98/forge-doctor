@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/services-ddb-batchfailurereporting.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "stream-24h-window",
+      "summary": "Stream records persist at most 24 hours - a consumer outage beyond that window loses events without a recovery path.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html"
+    },
+    {
+      "id": "partial-batch-response",
+      "summary": "Lambda consumers should return batchItemFailures (FunctionResponseTypes=ReportBatchItemFailures) so failed records replay individually instead of the whole batch.",
+      "source": "https://docs.aws.amazon.com/lambda/latest/dg/services-ddb-batchfailurereporting.html"
+    },
+    {
+      "id": "multi-consumer-duplication",
+      "summary": "Multiple consumers on one stream each receive every record - side effects must be safe per consumer.",
+      "source": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html"
+    },
+    {
+      "id": "global-table-replica

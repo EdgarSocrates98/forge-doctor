@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "item-size-400kb",
+      "summary": "Items are limited to 400 KB; projections larger than that signal an aggregation problem, not a paging problem.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html"
+    },
+    {
+      "id": "partition-throughput",
+      "summary": "A single partition supports ~1000 WCU / 3000 RCU; static analysis can flag concentration risk but never measured throughput.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html"
+    },
+    {
+      "id": "scan-1mb-page",
+      "summary": "Scan/Query pages return at most 1 MB before filtering - FilterExpression does not reduce read cost.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html"
+    },
+    {
+      "id": "gsi-limit",
+      "summary": "Default quota is 20 GSIs per table; provisioning more indexes than access paths used is waste.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ServiceQuotas.html"
+    }
+  ]
+}

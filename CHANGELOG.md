@@ -236,6 +236,29 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   schema 2 + sources). CLI: `forge-doctor graph inspect|schema|
   traversals`; the prior project-intelligence dump stays reachable as
   `forge-doctor graph <path>` (unchanged) and `graph project`.
+- **DynamoDB Intelligence** (`analyzers/dynamodb_model.py`) — tables
+  from Terraform `aws_dynamodb_table` (nested gsi/lsi/replica/ttl/pitr/
+  encryption blocks), CloudFormation `AWS::DynamoDB::*` (incl.
+  `MultiRegionConsistency` MRSC detection), and boto3 bindings in code;
+  access operations extracted at the AST level so keyword presence is
+  exact (`KeyConditionExpression`, `FilterExpression`,
+  `ProjectionExpression`, `ConsistentRead`, `IndexName`, `TableName`),
+  with Key-dict literals and `PREFIX#{id}` f-string patterns decoded.
+  Streams carry view type + consumers (event-source mappings) +
+  idempotency signals; global tables carry mode (mrec default / mrsc)
+  + regions; single-table entity prefixes are reconstructed from
+  `PREFIX#` key conventions. New `dynamodb` category: DDB001 anchor,
+  DDB002-010 access-pattern family (scan on latency path, unfiltered
+  scan, poor-cardinality/hot/constant PKs, time-only SK, GSI duplicates
+  /hot keys/count-vs-usage), DDBSTR001-005 streams family (no consumer,
+  no idempotency, duplicate consumers, recovery window, replicated
+  global events), DDBGT001/002/005 multi-region signals and DDBGT003 —
+  transactions on MRSC resolve UNSUPPORTED via the capability registry
+  (ERROR). All static-risk framing; single-table structure reported,
+  never recommended. `knowledge/dynamodb/` packs (indexes,
+  transactions, limits, modeling, streams, global-tables; schema 2 +
+  sources). CLI: `forge-doctor dynamodb inspect|access-patterns|
+  indexes|streams|global-tables|capacity`.
 
 ### Added (0.7.0)
 

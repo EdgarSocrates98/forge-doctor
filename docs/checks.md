@@ -655,6 +655,70 @@ summarize the model without a scan. The pre-existing project
 intelligence dump remains available as `forge-doctor graph <path>`
 (unchanged) and `forge-doctor graph project`.
 
+## DynamoDB (DynamoDBProjectModel — IaC tables + boto3 call sites)
+
+Tables come from `aws_dynamodb_table` / `AWS::DynamoDB::*` resources
+(nested gsi/lsi/replica/ttl/pitr blocks included) and from boto3
+bindings in code (`boto3.resource("dynamodb")`, `.Table("name")`);
+access operations resolve TableName literals, bound table vars, key
+conditions, projections, filters, and `ConsistentRead`. Everything is
+static-risk framing — no capacity math, no throttling claims without
+runtime metrics. Single-table vs multi-table is reported, never
+recommended.
+
+### DDB001 — DynamoDB workload detected · info
+Anchor: tables, global tables, streams, op mix, index count.
+
+### DDB002 — Scan on a latency-sensitive path · warning
+`scan` inside a handler/route-shaped function.
+
+### DDB003 — Scan without projection/filter strategy · info
+Unfiltered, unprojected scan reads every item in full.
+
+### DDB004 — Partition key likely poor cardinality · info
+PK attribute named like a low-cardinality field (status/type/…).
+
+### DDB005 — Hot-partition candidate · warning
+The same static PK literal drives multiple write sites.
+
+### DDB006 — Constant partition-key literal · info
+A write whose partition key is a pure constant.
+
+### DDB007 — Time-only sort key write pattern · info
+`sk` bound by a bare timestamp-shaped variable.
+
+### DDB008 — GSI duplicates base-table access · info
+GSI partition key identical to the table's.
+
+### DDB009 — GSI partition key likely hot · info
+GSI on a low-cardinality attribute — index hotspot risk.
+
+### DDB010 — GSI count vs observed access patterns · info
+Declared-but-unqueried GSIs and code-referenced-undeclared indexes.
+
+### DDBSTR001 — Stream enabled, no consumer detected · info
+### DDBSTR002 — Stream consumer lacks idempotency signal · info
+No `ReportBatchItemFailures`/`batchItemFailures` observed.
+### DDBSTR003 — Duplicate-processing risk · info
+One stream feeding ≥2 consumers — each replays every record.
+### DDBSTR004 — Stream retention/recovery mismatch · info
+No PITR/failure-destination; records expire after ~24h.
+### DDBSTR005 — Replicated stream events on global table · warning
+Per-region stream copies repeat downstream side effects.
+
+### DDBGT001 — Multi-region write-conflict risk · info
+Writes against a global table (last-writer-wins replication).
+### DDBGT002 — MREC transaction semantics · info
+Transactions are atomic only in the invoking region (registry-sourced).
+### DDBGT003 — Transactions on MRSC global table · error
+Resolved through the capability registry: MRSC transaction support is
+UNSUPPORTED.
+### DDBGT005 — Region routing strategy unclear · info
+Global table with no visible region pinning in code or providers.
+
+`forge-doctor dynamodb inspect|access-patterns|indexes|streams|
+global-tables|capacity` summarize the model without a scan.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

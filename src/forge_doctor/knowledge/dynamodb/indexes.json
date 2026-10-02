@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "gsi-distinct-key",
+      "summary": "A GSI whose partition key duplicates the table's adds no new access pattern - index it only when it changes sort key or projection intentionally.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html"
+    },
+    {
+      "id": "gsi-cardinality",
+      "summary": "GSI partition keys on low-cardinality attributes (status/type/flag) concentrate index traffic on few partitions.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html"
+    },
+    {
+      "id": "gsi-eventual-only",
+      "summary": "GSI reads are always eventually consistent; ConsistentRead is rejected on index queries.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html"
+    },
+    {
+      "id": "lsi-create-time-only",
+      "summary": "LSIs can only be created at table creation time and share the table's partition key; 10 GB item-collection limit applies.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html"
+    },
+    {
+      "id": "index-count-vs-usage",
+      "summary": "Provisioned indexes with no observed access path are dead capacity; accesses naming undeclared indexes fail at runtime.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html"
+    }
+  ]
+}

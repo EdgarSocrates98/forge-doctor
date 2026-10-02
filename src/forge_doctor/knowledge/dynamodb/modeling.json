@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-modeling.html"
+  ],
+  "domain": "dynamodb",
+  "practices": [
+    {
+      "id": "access-pattern-first",
+      "summary": "DynamoDB modeling starts from access patterns, not entities - key design follows the queries the app runs.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql.html"
+    },
+    {
+      "id": "pk-cardinality",
+      "summary": "Partition keys should have high cardinality relative to write volume; constant keys concentrate load on one partition.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html"
+    },
+    {
+      "id": "sk-prefix-convention",
+      "summary": "Single-table designs use PREFIX#{id} key conventions (USER#123); bare time-only sort keys lose entity addressability.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/data-modeling.html"
+    },
+    {
+      "id": "single-table-neutral",
+      "summary": "Single-table vs multi-table is a design choice - report the detected structure, never prescribe one as 'better'.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql.html"
+    }
+  ]
+}
