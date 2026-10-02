@@ -54,6 +54,16 @@ requires-poetry = ">=2.2"
 [tool.forge-doctor]
 exclude = [".pytest_tmp/**", "tests/sample_projects/**"]
 
+# labs/** fixtures are intentionally misconfigured mini-projects used as
+# detection ground truth; suppress their expected error findings so the
+# dogfood CI job only fails on real regressions.
+[[tool.forge-doctor.suppressions]]
+rule = "RS004"
+path = "labs/**"
+reason = "lab fixture intentionally sets publicly_accessible/unencrypted cluster"
+owner = "EdgarSocrates98"
+approved_by = "EdgarSocrates98"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --basetemp=.pytest_tmp"
