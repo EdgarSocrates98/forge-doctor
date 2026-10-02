@@ -1177,6 +1177,35 @@ and `principal:kinesis:*` (EFO consumer → stream `CONSUMES` edges).
 Knowledge packs: `streaming/delivery`, `kafka/config`,
 `kinesis/config`, `flink/config`, `capabilities/{kafka,kinesis,flink}`.
 
+## What-if + migration planning
+
+`forge-doctor what-if --change target=value .` simulates a property
+change without executing anything. Known targets:
+`glue-version`, `iceberg-format-version`, `databricks-runtime`,
+`lambda-runtime`, `emr-release`. The evaluation reports:
+
+- **affected entities** — platform-graph entities the change touches
+- **capability transitions** — per-capability status at `from` → `to`
+  (lost capabilities are blockers, gained are enablers)
+- **compatibility notes** — domain-pack facts (`glue/compatibility`
+  change lists, `iceberg/compatibility` runtime bundling,
+  `databricks/runtime` DBR status, `lambda/runtimes` eol set,
+  `iceberg/versions` format versions)
+- **contract conflicts** — pipeline `compute.version` pins the change
+  would violate (pre-drifted ARCH002)
+- **unknowns** — dimensions the packs don't cover
+
+`forge-doctor migrate plan .` enumerates applicable named paths:
+
+- `glue-4-to-5`, `iceberg-v1-to-v2`, `databricks-runtime-upgrade`,
+  `parquet-to-delta`, `parquet-to-iceberg`, `streaming-modernize`,
+  `lambda-runtime-upgrade`
+
+Each `MigrationPlan` carries source/target environments, affected
+entities, blockers, warnings, required changes, validation steps, and
+rollback considerations — generated from knowledge packs only, never
+executed. Facts the packs lack surface as UNKNOWN entries.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

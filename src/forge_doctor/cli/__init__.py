@@ -31,6 +31,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     streaming,
     streaming_bus,
     terraform,
+    whatif,
     workspace,
 )
 from forge_doctor.cli.app import app

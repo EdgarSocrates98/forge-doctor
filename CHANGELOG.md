@@ -436,6 +436,22 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   `flink/config`, `capabilities/{kafka,kinesis,flink}`. CLI:
   `kafka|kinesis|flink inspect|findings`, `streaming diagnose`,
   `streaming semantics`.
+- **What-if + migration planning** — `core/whatif.py`
+  (`WhatIfChange`/`evaluate_change`): `--change target=value`
+  (`glue-version`, `iceberg-format-version`, `databricks-runtime`,
+  `lambda-runtime`, `emr-release`) evaluates affected graph entities,
+  capability status transitions (lost caps = blockers, gained =
+  enablers), domain-pack compatibility notes, contract version-pin
+  conflicts, and honest `unknown` entries where packs lack facts.
+  `core/migration.py` (`MigrationPlan`, `plan_migrations`): named
+  advisory paths — `glue-4-to-5`, `iceberg-v1-to-v2`,
+  `databricks-runtime-upgrade`, `parquet-to-delta`,
+  `parquet-to-iceberg`, `streaming-modernize`,
+  `lambda-runtime-upgrade` — each carrying affected entities,
+  blockers, warnings, required changes, validation steps, and
+  rollback considerations. Plans are generated, never executed;
+  insufficient pack facts surface as UNKNOWN. CLI: `what-if
+  --change ... [--assume fact]`, `migrate plan`.
 
 ### Added (0.7.0)
 
