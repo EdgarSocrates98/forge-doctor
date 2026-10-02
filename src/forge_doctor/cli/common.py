@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
@@ -195,6 +195,15 @@ StatsOpt = Annotated[
         rich_help_panel=_RUN,
     ),
 ]
+IncrementalOpt = Annotated[
+    bool,
+    typer.Option(
+        "--incremental",
+        help="Rerun only checks whose evidence domains changed; others "
+        "reuse the previous scan's results. --watch applies it per event.",
+        rich_help_panel=_RUN,
+    ),
+]
 EvidenceOutOpt = Annotated[
     Path | None,
     typer.Option(
@@ -246,6 +255,7 @@ class _ScanCli:
     evidence_out: Path | None = None
     record: bool = False
     keep: int | None = None
+    incremental: bool = False
 
 
 def _build_registry(
@@ -258,6 +268,9 @@ def _build_registry(
 
 def _execute_scan(
     opts: _ScanCli,
+    *,
+    changed: frozenset[str] | None = None,
+    prior: Mapping[str, list[CheckResult]] | None = None,
 ) -> tuple[ScanReport, CheckRunner, int, list[str], ProjectContext]:
     """Build context, run checks, apply profile/baseline/filters."""
     from forge_doctor.core.baseline import BaselineError
@@ -275,6 +288,9 @@ def _execute_scan(
         baseline=opts.baseline,
         save_baseline=opts.save_baseline,
         new_only=opts.new_only,
+        incremental=opts.incremental,
+        changed_files=changed,
+        prior_results=prior,
     )
     try:
         outcome = ScanService().run(request)
@@ -470,6 +486,12 @@ def _print_stats(runner: CheckRunner, ctx: ProjectContext) -> None:
     total = cache.hits + cache.misses
     hit_rate = f"{100 * cache.hits / total:.0f}%" if total else "n/a"
     _stderr.print(f"[dim]cache: {cache.hits} hits / {cache.misses} misses ({hit_rate})[/dim]")
+    if runner.last_plan is not None:
+        plan = runner.last_plan
+        _stderr.print(
+            f"[dim]incremental: {len(plan.changed_files)} file(s) changed, "
+            f"{len(plan.rerun)} checks rerun, {len(runner.reused)} reused[/dim]"
+        )
     for check_id, seconds in sorted(runner.timings.items(), key=lambda kv: -kv[1])[:15]:
         _stderr.print(f"[dim]{check_id:<10} {seconds * 1000:>7.1f} ms[/dim]")
 
@@ -487,7 +509,11 @@ def _snapshot(path: Path) -> dict[str, float]:
 
 
 def _watch_loop(opts: _ScanCli) -> None:
-    """Re-scan on file changes until Ctrl+C; exit with last scan's code."""
+    """Re-scan on file changes until Ctrl+C; exit with last scan's code.
+
+    With ``--incremental`` each event carries the changed-path set so the
+    scan reruns only the checks whose evidence domains were touched.
+    """
     console = Console(no_color=opts.no_color)
     code = 0
 
@@ -496,28 +522,65 @@ def _watch_loop(opts: _ScanCli) -> None:
     except ImportError:
         wf_watch = None
 
+    prior: dict[str, list[CheckResult]] | None = None
+    changed: frozenset[str] | None = None
     try:
         while True:
-            report, runner, selected, _, ctx = _execute_scan(opts)
+            report, runner, selected, _, ctx = _execute_scan(opts, changed=changed, prior=prior)
             code = exit_code(report, fail_on=opts.fail_on)
             console.clear()
             ConsoleRenderer(console=console, quiet=opts.quiet).render(report, check_count=selected)
             cache = scan_cache(ctx)
+            detail = f" - cache {cache.hits} hits/{cache.misses} misses"
+            if opts.incremental and runner.last_plan is not None:
+                plan = runner.last_plan
+                detail = (
+                    f" - {len(plan.changed_files)} file(s) changed"
+                    f", {len(plan.invalidated)} domain(s) invalidated"
+                    f", {len(plan.rerun)} checks rerun"
+                    f", {len(runner.reused)} reused"
+                )
+                prior = _by_check(runner.last_report.results if runner.last_report else [])
             console.print(
                 f"[dim]watching for changes ({'watchfiles' if wf_watch else 'polling'})"
-                f" - cache {cache.hits} hits/{cache.misses} misses - Ctrl+C to exit[/dim]"
+                f"{detail} - Ctrl+C to exit[/dim]"
             )
             if opts.verbose:
                 for failure in runner.failures:
                     console.print(f"[red]{failure.check.id}[/red]\n{failure.traceback}")
             if wf_watch is not None:
-                next(wf_watch(opts.path, yield_on_timeout=True))
+                events = next(wf_watch(opts.path, yield_on_timeout=True))
+                changed = frozenset(
+                    Path(p).resolve().relative_to(ctx.root).as_posix()
+                    for _, p in events
+                    if _inside(ctx.root, Path(p))
+                )
             else:
                 current = _snapshot(opts.path)
-                while _snapshot(opts.path) == current:
+                latest = current
+                while latest == current:
                     time.sleep(WATCH_INTERVAL)
+                    latest = _snapshot(opts.path)
+                changed = frozenset(
+                    p for p in set(current) | set(latest) if current.get(p) != latest.get(p)
+                )
     except KeyboardInterrupt:
         raise typer.Exit(code) from None
+
+
+def _inside(root: Path, candidate: Path) -> bool:
+    try:
+        candidate.resolve().relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _by_check(results: list[CheckResult]) -> dict[str, list[CheckResult]]:
+    grouped: dict[str, list[CheckResult]] = {}
+    for result in results:
+        grouped.setdefault(result.check_id, []).append(result)
+    return grouped
 
 
 def _render_findings(findings: list[CheckResult], fmt: str) -> None:

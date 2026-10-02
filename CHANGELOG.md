@@ -119,6 +119,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `diff --semantic -f json` emits `capabilities` +
   `migration_requirements`; absent or uncovered versions report
   `unknown`, never fabricated steps. Exit-code semantics unchanged.
+- **Incremental analysis** — `forge-doctor scan --incremental` reuses
+  per-check results from the previous scan for checks whose declared
+  evidence domains are untouched by the file changes detected since
+  then. `core/incremental.py` defines the evidence-domain vocabulary
+  (`terraform`, `spark`, `airflow`, `env`, `host`, …), a per-module
+  declared-domain map (`MODULE_DOMAINS`, overridable per check via
+  `Check.evidence_domains`), file→domain classification, mtime+size
+  change detection, and a versioned `ResultStore` in the user cache
+  dir. Cross-domain/unbounded checks (platform rules, contracts,
+  migrations, what-if) always rerun, preserving the full-scan output
+  contract — verified by tests asserting identical result sets between
+  incremental and full scans. `--stats` reports
+  `incremental: N file(s) changed, X checks rerun, Y reused`; watch
+  mode inherits incremental when enabled.
 
 ### Fixed
 

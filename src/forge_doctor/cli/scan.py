@@ -19,6 +19,7 @@ from forge_doctor.cli.common import (
     FilesOpt,
     FormatOpt,
     IgnoreOpt,
+    IncrementalOpt,
     KeepOpt,
     NewOnlyOpt,
     NoColorOpt,
@@ -76,6 +77,7 @@ def scan(
     evidence_out: EvidenceOutOpt = None,
     record: RecordOpt = False,
     keep: KeepOpt = None,
+    incremental: IncrementalOpt = False,
 ) -> None:
     """Scan a project for data-engineering problems."""
     _run_scan(
@@ -103,6 +105,7 @@ def scan(
             evidence_out=evidence_out,
             record=record,
             keep=keep,
+            incremental=incremental,
         )
     )
 

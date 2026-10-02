@@ -20,7 +20,8 @@ from forge_doctor.core.baseline import apply_baseline, save_baseline
 from forge_doctor.core.cache import scan_cache
 from forge_doctor.core.config import ForgeDoctorConfig
 from forge_doctor.core.context import ProjectContext, ScanOptions
-from forge_doctor.core.models import ScanReport
+from forge_doctor.core.incremental import ResultStore
+from forge_doctor.core.models import CheckResult, ScanReport
 from forge_doctor.core.policy import apply_policy
 from forge_doctor.core.profiles import PROFILES, apply_profile
 from forge_doctor.core.registry import CheckRegistry
@@ -58,6 +59,13 @@ class ScanRequest:
     new_only: bool = False
     # Unsaved-buffer overlay for LSP: project-relative posix -> content.
     overlay: Mapping[str, str] | None = None
+    # Continuous incremental analysis (spec 207): rerun only checks whose
+    # evidence domains the change invalidated; others reuse prior results.
+    # ``changed_files``/``prior_results`` let watch mode pass in-memory
+    # state; None falls back to the persisted ResultStore + stat diff.
+    incremental: bool = False
+    changed_files: frozenset[str] | None = None
+    prior_results: Mapping[str, list[CheckResult]] | None = None
 
 
 @dataclass
@@ -193,7 +201,20 @@ class ScanService:
             self._warn(f"[yellow]Ignoring unknown categories:[/yellow] {', '.join(unknown)}")
 
         runner = CheckRunner(registry)
-        report = runner.run(ctx)
+        store: ResultStore | None = None
+        raw_report: ScanReport | None = None
+        if request.incremental:
+            store = ResultStore.for_root(ctx.root)
+            changed = request.changed_files
+            if changed is None:
+                changed = store.detect_changes(ctx)
+            prior = request.prior_results
+            if prior is None:
+                prior = store.results_by_check
+            raw_report = runner.run_incremental(ctx, changed=changed, prior=prior)
+        else:
+            raw_report = runner.run(ctx)
+        report = raw_report
         # policy.extends picks the profile unless the caller overrode it.
         profile = request.profile or "default"
         if profile == "default" and ctx.config.policy.extends:
@@ -220,6 +241,11 @@ class ScanService:
         cache = scan_cache(ctx)
         cache.prune({f.as_posix() for f in ctx.files})
         cache.save()
+        # Persist the raw result store so a later --incremental run has a
+        # warm baseline. --no-cache keeps CI scans write-free unless the
+        # caller explicitly opted into incremental.
+        if store is not None or cache.enabled:
+            (store or ResultStore.for_root(ctx.root)).save(list(raw_report.results), ctx)
         return ScanOutcome(
             report=report,
             ctx=ctx,
