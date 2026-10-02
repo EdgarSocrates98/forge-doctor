@@ -1,0 +1,6 @@
+{
+  "name": "adversarial",
+  "description": "Generic checks.yml / CI workflow / expectation-shaped strings must not attribute quality suites",
+  "expected_findings": [],
+  "forbidden_findings": ["DQ001", "DQ002", "DQ003", "DQ004"]
+}

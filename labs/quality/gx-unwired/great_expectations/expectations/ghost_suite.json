@@ -1,0 +1,9 @@
+{
+  "expectation_suite_name": "ghost_metrics.warning",
+  "expectations": [
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": {"column": "id"}
+    }
+  ]
+}

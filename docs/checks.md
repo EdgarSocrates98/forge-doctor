@@ -1858,3 +1858,39 @@ Catalog upstreams differ from lineage detected in the platform graph
 (SQL query mediation resolved through read/write hops).
 **Fix:** reconcile the catalog lineage with actual pipelines (both
 directions are findings, not auto-fixes).
+
+## Data quality (DataQualityModel — Deequ, Great Expectations, SodaCL, dbt)
+
+Expectation suites are *evidence of intent*: the model captures what is
+declared (suites, columns, gates) and compares it against the detected
+platform graph. Great Expectations needs `expectations/*.json` suites
+with `expectation_suite_name`/`expectation_type` shapes; checkpoints
+and `uncommitted/validations/` exports wire and observe them. SodaCL
+needs a top-level `checks for <dataset>:` key — a CI `checks:` key
+alone never attributes. Deequ suites are code-bound (`VerificationSuite`
+/`Check(` analyzer calls) and always count as wired. dbt tests reuse
+the spec-216 model and wire via `dbt test|build`/`Dbt*Operator`
+invocations. Suites are parsed, never executed.
+
+### DQ000 — Data quality surface · pass/info
+Anchor census: suites per engine, gates, observed runs, covered tables.
+
+### DQ001 — Prod table without expectations · warning (medium confidence)
+A prod-signaled detected table has zero expectations while the project
+declares at least one suite — a coverage gap, not an absent practice.
+**Fix:** add a suite covering the prod table.
+
+### DQ002 — Suite never wired to a gate · warning
+Defined but no checkpoint reference, CI invocation, operator call, or
+observed run — intent without enforcement (capped at 10 + summary).
+**Fix:** wire the suite into a checkpoint/pipeline or remove it.
+
+### DQ003 — Suite targets a missing table · warning
+The suite's target has no detected entity — dropped table or stale
+suite (declared-side finding).
+**Fix:** retarget or remove the suite.
+
+### DQ004 — Expectation on dropped column · warning
+A column expectation names a field the detected schema (contract
+`field.*` attrs) no longer carries; unknown schemas stay silent.
+**Fix:** update the suite or restore the column.

@@ -1,0 +1,6 @@
+name: quality
+on: [push]
+jobs:
+  scan:
+    steps:
+      - run: soda scan -d warehouse soda/checks.yml

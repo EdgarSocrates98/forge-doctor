@@ -1,0 +1,14 @@
+{
+  "expectation_suite_name": "orders.warning",
+  "meta": {"data_asset_name": "orders"},
+  "expectations": [
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": {"column": "order_id"}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {"column": "dropped_col", "min_value": 0}
+    }
+  ]
+}

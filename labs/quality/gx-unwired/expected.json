@@ -1,0 +1,6 @@
+{
+  "name": "gx-unwired",
+  "description": "GX suites with no checkpoints/invocations: unwired suites (DQ002), stale suite on ghost_metrics (DQ003), prod_payments uncovered (DQ001)",
+  "expected_findings": ["DQ001", "DQ002", "DQ003"],
+  "forbidden_findings": ["DQ004"]
+}

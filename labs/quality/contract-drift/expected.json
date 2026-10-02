@@ -1,0 +1,6 @@
+{
+  "name": "contract-drift",
+  "description": "GX suite wired via checkpoint, expects dropped_col absent from contract schema (DQ004)",
+  "expected_findings": ["DQ004"],
+  "forbidden_findings": ["DQ002", "DQ003"]
+}

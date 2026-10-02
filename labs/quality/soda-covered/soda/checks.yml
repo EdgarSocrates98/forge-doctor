@@ -1,0 +1,6 @@
+checks for orders:
+  - row_count > 0
+  - missing_count(email) = 0
+  - duplicate_count(order_id) = 0
+checks for prod.payments:
+  - row_count > 0

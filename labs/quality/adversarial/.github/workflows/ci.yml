@@ -1,0 +1,6 @@
+name: ci
+on: [push]
+jobs:
+  checks:
+    steps:
+      - run: pytest tests/

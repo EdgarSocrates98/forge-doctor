@@ -30,6 +30,7 @@ from forge_doctor.checks import (
     platforms,
     policy_pack,
     python_env,
+    quality,
     redshift,
     repository,
     search,
@@ -83,6 +84,7 @@ BUILTIN_MODULES = (
     analytical,
     search,
     metadata,
+    quality,
 )
 
 

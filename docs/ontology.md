@@ -147,6 +147,7 @@ produced it — free text at construction, so this list is what
 | neptune_loader | Neptune bulk-loader task entities (loader functions). |
 | parquet | Apache Parquet physical-layout model. |
 | pinot | Apache Pinot real-time OLAP model. |
+| quality | Data-quality expectation suites and gates (Deequ/GX/SodaCL/dbt). |
 | search | Search platform model (indices, lifecycle policies, domains). |
 | sns | Amazon SNS model. |
 | spark_ss | Spark Structured Streaming model. |

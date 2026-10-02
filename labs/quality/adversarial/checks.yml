@@ -1,0 +1,5 @@
+checks:
+  strict: true
+  eslint: enabled
+build:
+  system: maven

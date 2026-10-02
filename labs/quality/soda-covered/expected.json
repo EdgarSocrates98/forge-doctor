@@ -1,0 +1,6 @@
+{
+  "name": "soda-covered",
+  "description": "SodaCL covers orders + prod.payments (wired via CI soda scan); prod.refunds uncovered (DQ001)",
+  "expected_findings": ["DQ001"],
+  "forbidden_findings": ["DQ002", "DQ003", "DQ004"]
+}

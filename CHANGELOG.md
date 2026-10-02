@@ -408,6 +408,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   New command `forge-doctor catalog inspect`, labs
   `labs/catalog/{stale-entry,adversarial}` — generic JSON without vendor
   evidence stays silent.
+- **Data quality evidence** (spec 222, roadmap-4 wave 5) —
+  `analyzers/quality_model.py` builds a `DataQualityModel` over
+  engine-gated quality evidence: Great Expectations
+  `expectations/*.json` suites (columns via `kwargs.column`, target via
+  `data_asset_name`/suite-name convention), `checkpoints/*` gates and
+  `uncommitted/validations/` observed runs; SodaCL `checks for
+  <dataset>:` blocks; Deequ `VerificationSuite`/`Check(` analyzer calls
+  in code (always wired — the suite is the pipeline); dbt schema +
+  singular tests via the spec-216 model, wired by `dbt test|build`/
+  `Dbt*Operator` invocations. `DQ` checks: `DQ001` prod-signaled table
+  with zero expectations while a practice exists (medium confidence),
+  `DQ002` suite never wired to a gate (capped + summary), `DQ003`
+  suite targeting a table absent from the detected graph, `DQ004`
+  expectation on a column the detected contract schema no longer
+  carries (silent when the schema is unknown). New command
+  `forge-doctor quality inspect`, labs
+  `labs/quality/{gx-unwired,contract-drift,soda-covered,adversarial}` —
+  a bare CI `checks:` key never attributes SodaCL.
 
 ### Fixed
 
