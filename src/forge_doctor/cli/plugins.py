@@ -3,15 +3,24 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
 from forge_doctor.cli.app import app
-from forge_doctor.cli.common import _build_registry
+from forge_doctor.cli.common import _build_registry, _stderr
 from forge_doctor.core.config import ForgeDoctorConfig, PluginRules
+from forge_doctor.output.summary import INTERNAL_ERROR_EXIT
 from forge_doctor.plugins.discovery import load_plugins
+from forge_doctor.plugins.manager import (
+    install_plan,
+    install_plugin,
+    lock_plugins,
+    scaffold_plugin,
+    verify_plugins,
+)
 
 plugins_app = typer.Typer(
     name="plugins", help="Inspect and validate external plugins.", no_args_is_help=False
@@ -38,7 +47,9 @@ def _plugins_table(rules: PluginRules) -> Table:
     table.add_column("Version", justify="right")
     table.add_column("API", justify="right")
     table.add_column("Status")
-    _checks, infos, errors = load_plugins(trusted=rules.trusted, allow=rules.allow)
+    _checks, infos, errors = load_plugins(
+        trusted=rules.trusted, allow=rules.allow, strict=rules.mode == "strict"
+    )
     if not infos:
         table.add_row("[dim]None detected[/dim]", "", "", "", "")
     for info in infos:
@@ -99,7 +110,9 @@ def plugins_list() -> None:
 def plugins_validate() -> None:
     """Fail when any installed plugin is incompatible or unloadable."""
     rules = _cwd_plugin_rules()
-    checks, infos, errors = load_plugins(trusted=rules.trusted, allow=rules.allow)
+    checks, infos, errors = load_plugins(
+        trusted=rules.trusted, allow=rules.allow, strict=rules.mode == "strict"
+    )
     console = Console()
     console.print(_plugins_table(rules))
     problems = [i for i in infos if i.status and "untrusted" not in i.status] + errors
@@ -111,7 +124,9 @@ def plugins_validate() -> None:
 def plugins_doctor() -> None:
     """Per-plugin health: entry point resolves, api_version supported."""
     rules = _cwd_plugin_rules()
-    checks, infos, errors = load_plugins(trusted=rules.trusted, allow=rules.allow)
+    checks, infos, errors = load_plugins(
+        trusted=rules.trusted, allow=rules.allow, strict=rules.mode == "strict"
+    )
     console = Console()
     for info in infos:
         state = "[green]ok[/green]" if info.status is None else f"[red]{info.status}[/red]"
@@ -122,3 +137,85 @@ def plugins_doctor() -> None:
         console.print("  [dim]no plugins installed[/dim]")
     console.print(f"\n{len(checks)} check(s) available from plugins.")
     raise typer.Exit(1 if errors or any(i.status for i in infos) else 0)
+
+
+@plugins_app.command(name="init")
+def plugins_init(
+    name: Annotated[str, typer.Argument(help="Distribution name, e.g. forge-doctor-snowflake.")],
+    dest: Annotated[Path, typer.Option("--dest", help="Parent directory.")] = Path("."),
+) -> None:
+    """Scaffold a plugin package (pyproject + check + test) under dest/name."""
+    console = Console()
+    try:
+        written = scaffold_plugin(name, dest)
+    except (ValueError, FileExistsError) as exc:
+        _stderr.print(f"[red]{exc}[/red]")
+        raise typer.Exit(INTERNAL_ERROR_EXIT) from exc
+    console.print(f"[green]{name}[/green] scaffolded:")
+    for path in written:
+        console.print(f"  {path}")
+    console.print(
+        "\n[dim]Install editable with pipx inject forge-doctor ./<dir> "
+        "or pip install -e <dir>[/dim]"
+    )
+
+
+@plugins_app.command(name="lock")
+def plugins_lock(
+    path: Annotated[Path, typer.Option("--path", help="Project root.")] = Path("."),
+) -> None:
+    """Pin every installed plugin's content digest to .forge-doctor/plugins.lock."""
+    pins = lock_plugins(path.resolve())
+    console = Console()
+    if not pins:
+        console.print("[dim]No plugins installed - empty lock written.[/dim]")
+        return
+    for pin in pins:
+        console.print(f"  {pin.name} {pin.version or ''} sha256:{pin.digest[:12]}...")
+    console.print(f"[green]{len(pins)} plugin(s) locked[/green]")
+
+
+@plugins_app.command(name="verify")
+def plugins_verify(
+    path: Annotated[Path, typer.Option("--path", help="Project root.")] = Path("."),
+) -> None:
+    """Verify installed plugins against .forge-doctor/plugins.lock."""
+    results = verify_plugins(path.resolve())
+    console = Console()
+    if not results:
+        console.print("[dim]No lock and no plugins - nothing to verify.[/dim]")
+        return
+    bad = 0
+    style = {"ok": "green", "changed": "red", "missing": "red", "added": "yellow"}
+    for r in results:
+        if r.status != "ok":
+            bad += 1
+        suffix = f" - {r.detail}" if r.detail else ""
+        console.print(f"  [{style[r.status]}]{r.status}[/{style[r.status]}] {r.name}{suffix}")
+    console.print(f"\n{len(results) - bad} ok, {bad} problem(s).")
+    raise typer.Exit(1 if bad else 0)
+
+
+@plugins_app.command(name="install")
+def plugins_install(
+    dist: Annotated[str, typer.Argument(help="Distribution, e.g. forge-doctor-snowflake.")],
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Print the command only.")] = False,
+) -> None:
+    """Install a plugin via pipx inject (or pip), then validate loading."""
+    console = Console()
+    if dry_run:
+        console.print(" ".join(install_plan(dist)))
+        return
+    cmd, code = install_plugin(dist)
+    if code != 0:
+        _stderr.print(f"[red]{' '.join(cmd)} failed ({code})[/red]")
+        raise typer.Exit(INTERNAL_ERROR_EXIT)
+    console.print(f"[green]{dist} installed[/green] - validating...")
+    checks, infos, errors = load_plugins()
+    mine = [i for i in infos if i.distribution == dist]
+    for info in mine:
+        state = "[green]ok[/green]" if info.status is None else f"[red]{info.status}[/red]"
+        console.print(f"  {info.name}: api {info.api_version} - {state}")
+    for error in errors:
+        console.print(f"  [red]{error}[/red]")
+    console.print(f"{len(checks)} plugin check(s) now loadable.")

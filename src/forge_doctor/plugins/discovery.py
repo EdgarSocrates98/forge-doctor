@@ -92,9 +92,15 @@ def _ep_trusted(
     ep: EntryPoint,
     trusted: tuple[str, ...],
     allow_identities: frozenset[str] | None,
+    strict: bool = False,
 ) -> bool:
-    """Pre-load trust gate. Uses entry-point metadata only - never loads."""
-    if trusted:
+    """Pre-load trust gate. Uses entry-point metadata only - never loads.
+
+    ``strict`` = default-deny: a plugin loads only when its distribution
+    or entry point is in ``trusted``; ``allow`` identities do not grant
+    load permission in strict mode.
+    """
+    if strict or trusted:
         dist_name, _ = _dist_info(ep)
         return ep.name in trusted or (dist_name is not None and dist_name in trusted)
     if allow_identities is not None:
@@ -149,26 +155,33 @@ def _descriptor_checks(
 def load_plugins(
     trusted: tuple[str, ...] = (),
     allow: tuple[str, ...] = (),
+    strict: bool = False,
 ) -> tuple[list[LoadedCheck], list[PluginInfo], list[str]]:
     """Load plugin checks with identities. ``(checks, infos, errors)``.
 
     ``trusted`` (distribution/entry-point names) and identity entries in
     ``allow`` gate BEFORE ``ep.load()`` - untrusted plugins never execute
     code. Check-id entries in ``allow`` filter post-load at the registry.
+    ``strict`` is default-deny: only ``trusted`` may load.
     """
     allow_identities, _check_ids = split_allow(allow)
     checks: list[LoadedCheck] = []
     infos: list[PluginInfo] = []
     errors: list[str] = []
+    untrusted_reason = (
+        "untrusted: strict mode requires plugins.trusted - never loaded"
+        if strict
+        else "untrusted: not in plugins.trusted/allow - never loaded"
+    )
     for ep in iter_entry_points():
         dist_name, dist_version = _dist_info(ep)
-        if not _ep_trusted(ep, trusted, allow_identities):
+        if not _ep_trusted(ep, trusted, allow_identities, strict):
             infos.append(
                 PluginInfo(
                     name=ep.name,
                     distribution=dist_name,
                     version=dist_version,
-                    status="untrusted: not in plugins.trusted/allow - never loaded",
+                    status=untrusted_reason,
                 )
             )
             continue
@@ -272,9 +285,10 @@ def load_plugins(
 def load_plugin_checks(
     trusted: tuple[str, ...] = (),
     allow: tuple[str, ...] = (),
+    strict: bool = False,
 ) -> tuple[list[Check], list[str]]:
     """Legacy shape used by older call sites: ``(checks, load_errors)``."""
-    loaded, _infos, errors = load_plugins(trusted=trusted, allow=allow)
+    loaded, _infos, errors = load_plugins(trusted=trusted, allow=allow, strict=strict)
     checks: list[Check] = []
     for item in loaded:
         item.check.__fd_source__ = item.identity.distribution  # type: ignore[attr-defined]

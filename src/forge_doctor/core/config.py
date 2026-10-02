@@ -54,6 +54,9 @@ class PluginRules:
     # Legacy ``allow`` list: identity entries gate loading, check-id
     # entries filter post-load (kept for backward compatibility).
     allow: tuple[str, ...] = ()
+    # ``strict`` = default-deny: only ``trusted`` plugins may load, and
+    # identity entries in ``allow`` no longer grant load permission.
+    mode: str = "open"
 
 
 @dataclass(frozen=True)
@@ -87,6 +90,7 @@ class ForgeDoctorConfig:
             checks_enabled=_str_list(checks_section.get("enabled")),
             checks_disabled=_str_list(checks_section.get("disabled")),
             allow=plugins_allow,
+            mode="strict" if plugins_section.get("mode") == "strict" else "open",
         )
         # Per-category ignores: [tool.forge-doctor.spark] ignore = [...]
         for value in section.values():

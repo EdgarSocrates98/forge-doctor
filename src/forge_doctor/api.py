@@ -29,8 +29,8 @@ from forge_doctor.core.platform_graph import DataPlatformGraph
 from forge_doctor.output.json_renderer import JSON_SCHEMA_VERSION as SCAN_SCHEMA_VERSION
 
 __all__ = [
-    "SCHEMA_VERSION",
     "SCAN_SCHEMA_VERSION",
+    "SCHEMA_VERSION",
     "DataPlatformGraph",
     "ScanOptions",
     "ScanReport",

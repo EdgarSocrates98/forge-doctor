@@ -118,6 +118,7 @@ class ScanService:
         plugin_checks, plugin_errors = load_plugin_checks(
             trusted=rules.trusted if rules else (),
             allow=rules.allow if rules else (),
+            strict=bool(rules and rules.mode == "strict"),
         )
         allow = rules.allow if rules else ()
         _, allow_check_ids = split_allow(allow)

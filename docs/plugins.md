@@ -4,6 +4,42 @@ Forge Doctor discovers external checks through the `forge_doctor.checks`
 entry-point group. Any installed distribution can contribute checks — they
 flow through the same registry, runner, filters and renderers as built-ins.
 
+## SDK surface
+
+Plugin authors import **only** `forge_doctor.sdk` — it is the semver-bound
+public contract:
+
+```python
+from forge_doctor.sdk import (
+    Check,
+    CheckBase,
+    CheckResult,
+    Severity,
+    Confidence,
+    EvidenceKind,
+    PluginDescriptor,
+    PluginIdentity,
+    ProjectContext,
+    CURRENT_API_VERSION,
+    SUPPORTED_API_VERSIONS,
+    ENTRY_POINT_GROUP,
+)
+```
+
+`sdk.__all__` is pinned by tests; everything else in `forge_doctor.*` is
+internal and may move without notice. `forge_doctor.api` remains the
+*consumer* SDK (running scans); `forge_doctor.sdk` is the *author* SDK.
+
+## Scaffolding
+
+```bash
+forge-doctor plugins init forge-doctor-snowflake
+```
+
+creates a complete package under `./forge-doctor-snowflake/` — pyproject
+with the entry point wired, a `CheckBase` subclass importing only
+`forge_doctor.sdk`, a `PluginDescriptor` factory, and a test stub.
+
 ## Contract
 
 An entry point resolves to a `Check` — an object with:
@@ -119,3 +155,38 @@ disabled = ["DBX009"]    # denylist of check ids (optional)
 
 `--no-plugins` or `FORGE_DOCTOR_NO_PLUGINS=1` disables loading entirely —
 the env var is a kill-switch that even the config cannot re-enable.
+
+### Strict mode (default-deny)
+
+```toml
+[tool.forge-doctor.plugins]
+mode = "strict"
+trusted = ["forge-doctor-databricks"]
+```
+
+In `strict` mode every plugin not in `trusted` is denied before load —
+identity entries in `allow` no longer grant permission. `plugins list`
+shows denied plugins as `untrusted: strict mode requires plugins.trusted`.
+Default (`open`) keeps the previous behavior: everything loads unless
+`trusted`/`allow` restrict it.
+
+## Integrity pinning
+
+`forge-doctor plugins lock` writes `.forge-doctor/plugins.lock` — each
+installed plugin distribution pinned by name, version, and a sha256
+content digest recomputed from installed files (not just RECORD, so
+tampering with the metadata itself is caught). `plugins verify`
+re-digests and reports `ok | changed | missing | added`, exiting 1 on
+any problem — CI can gate on plugin integrity.
+
+## Installing
+
+```bash
+forge-doctor plugins install forge-doctor-snowflake   # pipx inject or pip
+forge-doctor plugins install forge-doctor-snowflake --dry-run
+```
+
+The command resolves to `pipx inject forge-doctor <dist>` when pipx is
+available (else `pip install`), then validates that the plugin loads and
+its `api_version`/`requires_forge_doctor` are compatible. Installation
+is the only networked step — scanning stays offline forever.

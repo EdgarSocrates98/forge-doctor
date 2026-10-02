@@ -78,6 +78,9 @@ forge-doctor info                   # project stats, no checks
 forge-doctor init --name my-etl     # scaffold a new project
 forge-doctor repo                   # category shortcuts
 forge-doctor plugins                # built-in + external checks
+forge-doctor plugins init forge-doctor-x   # scaffold a plugin package
+forge-doctor plugins lock && forge-doctor plugins verify  # integrity pinning
+forge-doctor plugins install forge-doctor-x --dry-run     # pipx/pip wrapper
 forge-doctor checks                 # every rule id and title
 forge-doctor explain SPARK001       # why / when it's OK / how to fix
 forge-doctor explain SPARK001 --json    # rule metadata for agents

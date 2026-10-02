@@ -65,6 +65,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   strengthened: contract-shape asserts plus `schema contracts`,
   `explain`, `checks` on the installed wheel. New `docs/release.md`
   v1.0 pre-flight checklist.
+- **Plugin SDK & ecosystem** — `forge_doctor.sdk` is the stable
+  author-facing surface (Check/CheckBase/CheckResult/PluginDescriptor/
+  ProjectContext/api versions, `__all__` pinned); `plugins init`
+  scaffolds a complete plugin package; `plugins lock`/`verify` pin and
+  audit installed-plugin integrity via content digests; `plugins
+  install` wraps `pipx inject`/`pip` with post-install validation;
+  `[tool.forge-doctor.plugins] mode = "strict"` adds default-deny trust
+  (only `trusted` may load — `allow` identities no longer suffice).
 
 ### Fixed
 

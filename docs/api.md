@@ -54,6 +54,14 @@ plans = fd.migrate_plans("./p")
 - `lab-expected` — `labs/**/expected.json` ground truth
 - `golden-snapshot` — `golden/*/expected/*.json` snapshots
 
+## Author SDK
+
+`forge_doctor.api` is for *consumers* of results. Plugin *authors* use
+`forge_doctor.sdk` instead — the semver-bound surface for writing checks
+(`Check`, `CheckBase`, `CheckResult`, `Severity`, `PluginDescriptor`,
+`ProjectContext`, `CURRENT_API_VERSION`, `ENTRY_POINT_GROUP`).
+`sdk.__all__` is pinned by tests; see `docs/plugins.md`.
+
 ## Guarantees
 
 - Offline only: no network, no cloud calls, no target-code execution.
