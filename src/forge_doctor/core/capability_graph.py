@@ -105,4 +105,27 @@ def capability_subgraph(
                         attrs=(("provides", "version"), ("value", version or "")),
                     )
                 )
+            # Dependency edges declared by the pack (spec 231): capability
+            # -> DEPENDS_ON -> required/alternative capability, carrying
+            # the CapabilityRel flavour as an attr (the platform-graph
+            # vocabulary stays unchanged).
+            from forge_doctor.core.capability_deps import dependency_edges
+
+            for edge in dependency_edges(registry.dependencies(domain, cap)):
+                dep_ent = out.add_entity(
+                    Entity(
+                        kind=EntityKind.CAPABILITY,
+                        domain=domain,
+                        identifier=edge.dst,
+                        name=f"{domain}/{edge.dst}",
+                    )
+                )
+                out.add_relationship(
+                    Relationship(
+                        src=cap_ent.id,
+                        dst=dep_ent.id,
+                        kind=RelKind.DEPENDS_ON,
+                        attrs=(("capability_rel", edge.rel.value),),
+                    )
+                )
     return out

@@ -1,119 +1,125 @@
 {
-  "schema_version": 2,
-  "pack_version": "1.0.0",
-  "verified_at": "2026-10-03",
-  "domain": "capabilities",
-  "sources": [
-    "https://trino.io/docs/current/connector.html",
-    "https://trino.io/docs/current/connector/hive.html",
-    "https://trino.io/docs/current/connector/iceberg.html",
-    "https://trino.io/docs/current/connector/delta-lake.html",
-    "https://trino.io/docs/current/admin/spill.html",
-    "https://trino.io/docs/current/admin/resource-groups.html"
-  ],
-  "capabilities": [
+ "schema_version": 2,
+ "pack_version": "1.0.0",
+ "verified_at": "2026-10-03",
+ "domain": "capabilities",
+ "sources": [
+  "https://trino.io/docs/current/connector.html",
+  "https://trino.io/docs/current/connector/hive.html",
+  "https://trino.io/docs/current/connector/iceberg.html",
+  "https://trino.io/docs/current/connector/delta-lake.html",
+  "https://trino.io/docs/current/admin/spill.html",
+  "https://trino.io/docs/current/admin/resource-groups.html"
+ ],
+ "capabilities": [
+  {
+   "id": "FEDERATED_READ",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Cross-catalog reads are Trino's core purpose \u00e2\u20ac\u201d catalog.schema.table three-part names.",
+   "source": "https://trino.io/docs/current/connector.html"
+  },
+  {
+   "id": "FEDERATED_WRITE",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Writes depend on the connector: hive/iceberg/delta/jdbc write; tpch/system/jmx do not.",
+   "conditions": [
     {
-      "id": "FEDERATED_READ",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Cross-catalog reads are Trino's core purpose \u00e2\u20ac\u201d catalog.schema.table three-part names.",
-      "source": "https://trino.io/docs/current/connector.html"
-    },
-    {
-      "id": "FEDERATED_WRITE",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Writes depend on the connector: hive/iceberg/delta/jdbc write; tpch/system/jmx do not.",
-      "conditions": [
-        {
-          "attribute": "connector",
-          "op": "in",
-          "value": "hive,iceberg,delta,deltalake,jdbc,mysql,postgresql,oracle,sqlserver,mongodb,cassandra,clickhouse,singlestore,mariadb,kudu",
-          "status_on_fail": "unsupported",
-          "reason": "This connector is read-only (or test-only) in Trino."
-        }
-      ],
-      "source": "https://trino.io/docs/current/connector.html"
-    },
-    {
-      "id": "TRANSACTIONAL_TABLES",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "ACID/transactional semantics exist on iceberg, delta, and hive-with-transactions only.",
-      "conditions": [
-        {
-          "attribute": "connector",
-          "op": "in",
-          "value": "iceberg,delta,deltalake,hive",
-          "status_on_fail": "unsupported",
-          "reason": "Connector lacks transactional table support."
-        }
-      ],
-      "source": "https://trino.io/docs/current/connector/iceberg.html"
-    },
-    {
-      "id": "PUSHDOWN",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Predicate/projection pushdown is connector-dependent (jdbc and most modern connectors support it; tpch/system do not).",
-      "conditions": [
-        {
-          "attribute": "connector",
-          "op": "in",
-          "value": "hive,iceberg,delta,deltalake,jdbc,mysql,postgresql,oracle,sqlserver,mongodb,cassandra,elasticsearch,opensearch,clickhouse,pinot,druid,bigquery,snowflake,redshift,kudu,prometheus",
-          "status_on_fail": "unsupported",
-          "reason": "Connector performs little or no pushdown."
-        }
-      ],
-      "source": "https://trino.io/docs/current/optimizer/pushdown.html"
-    },
-    {
-      "id": "SPILL_TO_DISK",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Spill-to-disk requires spiller-spill-path + spill config on the coordinator/workers.",
-      "conditions": [
-        {
-          "attribute": "spill_configured",
-          "op": "eq",
-          "value": "true",
-          "status_on_fail": "unsupported",
-          "reason": "No spill keys found in config.properties."
-        }
-      ],
-      "source": "https://trino.io/docs/current/admin/spill.html"
-    },
-    {
-      "id": "RESOURCE_GROUPS",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Admission control needs a resource-groups.json config wired via resource-groups.config-file.",
-      "conditions": [
-        {
-          "attribute": "resource_groups",
-          "op": "eq",
-          "value": "true",
-          "status_on_fail": "unsupported",
-          "reason": "No resource-groups config file or property detected."
-        }
-      ],
-      "source": "https://trino.io/docs/current/admin/resource-groups.html"
-    },
-    {
-      "id": "EVENT_LISTENERS",
-      "platform": "trino",
-      "status": "supported",
-      "reason": "Query completion events require an event-listener.properties plugin.",
-      "conditions": [
-        {
-          "attribute": "event_listeners",
-          "op": "eq",
-          "value": "true",
-          "status_on_fail": "unsupported",
-          "reason": "No event-listener.properties detected."
-        }
-      ],
-      "source": "https://trino.io/docs/current/develop/event-listener.html"
+     "attribute": "connector",
+     "op": "in",
+     "value": "hive,iceberg,delta,deltalake,jdbc,mysql,postgresql,oracle,sqlserver,mongodb,cassandra,clickhouse,singlestore,mariadb,kudu",
+     "status_on_fail": "unsupported",
+     "reason": "This connector is read-only (or test-only) in Trino."
     }
-  ]
+   ],
+   "source": "https://trino.io/docs/current/connector.html",
+   "requires": [
+    "FEDERATED_READ"
+   ]
+  },
+  {
+   "id": "TRANSACTIONAL_TABLES",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "ACID/transactional semantics exist on iceberg, delta, and hive-with-transactions only.",
+   "conditions": [
+    {
+     "attribute": "connector",
+     "op": "in",
+     "value": "iceberg,delta,deltalake,hive",
+     "status_on_fail": "unsupported",
+     "reason": "Connector lacks transactional table support."
+    }
+   ],
+   "source": "https://trino.io/docs/current/connector/iceberg.html",
+   "requires": [
+    "FEDERATED_READ"
+   ]
+  },
+  {
+   "id": "PUSHDOWN",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Predicate/projection pushdown is connector-dependent (jdbc and most modern connectors support it; tpch/system do not).",
+   "conditions": [
+    {
+     "attribute": "connector",
+     "op": "in",
+     "value": "hive,iceberg,delta,deltalake,jdbc,mysql,postgresql,oracle,sqlserver,mongodb,cassandra,elasticsearch,opensearch,clickhouse,pinot,druid,bigquery,snowflake,redshift,kudu,prometheus",
+     "status_on_fail": "unsupported",
+     "reason": "Connector performs little or no pushdown."
+    }
+   ],
+   "source": "https://trino.io/docs/current/optimizer/pushdown.html"
+  },
+  {
+   "id": "SPILL_TO_DISK",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Spill-to-disk requires spiller-spill-path + spill config on the coordinator/workers.",
+   "conditions": [
+    {
+     "attribute": "spill_configured",
+     "op": "eq",
+     "value": "true",
+     "status_on_fail": "unsupported",
+     "reason": "No spill keys found in config.properties."
+    }
+   ],
+   "source": "https://trino.io/docs/current/admin/spill.html"
+  },
+  {
+   "id": "RESOURCE_GROUPS",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Admission control needs a resource-groups.json config wired via resource-groups.config-file.",
+   "conditions": [
+    {
+     "attribute": "resource_groups",
+     "op": "eq",
+     "value": "true",
+     "status_on_fail": "unsupported",
+     "reason": "No resource-groups config file or property detected."
+    }
+   ],
+   "source": "https://trino.io/docs/current/admin/resource-groups.html"
+  },
+  {
+   "id": "EVENT_LISTENERS",
+   "platform": "trino",
+   "status": "supported",
+   "reason": "Query completion events require an event-listener.properties plugin.",
+   "conditions": [
+    {
+     "attribute": "event_listeners",
+     "op": "eq",
+     "value": "true",
+     "status_on_fail": "unsupported",
+     "reason": "No event-listener.properties detected."
+    }
+   ],
+   "source": "https://trino.io/docs/current/develop/event-listener.html"
+  }
+ ]
 }

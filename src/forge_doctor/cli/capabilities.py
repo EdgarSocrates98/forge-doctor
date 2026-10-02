@@ -104,6 +104,16 @@ def capabilities_explain(
         if value:
             attrs[key] = value
     result = registry.explain(platform, capability, version=version, variant=variant, **attrs)
+    from forge_doctor.core.capabilities import CapabilityContext
+    from forge_doctor.core.capability_deps import evaluate_dependencies
+
+    ctx = CapabilityContext(
+        platform=platform,
+        version=version,
+        variant=variant,
+        attributes=tuple(sorted(attrs.items())),
+    )
+    deps = evaluate_dependencies(registry, capability, ctx)
     console = Console()
     if as_json:
         typer.echo(
@@ -122,6 +132,23 @@ def capabilities_explain(
                     "entry_id": result.entry_id,
                     "matched_when": [list(w) for w in result.matched_when],
                     "missing_evidence": list(result.missing_evidence),
+                    "lifecycle": deps.lifecycle.value,
+                    "readiness": deps.readiness.value,
+                    "replacement": deps.replacement,
+                    "blocked_path": [
+                        {"capability": s.capability, "status": s.status.value}
+                        for s in deps.blocked_path
+                    ],
+                    "alternatives": [
+                        {"capability": s.capability, "status": s.status.value}
+                        for s in deps.alternatives
+                    ],
+                    "incompatibles": [
+                        {"capability": s.capability, "status": s.status.value}
+                        for s in deps.incompatibles
+                    ],
+                    "cycles": [list(c) for c in deps.cycles],
+                    "missing": list(deps.missing),
                 },
                 indent=2,
                 sort_keys=True,
@@ -130,6 +157,7 @@ def capabilities_explain(
         return
     console.print(f"[bold]{result.platform}[/bold] {result.capability}")
     console.print(f"  status: {result.status.value}")
+    console.print(f"  readiness: {deps.readiness.value}  lifecycle: {deps.lifecycle.value}")
     if result.reason:
         console.print(f"  reason: {result.reason}")
     for cond in result.conditions:
@@ -138,6 +166,19 @@ def capabilities_explain(
         console.print(f"  limitation: {lim}")
     for miss in result.missing_evidence:
         console.print(f"  missing evidence: {miss}")
+    if deps.readiness.value == "blocked" and len(deps.blocked_path) > 1:
+        chain = " requires ".join(s.capability for s in deps.blocked_path)
+        console.print(f"  blocked path: {chain}")
+    for s in deps.alternatives:
+        console.print(f"  alternative: {s.capability} ({s.status.value})")
+    for s in deps.incompatibles:
+        console.print(f"  [yellow]incompatible[/yellow]: {s.capability} ({s.status.value})")
+    if deps.replacement:
+        console.print(f"  replacement: {deps.replacement}")
+    for cycle in deps.cycles:
+        console.print(f"  [yellow]dependency cycle:[/yellow] {' -> '.join(cycle)}")
+    for miss in deps.missing:
+        console.print(f"  dependency evidence missing: {miss}")
     if result.source:
         console.print(f"  source: {result.source}")
     if result.pack:

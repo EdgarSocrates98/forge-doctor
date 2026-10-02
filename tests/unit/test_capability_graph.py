@@ -153,7 +153,12 @@ def test_cli_capabilities_graph_json(tmp_path: Path) -> None:
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert any(e["kind"] == "capability" for e in data["entities"])
-    assert all(r["kind"] == "EVIDENCED_BY" for r in data["relationships"])
+    # EVIDENCED_BY edges carry provenance; DEPENDS_ON edges carry declared
+    # capability dependencies (spec 231, e.g. DYNAMODB_LSI -> DYNAMODB_GSI).
+    allowed = {"EVIDENCED_BY", "DEPENDS_ON"}
+    assert all(r["kind"] in allowed for r in data["relationships"])
+    dep = [r for r in data["relationships"] if r["kind"] == "DEPENDS_ON"]
+    assert dep and all(r["attrs"].get("capability_rel") for r in dep)
 
 
 def test_cli_list_json_default_shape_unchanged() -> None:

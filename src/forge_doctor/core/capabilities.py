@@ -118,6 +118,28 @@ class CapabilityResult:
 
 
 @dataclass(frozen=True)
+class DependencyFacts:
+    """Dependency/lifecycle fields declared for one (platform, capability).
+
+    Produced by :meth:`CapabilityRegistry.dependencies`; consumed by
+    ``core/capability_deps.py``. All fields are versioned-pack data, not
+    evaluator inference.
+    """
+
+    platform: str
+    capability: str
+    requires: tuple[str, ...] = ()
+    requires_any: tuple[tuple[str, ...], ...] = ()
+    alternatives: tuple[str, ...] = ()
+    incompatible_with: tuple[str, ...] = ()
+    specializes: tuple[str, ...] = ()
+    introduced_in: str = ""
+    deprecated_in: str = ""
+    removed_in: str = ""
+    replacement: str = ""
+
+
+@dataclass(frozen=True)
 class _Condition:
     attribute: str
     op: str  # eq|ne|gte|lte|gt|lt|in|not_in|present
@@ -146,6 +168,17 @@ class _Entry:
     conditions: tuple[_Condition, ...] = ()
     limitations: tuple[str, ...] = ()
     reason: str = ""
+    # Dependency semantics (spec 231) — all optional; absent means
+    # "no dependency claim", never "unsupported".
+    requires: tuple[str, ...] = ()
+    requires_any: tuple[tuple[str, ...], ...] = ()
+    alternatives: tuple[str, ...] = ()
+    incompatible_with: tuple[str, ...] = ()
+    specializes: tuple[str, ...] = ()
+    introduced_in: str = ""
+    deprecated_in: str = ""
+    removed_in: str = ""
+    replacement: str = ""
 
 
 def _version_key(version: str) -> tuple[int, ...]:
@@ -237,6 +270,10 @@ def _parse_entry(
         )
 
     limitations = raw.get("limitations", [])
+    dep_fields, dep_issue = _parse_dependency_fields(raw, ident, pack)
+    if dep_issue:
+        return None, dep_issue
+    assert dep_fields is not None
     entry = _Entry(
         id=ident,
         platform=platform,
@@ -250,8 +287,42 @@ def _parse_entry(
         conditions=tuple(conditions),
         limitations=tuple(str(lim) for lim in limitations) if isinstance(limitations, list) else (),
         reason=str(raw.get("reason", "")),
+        **dep_fields,
     )
     return entry, None
+
+
+_DEP_LIST_FIELDS = ("requires", "alternatives", "incompatible_with", "specializes")
+_DEP_STR_FIELDS = ("introduced_in", "deprecated_in", "removed_in", "replacement")
+
+
+def _parse_dependency_fields(
+    raw: dict[str, Any], ident: str, pack: str
+) -> tuple[dict[str, Any] | None, str | None]:
+    """Validate spec-231 dependency/lifecycle fields; all optional."""
+    out: dict[str, Any] = {}
+    for field_name in _DEP_LIST_FIELDS:
+        value = raw.get(field_name, [])
+        if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+            return None, f"{pack}: {ident} invalid {field_name} (want list[str])"
+        out[field_name] = tuple(sorted({v for v in value if v}))
+    raw_any = raw.get("requires_any", [])
+    if not isinstance(raw_any, list):
+        return None, f"{pack}: {ident} invalid requires_any (want list[list[str]])"
+    requires_any: list[tuple[str, ...]] = []
+    for group in raw_any:
+        if isinstance(group, str):
+            group = [group]
+        if not isinstance(group, list) or not all(isinstance(v, str) for v in group):
+            return None, f"{pack}: {ident} invalid requires_any group"
+        requires_any.append(tuple(sorted(set(group))))
+    out["requires_any"] = tuple(requires_any)
+    for field_name in _DEP_STR_FIELDS:
+        value = raw.get(field_name, "")
+        if not isinstance(value, str):
+            return None, f"{pack}: {ident} invalid {field_name} (want str)"
+        out[field_name] = value
+    return out, None
 
 
 class CapabilityRegistry:
@@ -434,6 +505,55 @@ class CapabilityRegistry:
     ) -> CapabilityResult:
         """Same as ``evaluate``; kept as a named API for CLI/introspection."""
         return self.evaluate(capability, platform=platform, **kwargs)
+
+    # -- dependency semantics (spec 231) ------------------------------------
+
+    def dependencies(self, platform: str, capability: str) -> DependencyFacts:
+        """Union of dependency/lifecycle fields declared for
+        (platform, capability) across all entries.
+
+        A capability id shared across ``when``-gated entries may declare
+        different deps per variant; the union is deterministic (sorted,
+        deduped). ``requires_any`` groups are unioned too.
+        """
+        requires: set[str] = set()
+        requires_any: set[tuple[str, ...]] = set()
+        alternatives: set[str] = set()
+        incompatible: set[str] = set()
+        specializes: set[str] = set()
+        introduced: set[str] = set()
+        deprecated: set[str] = set()
+        removed: set[str] = set()
+        replacement: set[str] = set()
+        for e in self._entries:
+            if e.platform != platform or e.id != capability:
+                continue
+            requires.update(e.requires)
+            requires_any.update(e.requires_any)
+            alternatives.update(e.alternatives)
+            incompatible.update(e.incompatible_with)
+            specializes.update(e.specializes)
+            if e.introduced_in:
+                introduced.add(e.introduced_in)
+            if e.deprecated_in:
+                deprecated.add(e.deprecated_in)
+            if e.removed_in:
+                removed.add(e.removed_in)
+            if e.replacement:
+                replacement.add(e.replacement)
+        return DependencyFacts(
+            platform=platform,
+            capability=capability,
+            requires=tuple(sorted(requires)),
+            requires_any=tuple(sorted(requires_any)),
+            alternatives=tuple(sorted(alternatives)),
+            incompatible_with=tuple(sorted(incompatible)),
+            specializes=tuple(sorted(specializes)),
+            introduced_in=min(introduced, key=_version_key) if introduced else "",
+            deprecated_in=min(deprecated, key=_version_key) if deprecated else "",
+            removed_in=min(removed, key=_version_key) if removed else "",
+            replacement=sorted(replacement)[0] if replacement else "",
+        )
 
     # -- internals ---------------------------------------------------------
 
