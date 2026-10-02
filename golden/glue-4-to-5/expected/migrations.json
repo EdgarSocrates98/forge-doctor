@@ -1,0 +1,44 @@
+[
+  {
+    "affected_entities": [
+      "compute_job:glue:etl"
+    ],
+    "blockers": [
+      "Java 8 -> 17: Custom connectors built for Java 8 need rebuilds.",
+      "Python 3.10 -> 3.11: Rebuilt native wheels required; check pandas/Arrow compatibility."
+    ],
+    "path_id": "glue-4-to-5",
+    "source": "glue 4.0",
+    "target": "glue 5.0",
+    "warnings": [
+      "LAKEFORMATION_FGAC: conditional -> supported",
+      "Spark 3.3 -> 3.5: Review deprecated Spark APIs and UDF behavior."
+    ]
+  },
+  {
+    "affected_entities": [
+      "jobs/etl.py:12:parquet"
+    ],
+    "blockers": [],
+    "path_id": "parquet-to-delta",
+    "source": "parquet datasets",
+    "target": "delta tables",
+    "warnings": [
+      "delta adds a _delta_log/ transaction log \u2014 external readers must use a delta-aware reader or a manifest",
+      "idempotent writes need merge/overwritePartitions \u2014 plain appends can duplicate on retry"
+    ]
+  },
+  {
+    "affected_entities": [
+      "jobs/etl.py:12:parquet"
+    ],
+    "blockers": [],
+    "path_id": "parquet-to-iceberg",
+    "source": "parquet datasets",
+    "target": "iceberg tables",
+    "warnings": [
+      "engine support differs (athena, emr, glue, s3tables); verify per consumer",
+      "format-version=2 required for row-level ops post-migration"
+    ]
+  }
+]

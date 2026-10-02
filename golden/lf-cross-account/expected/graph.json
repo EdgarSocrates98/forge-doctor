@@ -1,0 +1,84 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_glue_catalog_database.shared_link",
+      "kind": "infrastructure_resource",
+      "line": 9
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lakeformation_data_lake_settings.main",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lakeformation_permissions.reader",
+      "kind": "infrastructure_resource",
+      "line": 17
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lakeformation_resource.lake",
+      "kind": "infrastructure_resource",
+      "line": 4
+    },
+    {
+      "domain": "glue",
+      "file": "main.tf",
+      "id": "catalog:glue:consumer_db_link",
+      "kind": "catalog",
+      "line": 18
+    },
+    {
+      "domain": "glue",
+      "file": null,
+      "id": "catalog:glue:999988887777:producer_db",
+      "kind": "catalog",
+      "line": null
+    },
+    {
+      "domain": "lakeformation",
+      "file": "main.tf",
+      "id": "catalog:lakeformation:consumer_db_link",
+      "kind": "catalog",
+      "line": 10
+    },
+    {
+      "domain": "lakeformation",
+      "file": "main.tf",
+      "id": "principal:lakeformation:arn:aws:iam::111122223333:role/Reader",
+      "kind": "principal",
+      "line": 18
+    },
+    {
+      "domain": "lakeformation",
+      "file": "main.tf",
+      "id": "storage_location:lakeformation:s3://corp-lake",
+      "kind": "storage_location",
+      "line": 5
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "catalog:glue:999988887777:producer_db",
+      "kind": "depends_on",
+      "src": "catalog:lakeformation:consumer_db_link"
+    },
+    {
+      "dst": "catalog:glue:consumer_db_link",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_glue_catalog_database.shared_link"
+    },
+    {
+      "dst": "catalog:glue:consumer_db_link",
+      "kind": "governs",
+      "src": "principal:lakeformation:arn:aws:iam::111122223333:role/Reader"
+    }
+  ]
+}

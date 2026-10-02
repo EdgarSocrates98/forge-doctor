@@ -1,0 +1,212 @@
+[
+  {
+    "check_id": "AWS001",
+    "file": null,
+    "fingerprint": "5fab4cbb7c1789a4",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "AWS003",
+    "file": null,
+    "fingerprint": "9907f7abe0b0b0a9",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "AWS004",
+    "file": null,
+    "fingerprint": "7b76bc4d278f5227",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "CI001",
+    "file": null,
+    "fingerprint": "0cb325d0289fb66d",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "DOCKER001",
+    "file": null,
+    "fingerprint": "bf2a460222517ce8",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "EMR000",
+    "file": null,
+    "fingerprint": "3de3cb2625eb721c",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "EMR002",
+    "file": "main.tf",
+    "fingerprint": "337474a5ff7c19f9",
+    "line": 1,
+    "severity": "info"
+  },
+  {
+    "check_id": "EMR004",
+    "file": "main.tf",
+    "fingerprint": "d8a2f9e50656a814",
+    "line": 1,
+    "severity": "info"
+  },
+  {
+    "check_id": "EMR005",
+    "file": "main.tf",
+    "fingerprint": "0bb09305bd485849",
+    "line": 1,
+    "severity": "info"
+  },
+  {
+    "check_id": "GLUE001",
+    "file": null,
+    "fingerprint": "16d08bd0509fa060",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "ICE000",
+    "file": null,
+    "fingerprint": "5d59cfe3d62b9726",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "ICE008",
+    "file": "jobs.py",
+    "fingerprint": "a1466b0e70bca353",
+    "line": 9,
+    "severity": "warning"
+  },
+  {
+    "check_id": "ICE009",
+    "file": "jobs.py",
+    "fingerprint": "449f380fd433e079",
+    "line": 9,
+    "severity": "info"
+  },
+  {
+    "check_id": "ICE010",
+    "file": "jobs.py",
+    "fingerprint": "98b8dcad694e2aa0",
+    "line": 9,
+    "severity": "info"
+  },
+  {
+    "check_id": "PY002",
+    "file": null,
+    "fingerprint": "a2e865a251367d42",
+    "line": null,
+    "severity": "warning"
+  },
+  {
+    "check_id": "PY004",
+    "file": null,
+    "fingerprint": "d9f9a29dc2e03400",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "PY005",
+    "file": null,
+    "fingerprint": "48df1b867efb74d3",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "PY006",
+    "file": null,
+    "fingerprint": "50ddde4835c70cf5",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "PY007",
+    "file": null,
+    "fingerprint": "04cd4f11df1aa40f",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "REP001",
+    "file": null,
+    "fingerprint": "33a76d4405a5381d",
+    "line": null,
+    "severity": "warning"
+  },
+  {
+    "check_id": "REP002",
+    "file": null,
+    "fingerprint": "3d719653fe98ce8b",
+    "line": null,
+    "severity": "warning"
+  },
+  {
+    "check_id": "REP003",
+    "file": null,
+    "fingerprint": "09060e35a31d9e2e",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "REP004",
+    "file": null,
+    "fingerprint": "e611f9937049dd9f",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "REP005",
+    "file": null,
+    "fingerprint": "0328a57b8e551c1a",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "REP006",
+    "file": null,
+    "fingerprint": "79fb83ecd787e626",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "REP008",
+    "file": null,
+    "fingerprint": "5b330714830e6e77",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "SQL000",
+    "file": null,
+    "fingerprint": "21cf1456c864ca23",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "SQL001",
+    "file": "jobs.py",
+    "fingerprint": "48f6f4477bdd67d2",
+    "line": 9,
+    "severity": "warning"
+  },
+  {
+    "check_id": "TF000",
+    "file": null,
+    "fingerprint": "86c6481b2ac3ae97",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "TF001",
+    "file": "main.tf",
+    "fingerprint": "45ff448a5023c2c7",
+    "line": 1,
+    "severity": "info"
+  }
+]

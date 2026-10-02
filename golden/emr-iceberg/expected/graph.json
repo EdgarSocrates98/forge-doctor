@@ -1,0 +1,75 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_emr_cluster.lake",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "emr",
+      "file": "main.tf",
+      "id": "compute_job:emr:iceberg-lake",
+      "kind": "compute_job",
+      "line": 1
+    },
+    {
+      "domain": "iceberg",
+      "file": "jobs.py",
+      "id": "table:iceberg:lake.db.events",
+      "kind": "table",
+      "line": 8
+    },
+    {
+      "domain": "sql",
+      "file": "jobs.py",
+      "id": "query:sql:jobs.py:8",
+      "kind": "query",
+      "line": 8
+    },
+    {
+      "domain": "sql",
+      "file": "jobs.py",
+      "id": "query:sql:jobs.py:9",
+      "kind": "query",
+      "line": 9
+    },
+    {
+      "domain": "sql",
+      "file": null,
+      "id": "table:sql:lake.db.events",
+      "kind": "table",
+      "line": null
+    },
+    {
+      "domain": "sql",
+      "file": null,
+      "id": "table:sql:staging.events",
+      "kind": "table",
+      "line": null
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:emr:iceberg-lake",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_emr_cluster.lake"
+    },
+    {
+      "dst": "table:sql:lake.db.events",
+      "kind": "writes",
+      "src": "query:sql:jobs.py:8"
+    },
+    {
+      "dst": "table:sql:lake.db.events",
+      "kind": "writes",
+      "src": "query:sql:jobs.py:9"
+    },
+    {
+      "dst": "table:sql:staging.events",
+      "kind": "reads",
+      "src": "query:sql:jobs.py:9"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "actions": [
+      "Schedule CALL catalog.system.expire_snapshots with a retention window"
+    ],
+    "check_id": "ICE008",
+    "id": "PLAN-ICE008",
+    "problem": "snapshots never expire - metadata grows without bound",
+    "targets": [
+      "compact.py"
+    ]
+  },
+  {
+    "actions": [
+      "Schedule rewrite_data_files (bin-pack or sort strategy)"
+    ],
+    "check_id": "ICE009",
+    "id": "PLAN-ICE009",
+    "problem": "no data-file compaction configured",
+    "targets": [
+      "compact.py"
+    ]
+  },
+  {
+    "actions": [
+      "Schedule rewrite_manifests after ingest bursts"
+    ],
+    "check_id": "ICE010",
+    "id": "PLAN-ICE010",
+    "problem": "manifests never rewritten - planning reads many manifest files",
+    "targets": [
+      "compact.py"
+    ]
+  },
+  {
+    "actions": [
+      "Set format-version=2 in the table properties",
+      "Verify every writer/reader engine supports v2 before flipping"
+    ],
+    "check_id": "ICE001",
+    "id": "PLAN-ICE001",
+    "problem": "format-version too low for the declared operations",
+    "targets": [
+      "compact.py"
+    ]
+  }
+]

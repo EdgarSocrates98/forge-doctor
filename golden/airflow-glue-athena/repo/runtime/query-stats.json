@@ -1,0 +1,6 @@
+{"QueryExecutionId": "q-rollup-1",
+ "Statistics": {"TotalExecutionTimeInMillis": 45000,
+                "QueryQueueTimeInMillis": 12000,
+                "QueryPlanningTimeInMillis": 500,
+                "EngineExecutionTimeInMillis": 32000,
+                "DataScannedInBytes": 12000000000}}

@@ -1241,6 +1241,25 @@ per domain plus a TOTAL row:
 `-` marks a metric with zero denominator (nothing to measure).
 `--json` emits the same numbers for CI.
 
+## Golden repositories
+
+`golden/<name>/repo/` holds realistic mini-projects;
+`golden/<name>/expected/` pins the *full* deterministic output —
+findings (with fingerprints), platform graph, root-cause clusters,
+remediation plans, migration plans — as sorted JSON snapshots.
+
+```bash
+forge-doctor golden list            # corpus inventory
+forge-doctor golden run             # diff engine vs snapshots (CI gate)
+forge-doctor golden update          # regenerate — review diff, then commit
+```
+
+Any semantic regression surfaces as an add/remove diff per artifact.
+The scan is scoped to `repo/` so snapshot text can never contaminate
+evidence. Seed corpus: `airflow-glue-athena`, `databricks-delta`,
+`dynamodb-neptune`, `dynamodb-streams-lambda`, `emr-iceberg`,
+`glue-4-to-5`, `kafka-spark-iceberg`, `lf-cross-account`.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

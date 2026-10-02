@@ -1,0 +1,56 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "infra.tf",
+      "id": "infrastructure_resource:aws:aws_msk_cluster.bus",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "iceberg",
+      "file": null,
+      "id": "table:iceberg:lake.db.orders",
+      "kind": "table",
+      "line": null
+    },
+    {
+      "domain": "kafka",
+      "file": "infra.tf",
+      "id": "stream:kafka:orders-bus",
+      "kind": "stream",
+      "line": 1
+    },
+    {
+      "domain": "kafka",
+      "file": null,
+      "id": "stream:kafka:orders",
+      "kind": "stream",
+      "line": null
+    },
+    {
+      "domain": "spark_ss",
+      "file": "streams.py",
+      "id": "stream:spark_ss:streams.py:4:orders",
+      "kind": "stream",
+      "line": 4
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "stream:kafka:orders",
+      "kind": "consumes",
+      "src": "stream:spark_ss:streams.py:4:orders"
+    },
+    {
+      "dst": "stream:kafka:orders-bus",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_msk_cluster.bus"
+    },
+    {
+      "dst": "table:iceberg:lake.db.orders",
+      "kind": "produces",
+      "src": "stream:spark_ss:streams.py:4:orders"
+    }
+  ]
+}

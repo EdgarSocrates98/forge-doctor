@@ -1,0 +1,154 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_dynamodb_table.accounts",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lambda_event_source_mapping.accounts_stream",
+      "kind": "infrastructure_resource",
+      "line": 23
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lambda_function.syncer",
+      "kind": "infrastructure_resource",
+      "line": 17
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_neptune_cluster.graph",
+      "kind": "infrastructure_resource",
+      "line": 13
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "stream:dynamodb:accounts",
+      "kind": "stream",
+      "line": 1
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "stream:dynamodb:aws_dynamodb_table.accounts.stream_arn",
+      "kind": "stream",
+      "line": 23
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "table:dynamodb:accounts",
+      "kind": "table",
+      "line": 1
+    },
+    {
+      "domain": "graph",
+      "file": "sync.py",
+      "id": "graph_node:graph:Account",
+      "kind": "graph_node",
+      "line": 14
+    },
+    {
+      "domain": "graph",
+      "file": "sync.py",
+      "id": "query:graph:sync.py:13",
+      "kind": "query",
+      "line": 13
+    },
+    {
+      "domain": "graph",
+      "file": "sync.py",
+      "id": "query:graph:sync.py:14",
+      "kind": "query",
+      "line": 14
+    },
+    {
+      "domain": "lambda",
+      "file": "main.tf",
+      "id": "compute_job:lambda:graph-syncer",
+      "kind": "compute_job",
+      "line": 23
+    },
+    {
+      "domain": "neptune",
+      "file": "main.tf",
+      "id": "graph:neptune:transfers-graph",
+      "kind": "graph",
+      "line": 13
+    },
+    {
+      "domain": "neptune",
+      "file": "sync.py",
+      "id": "query:neptune:sync.py:13",
+      "kind": "query",
+      "line": 13
+    },
+    {
+      "domain": "neptune",
+      "file": "sync.py",
+      "id": "query:neptune:sync.py:14",
+      "kind": "query",
+      "line": 14
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:lambda:graph-syncer",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_lambda_function.syncer"
+    },
+    {
+      "dst": "compute_job:lambda:graph-syncer",
+      "kind": "triggers",
+      "src": "stream:dynamodb:accounts"
+    },
+    {
+      "dst": "compute_job:lambda:graph-syncer",
+      "kind": "triggers",
+      "src": "stream:dynamodb:aws_dynamodb_table.accounts.stream_arn"
+    },
+    {
+      "dst": "graph:neptune:transfers-graph",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_neptune_cluster.graph"
+    },
+    {
+      "dst": "graph:neptune:transfers-graph",
+      "kind": "reads",
+      "src": "query:neptune:sync.py:13"
+    },
+    {
+      "dst": "graph:neptune:transfers-graph",
+      "kind": "writes",
+      "src": "compute_job:lambda:graph-syncer"
+    },
+    {
+      "dst": "graph:neptune:transfers-graph",
+      "kind": "writes",
+      "src": "query:neptune:sync.py:14"
+    },
+    {
+      "dst": "graph_node:graph:Account",
+      "kind": "reads",
+      "src": "query:graph:sync.py:14"
+    },
+    {
+      "dst": "stream:dynamodb:accounts",
+      "kind": "produces",
+      "src": "table:dynamodb:accounts"
+    },
+    {
+      "dst": "table:dynamodb:accounts",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_dynamodb_table.accounts"
+    }
+  ]
+}

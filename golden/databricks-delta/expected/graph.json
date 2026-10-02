@@ -1,0 +1,84 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "jobs.tf",
+      "id": "infrastructure_resource:aws:databricks_job.nightly",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "databricks",
+      "file": "jobs.tf",
+      "id": "compute_job:databricks:nightly-compaction",
+      "kind": "compute_job",
+      "line": 1
+    },
+    {
+      "domain": "delta",
+      "file": "compact.py",
+      "id": "query:delta:compact.py:4",
+      "kind": "query",
+      "line": 4
+    },
+    {
+      "domain": "delta",
+      "file": "compact.py",
+      "id": "query:delta:compact.py:5",
+      "kind": "query",
+      "line": 5
+    },
+    {
+      "domain": "delta",
+      "file": "compact.py",
+      "id": "query:delta:compact.py:6",
+      "kind": "query",
+      "line": 6
+    },
+    {
+      "domain": "delta",
+      "file": null,
+      "id": "table:delta:silver.events",
+      "kind": "table",
+      "line": null
+    },
+    {
+      "domain": "sql",
+      "file": "compact.py",
+      "id": "query:sql:compact.py:6",
+      "kind": "query",
+      "line": 6
+    },
+    {
+      "domain": "sql",
+      "file": null,
+      "id": "table:sql:silver.events",
+      "kind": "table",
+      "line": null
+    },
+    {
+      "domain": "sql",
+      "file": null,
+      "id": "table:sql:staging",
+      "kind": "table",
+      "line": null
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:databricks:nightly-compaction",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:databricks_job.nightly"
+    },
+    {
+      "dst": "table:sql:silver.events",
+      "kind": "writes",
+      "src": "query:sql:compact.py:6"
+    },
+    {
+      "dst": "table:sql:staging",
+      "kind": "reads",
+      "src": "query:sql:compact.py:6"
+    }
+  ]
+}

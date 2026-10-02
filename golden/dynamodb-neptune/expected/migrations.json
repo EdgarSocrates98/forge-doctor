@@ -1,0 +1,14 @@
+[
+  {
+    "affected_entities": [
+      "compute_job:lambda:graph-syncer"
+    ],
+    "blockers": [],
+    "path_id": "lambda-runtime-upgrade",
+    "source": "lambda runtimes: ['python3.11']",
+    "target": "lambda UNKNOWN",
+    "warnings": [
+      "pack lacks a 'current runtime' fact \u2014 target is UNKNOWN"
+    ]
+  }
+]

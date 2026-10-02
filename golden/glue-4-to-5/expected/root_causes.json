@@ -1,0 +1,8 @@
+[
+  {
+    "affected_entities": [],
+    "confidence": "possible",
+    "id": "RC_STREAM_COMMITS-eb7ec60e20",
+    "title": "micro-batch frequency amplifies commits -> small files -> consumer overhead"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "affected_entities": [
+      "iceberg evidence in 1 site(s)"
+    ],
+    "blockers": [],
+    "path_id": "iceberg-v1-to-v2",
+    "source": "iceberg format-version 1",
+    "target": "iceberg format-version 2",
+    "warnings": [
+      "glue 3.0: No bundled Iceberg integration in Glue 3.0; requires a custom connector and is effectively unsupported."
+    ]
+  },
+  {
+    "affected_entities": [
+      "streams.py:4:orders"
+    ],
+    "blockers": [],
+    "path_id": "streaming-modernize",
+    "source": "legacy streaming (no checkpoint/once triggers)",
+    "target": "checkpointed micro-batch streaming",
+    "warnings": [
+      "checkpointLocation changes reset committed offsets \u2014 plan a replay window or accept reprocessing",
+      "foreachBatch sinks need batch_id dedup to be effectively-once"
+    ]
+  }
+]

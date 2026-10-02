@@ -1,0 +1,6 @@
+{"batchId": 1, "inputRowsPerSecond": 800.0, "processedRowsPerSecond": 300.0,
+ "numInputRows": 900, "sink": {"description": "iceberg"},
+ "sources": [{"description": "KafkaV2[Subscribe[orders]]",
+              "startOffset": {"orders": {"0": 900}},
+              "latestOffset": {"orders": {"0": 51000}},
+              "endOffset": {"orders": {"0": 1800}}}]}

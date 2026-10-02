@@ -1,0 +1,14 @@
+[
+  {
+    "affected_entities": [
+      "table:iceberg:lake.db.events"
+    ],
+    "blockers": [],
+    "path_id": "iceberg-v1-to-v2",
+    "source": "iceberg format-version 1",
+    "target": "iceberg format-version 2",
+    "warnings": [
+      "glue 3.0: No bundled Iceberg integration in Glue 3.0; requires a custom connector and is effectively unsupported."
+    ]
+  }
+]

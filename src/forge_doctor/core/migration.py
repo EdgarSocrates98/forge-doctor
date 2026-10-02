@@ -157,7 +157,7 @@ def _databricks_upgrade(ctx: ProjectContext) -> MigrationPlan | None:
         ents.append(f"compute_job:databricks:{j.name}")
     eol = [v for v in observed if rts.get(v, {}).get("status") == "eol"]
     target = next(
-        (r["dbr"] for r in reversed(list(rts)) if rts[r].get("status") == "lts"),
+        (dbr for dbr in reversed(list(rts)) if rts[dbr].get("status") == "lts"),
         "UNKNOWN",
     )
     warnings = [f"runtime {v} is end-of-life" for v in eol]

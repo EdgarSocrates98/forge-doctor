@@ -1,0 +1,54 @@
+{
+  "entities": [
+    {
+      "domain": "airflow",
+      "file": "dags/pipeline.py",
+      "id": "task:airflow:glue_etl",
+      "kind": "task",
+      "line": 13
+    },
+    {
+      "domain": "airflow",
+      "file": "dags/pipeline.py",
+      "id": "task:airflow:rollup",
+      "kind": "task",
+      "line": 18
+    },
+    {
+      "domain": "airflow",
+      "file": "dags/pipeline.py",
+      "id": "workflow:airflow:orders_pipeline",
+      "kind": "workflow",
+      "line": 6
+    },
+    {
+      "domain": "glue",
+      "file": null,
+      "id": "compute_job:glue:orders-etl",
+      "kind": "compute_job",
+      "line": null
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:glue:orders-etl",
+      "kind": "invokes",
+      "src": "task:airflow:glue_etl"
+    },
+    {
+      "dst": "task:airflow:glue_etl",
+      "kind": "depends_on",
+      "src": "task:airflow:rollup"
+    },
+    {
+      "dst": "task:airflow:glue_etl",
+      "kind": "invokes",
+      "src": "workflow:airflow:orders_pipeline"
+    },
+    {
+      "dst": "task:airflow:rollup",
+      "kind": "invokes",
+      "src": "workflow:airflow:orders_pipeline"
+    }
+  ]
+}

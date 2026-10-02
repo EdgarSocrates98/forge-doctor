@@ -1,0 +1,25 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_glue_job.etl",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "glue",
+      "file": "main.tf",
+      "id": "compute_job:glue:orders-etl",
+      "kind": "compute_job",
+      "line": 1
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:glue:orders-etl",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_glue_job.etl"
+    }
+  ]
+}

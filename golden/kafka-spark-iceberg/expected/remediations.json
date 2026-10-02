@@ -1,0 +1,18 @@
+[
+  {
+    "actions": [
+      "Adjust the streaming trigger interval (larger micro-batches, or Trigger.AvailableNow for periodic catch-up)",
+      "Review output partitioning so each batch writes a bounded set of files",
+      "Compact existing small data files (rewrite_data_files / OPTIMIZE)",
+      "Expire obsolete snapshots/manifests",
+      "Re-run consumer metrics (Athena scan/planning times, file counts)"
+    ],
+    "check_id": "RC_STREAM_COMMITS",
+    "id": "PLAN-RC_STREAM_COMMITS",
+    "problem": "small-file amplification: micro-batch commits amplify into small data files and consumer scan overhead",
+    "targets": [
+      "STREAM001",
+      "stream"
+    ]
+  }
+]

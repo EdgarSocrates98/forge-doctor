@@ -1,0 +1,41 @@
+[
+  {
+    "actions": [
+      "Adjust the streaming trigger interval (larger micro-batches, or Trigger.AvailableNow for periodic catch-up)",
+      "Review output partitioning so each batch writes a bounded set of files",
+      "Compact existing small data files (rewrite_data_files / OPTIMIZE)",
+      "Expire obsolete snapshots/manifests",
+      "Re-run consumer metrics (Athena scan/planning times, file counts)"
+    ],
+    "check_id": "RC_STREAM_COMMITS",
+    "id": "PLAN-RC_STREAM_COMMITS",
+    "problem": "small-file amplification: micro-batch commits amplify into small data files and consumer scan overhead",
+    "targets": [
+      "PARQ010",
+      "STREAM001"
+    ]
+  },
+  {
+    "actions": [
+      "Remove repartition(1)/coalesce(1) or repartition by the table's partition key",
+      "If one output file is required, write partitioned then merge in a separate compaction step"
+    ],
+    "check_id": "SPARK003",
+    "id": "PLAN-SPARK003",
+    "problem": "single-partition write serialization",
+    "targets": [
+      "jobs/etl.py"
+    ]
+  },
+  {
+    "actions": [
+      "Repartition by the table partition key before write, or enable adaptive coalesce"
+    ],
+    "check_id": "PARQ010",
+    "id": "PLAN-PARQ010",
+    "problem": "write pattern produces small files",
+    "targets": [
+      "jobs/etl.py"
+    ]
+  }
+]

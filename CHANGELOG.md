@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added (roadmap-2: production readiness)
 
-- **Forge Lab** — `forge-doctor lab list|run|report`: reproducible
-  scenario suites under `labs/` with `expected.json` ground truth
-  (findings, forbidden findings, graph edges, capability statuses, root
-  causes). Ten seed scenarios, one per domain dir.
+- **Forge Lab** — `forge-doctor lab list|run|report|metrics`:
+  reproducible scenario suites under `labs/` with `expected.json`
+  ground truth plus per-domain precision/recall/FPR/parser-coverage
+  metrics (`allowed_findings` + `labs/_defaults.json` noise budgets).
+- **Golden repositories** — `forge-doctor golden list|run|update`:
+  `golden/<name>/repo` + `expected/` snapshots pin full engine output
+  (findings, graph, root causes, remediations, migrations) for
+  regression gating. 8-repo seed corpus.
 
 ### Fixed
 
@@ -20,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OPTIMIZE`/`VACUUM`) is no longer attributed to Delta without any
   project-level delta signal; self-evident syntax (`USING DELTA`,
   `table_changes(`) still counts.
+- **Migration planner crash** — `databricks-runtime-upgrade` iterated
+  DBR dict keys then indexed them (`TypeError`); now iterates values
+  correctly (caught by the golden corpus).
 
 A full platform evolution: semantic fingerprints, a real plugin SDK,
 policy-as-code, incremental analysis, runtime diagnosis, data intelligence,

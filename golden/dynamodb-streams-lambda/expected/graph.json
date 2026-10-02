@@ -1,0 +1,80 @@
+{
+  "entities": [
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_dynamodb_table.orders",
+      "kind": "infrastructure_resource",
+      "line": 1
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lambda_event_source_mapping.orders_stream",
+      "kind": "infrastructure_resource",
+      "line": 20
+    },
+    {
+      "domain": "aws",
+      "file": "main.tf",
+      "id": "infrastructure_resource:aws:aws_lambda_function.consumer",
+      "kind": "infrastructure_resource",
+      "line": 13
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "stream:dynamodb:aws_dynamodb_table.orders.stream_arn",
+      "kind": "stream",
+      "line": 20
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "stream:dynamodb:orders",
+      "kind": "stream",
+      "line": 1
+    },
+    {
+      "domain": "dynamodb",
+      "file": "main.tf",
+      "id": "table:dynamodb:orders",
+      "kind": "table",
+      "line": 1
+    },
+    {
+      "domain": "lambda",
+      "file": "main.tf",
+      "id": "compute_job:lambda:orders-consumer",
+      "kind": "compute_job",
+      "line": 20
+    }
+  ],
+  "relationships": [
+    {
+      "dst": "compute_job:lambda:orders-consumer",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_lambda_function.consumer"
+    },
+    {
+      "dst": "compute_job:lambda:orders-consumer",
+      "kind": "triggers",
+      "src": "stream:dynamodb:aws_dynamodb_table.orders.stream_arn"
+    },
+    {
+      "dst": "compute_job:lambda:orders-consumer",
+      "kind": "triggers",
+      "src": "stream:dynamodb:orders"
+    },
+    {
+      "dst": "stream:dynamodb:orders",
+      "kind": "produces",
+      "src": "table:dynamodb:orders"
+    },
+    {
+      "dst": "table:dynamodb:orders",
+      "kind": "defines",
+      "src": "infrastructure_resource:aws:aws_dynamodb_table.orders"
+    }
+  ]
+}

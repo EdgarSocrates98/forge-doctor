@@ -1,0 +1,26 @@
+[
+  {
+    "affected_entities": [
+      "compute_job:databricks:nightly-compaction"
+    ],
+    "blockers": [],
+    "path_id": "databricks-runtime-upgrade",
+    "source": "databricks ['UNKNOWN']",
+    "target": "databricks 15.x LTS",
+    "warnings": [
+      "no DBR versions observed \u2014 runtime floor unknown"
+    ]
+  },
+  {
+    "affected_entities": [
+      "iceberg evidence in 3 site(s)"
+    ],
+    "blockers": [],
+    "path_id": "iceberg-v1-to-v2",
+    "source": "iceberg format-version 1",
+    "target": "iceberg format-version 2",
+    "warnings": [
+      "glue 3.0: No bundled Iceberg integration in Glue 3.0; requires a custom connector and is effectively unsupported."
+    ]
+  }
+]
