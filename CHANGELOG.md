@@ -84,6 +84,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.forge-doctor/baselines/<name>.json` for per-branch baselines.
   `scan --evidence-out <dir>` writes a dated audit bundle
   (`report.json` + `suppressions.json` + `packs.json`).
+- **Fleet intelligence** — `forge-doctor fleet` merges a manifest of
+  repositories (`fleet.yml`/`fleet.json` paths, or `root:`/directory
+  workspace discovery) into one estate graph via the same
+  DEFINES/IMPLEMENTS/INVOKES merge as `workspace`. Queries:
+  `fleet query <m> runtimes` (entities by domain + versioned attrs),
+  `capability <id>` (per-entity registry buckets), `dependents <glob>`
+  (dependency-aware blast radius incl. cross-repo links), `findings
+  <check-id|glob>` (per-repo scan). `fleet report` = estate census +
+  findings roll-up; text + JSON. See `docs/fleet.md`.
 
 ### Fixed
 

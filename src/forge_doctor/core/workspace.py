@@ -215,10 +215,16 @@ def _glue_impl_names(ctx: ProjectContext) -> set[str]:
 
 def build_workspace_model(root: Path, ctx: ProjectContext) -> WorkspaceModel:
     """Discover repos, build+merge per-repo graphs, derive cross-repo links."""
+    return merge_repos(root, discover_repos(root, ctx))
+
+
+def merge_repos(root: Path, repos: tuple[WorkspaceRepo, ...]) -> WorkspaceModel:
+    """Shared merge: per-repo platform graphs plus ``repo:*`` entities and
+    DEFINES/IMPLEMENTS/INVOKES cross-repo links. Used by both workspace
+    discovery (marker-based) and fleet manifests (explicit paths)."""
     from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
     from forge_doctor.core.context import ProjectContext
 
-    repos = discover_repos(root, ctx)
     merged = DataPlatformGraph()
     links: list[CrossRepoLink] = []
     impl_by_name: dict[str, str] = {}  # normalized job name -> repo name
