@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: raw
+    freshness:
+      warn_after:
+        count: 12
+        period: hour
+    tables:
+      - name: orders
+        description: Raw order stream.
+  - name: unused_src
+    tables:
+      - name: archive
+
+models:
+  - name: stg_orders
+    description: Staged orders.
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+
+exposures:
+  - name: orders_dashboard
+    type: dashboard
+    depends_on:
+      - ref('fact_orders')

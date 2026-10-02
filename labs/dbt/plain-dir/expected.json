@@ -1,0 +1,6 @@
+{
+  "name": "plain-dir",
+  "description": "Adversarial: sql+yml without dbt_project.yml must not attribute to dbt or trip DBT checks",
+  "expected_findings": [],
+  "forbidden_findings": ["DBT001", "DBT002", "DBT003", "DBT004", "DBT005"]
+}

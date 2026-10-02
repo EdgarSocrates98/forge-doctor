@@ -77,6 +77,7 @@ _ENTITY_DEFS: dict[EntityKind, str] = {
     ),
     EntityKind.VIEW: "A named view or materialized view.",
     EntityKind.SCHEMA: "A schema-level namespace inside a warehouse database.",
+    EntityKind.DBT_MODEL: "A dbt model/transformation node (ref/source edges).",
 }
 
 # -- Relationship kinds ------------------------------------------------
@@ -142,6 +143,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "aws": "Generic AWS provider resources not mapped to a narrower family.",
     "controlm": "Control-M scheduling model.",
     "databricks": "Databricks workspace model.",
+    "dbt": "dbt transformation-layer model (models, sources, tests).",
     "delta": "Delta Lake table model.",
     "dynamodb": "Amazon DynamoDB model.",
     "emr": "Amazon EMR model.",

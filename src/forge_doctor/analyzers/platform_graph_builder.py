@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from forge_doctor.core.models import EvidenceKind
 from forge_doctor.core.platform_graph import (
@@ -869,6 +869,73 @@ def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             contains(wh("redshift"), e.id, _STA if rs_obj.source == "sql" else _CFG)
 
 
+def _dbt(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """dbt transformation layer (spec 216).
+
+    Models become ``dbt_model`` entities; ``ref()`` edges READS_FROM the
+    referenced model, ``source()`` edges READS_FROM the source relation,
+    and each materialized model WRITES_TO its output relation. Output and
+    source entities link to warehouse entities when a vendor adapter
+    (213-215) already declared the same name — the tail-name match is a
+    documented heuristic, not schema resolution.
+    """
+    from forge_doctor.analyzers.dbt_model import dbt_model
+
+    model = dbt_model(ctx)
+    if not model.has_evidence:
+        return
+
+    def tail(name: str) -> str:
+        return name.rpartition(".")[2].lower()
+
+    warehouse_tails = {
+        tail(e.id.rpartition(":")[2]): e.id for e in g.entities() if e.kind == K.TABLE
+    }
+
+    def relation_id(name: str, view: bool) -> str:
+        """Link to a warehouse entity when one claims the same tail."""
+        hit = warehouse_tails.get(tail(name))
+        if hit is not None:
+            return hit
+        return f"{'view' if view else 'table'}:dbt:{name}"
+
+    def ensure(kind: K, name: str, **kw: Any) -> Entity:
+        e = _e(kind, "dbt", name, kw.pop("file", None), kw.pop("line", None), **kw)
+        g.add_entity(e)
+        return e
+
+    model_ids = {
+        m.name: ensure(
+            K.DBT_MODEL, m.name, file=m.file, materialized=m.materialized or "unknown"
+        ).id
+        for m in model.models
+    }
+    for m in model.models:
+        mid = model_ids[m.name]
+        if m.materialized != "ephemeral":
+            is_view = m.materialized == "view"
+            rid = relation_id(m.name, is_view)
+            if g.entity(rid) is None:
+                ensure(K.VIEW if is_view else K.TABLE, m.name)
+            g.add_relationship(Relationship(src=mid, dst=rid, kind=R.WRITES_TO, evidence_kind=_STA))
+        for ref in m.refs:
+            rid = f"dbt_model:dbt:{ref}"
+            if g.entity(rid) is not None:
+                g.add_relationship(
+                    Relationship(src=mid, dst=rid, kind=R.READS_FROM, evidence_kind=_STA)
+                )
+        for src in m.sources_used:
+            sid = warehouse_tails.get(tail(src)) or f"dataset:dbt:{src}"
+            if g.entity(sid) is None:
+                ensure(K.DATASET, src)
+            g.add_relationship(
+                Relationship(src=mid, dst=sid, kind=R.READS_FROM, evidence_kind=_STA)
+            )
+    for s in model.sources:
+        if g.entity(f"dataset:dbt:{s.name}") is None and tail(s.name) not in warehouse_tails:
+            ensure(K.DATASET, s.name, file=s.file)
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1260,6 +1327,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _serverless,
         _sql,
         _warehouse,
+        _dbt,
         _iceberg,
         _parquet,
         _terraform,

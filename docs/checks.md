@@ -1577,3 +1577,46 @@ declared cluster/workgroup.
 Authored `VACUUM`/`ANALYZE` statements while ATO-eligible compute
 (ra3+/dc2+/serverless) exists — hand-rolled maintenance drifts.
 **Fix:** prefer `automatic_table_optimization`/`auto_analyze`.
+
+## dbt (DbtProjectModel — transformation-layer adapter)
+
+Evidence: `dbt_project.yml` (required gate — no dbt attribution without
+it or a `manifest.json`), `profiles.yml` (key names only — env-var
+secrets are never surfaced as values), `schema.yml`/`models/*.yml`
+properties files, model `.sql` (`{{ ref(...) }}`/`{{ source(...) }}`,
+`config(materialized=...)`, `unique_key`, `is_incremental()`), `seeds/`,
+`snapshots/`, `tests/*.sql` (singular tests), macros, exposures, and the
+observed artifacts `target/manifest.json` + `target/run_results.json`.
+dbt is never executed — artifacts are read only. `ref()`/`source()`
+produce `READS_FROM`/`WRITES_TO` graph edges; output relations link to
+warehouse entities by tail-name match when a vendor adapter (213–215)
+already claimed them.
+
+### DBT000 — dbt surface · pass/info
+Anchor census: models, sources, seeds, snapshots, tests, exposures,
+manifest nodes, run-result rows.
+
+### DBT001 — Model without any test · warning
+A model has no column/generic test in schema properties and no singular
+test targeting it.
+**Fix:** add `tests:` in the model's schema yml (or a singular test).
+
+### DBT002 — Incremental model without unique_key · warning
+`materialized='incremental'` without `unique_key` — merge/insert logic
+cannot dedupe reprocessed rows.
+**Fix:** `{{ config(materialized='incremental', unique_key='<key>') }}`.
+
+### DBT003 — Source without freshness block · warning
+A declared source table carries no `freshness:` clause — stale input
+goes undetected by `dbt source freshness`.
+**Fix:** add `freshness: warn_after/error_after` to the source.
+
+### DBT004 — Source declared but never referenced · info
+A source is declared in properties yml but no model calls
+`source('<name>', ...)` — dead documentation drifting from reality.
+**Fix:** remove the declaration or wire the consuming model.
+
+### DBT005 — Low model documentation coverage · info
+Described models fall below 50% of the total — the semantic layer
+consumers see unnamed tables.
+**Fix:** add `description:` to undocumented models in schema yml.

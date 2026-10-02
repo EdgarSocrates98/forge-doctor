@@ -40,6 +40,7 @@ construction (`EntityKind`) — producers cannot invent one silently.
 | warehouse_compute | Warehouse execution resource (warehouse, cluster, workgroup, reservation). |
 | view | A named view or materialized view. |
 | schema | A schema-level namespace inside a warehouse database. |
+| dbt_model | A dbt model/transformation node (ref/source edges). |
 <!-- END entity_kinds -->
 
 ## Relationship kinds
@@ -122,6 +123,7 @@ produced it — free text at construction, so this list is what
 | aws | Generic AWS provider resources not mapped to a narrower family. |
 | controlm | Control-M scheduling model. |
 | databricks | Databricks workspace model. |
+| dbt | dbt transformation-layer model (models, sources, tests). |
 | delta | Delta Lake table model. |
 | dynamodb | Amazon DynamoDB model. |
 | emr | Amazon EMR model. |

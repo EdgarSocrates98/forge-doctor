@@ -1,0 +1,5 @@
+version: 2
+foo: bar
+items:
+  - name: x
+  - name: y

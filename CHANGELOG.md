@@ -298,6 +298,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Serverless RPU, concurrency scaling, auto MVs, dist/sort keys), labs
   `labs/redshift/public-cluster` + `skewed-even` + adversarial
   `postgres`.
+- **dbt adapter** (spec 216, roadmap-4 wave 2a) —
+  `analyzers/dbt_model.py` builds a `DbtProjectModel` from
+  `dbt_project.yml` (required gate), `profiles.yml` (key names only —
+  env-var secrets never surfaced), `schema.yml` properties files
+  (sources + freshness, model/column tests, exposures), model `.sql`
+  (`config(materialized=...)`, `unique_key`, `is_incremental()`,
+  `ref()`/`source()`), seeds, snapshots, singular tests, macros, and the
+  observed artifacts `target/manifest.json` + `run_results.json`. dbt is
+  never executed — artifacts are read only. Graph integration adds
+  `dbt_model` entities with `READS_FROM` (`ref`/`source`) and
+  `WRITES_TO` (materialized output) edges, linking to warehouse
+  entities by tail-name match when adapters 213–215 already claimed
+  them. Checks `DBT001`–`DBT005`: models without tests, incremental
+  models without `unique_key`, sources without freshness, declared-but-
+  unused sources, and low documentation coverage. New command
+  `forge-doctor dbt inspect`, labs `labs/dbt/basic-project` +
+  adversarial `plain-dir`.
 
 ### Fixed
 

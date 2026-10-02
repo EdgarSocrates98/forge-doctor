@@ -51,6 +51,7 @@ class EntityKind(Enum):
     WAREHOUSE_COMPUTE = "warehouse_compute"
     VIEW = "view"
     SCHEMA = "schema"
+    DBT_MODEL = "dbt_model"
 
 
 class RelKind(Enum):

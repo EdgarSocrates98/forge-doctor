@@ -1,0 +1,7 @@
+{
+  "nodes": {
+    "model.analytics.stg_orders": {"resource_type": "model", "name": "stg_orders"},
+    "model.analytics.fact_orders": {"resource_type": "model", "name": "fact_orders"},
+    "source.analytics.raw.orders": {"resource_type": "source", "name": "orders"}
+  }
+}

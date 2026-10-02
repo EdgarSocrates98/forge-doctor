@@ -1,0 +1,6 @@
+{
+  "name": "basic-project",
+  "description": "Real-ish dbt project: incremental w/o unique_key, untested model, source w/o freshness, unused source",
+  "expected_findings": ["DBT001", "DBT002", "DBT003", "DBT004"],
+  "forbidden_findings": ["DBT005"]
+}

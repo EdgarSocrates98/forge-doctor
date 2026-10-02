@@ -1,0 +1,4 @@
+name: analytics
+profile: warehouse
+model-paths: [models]
+seed-paths: [seeds]
