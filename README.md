@@ -72,6 +72,7 @@ forge-doctor fleet query fleet.yml runtimes|dependents|findings|capability
 forge-doctor fleet report fleet.yml     # estate census + findings roll-up
 forge-doctor diff base...head --semantic  # entity diff + blast radius + capability/migration intel
 forge-doctor remediate .              # deterministic fix plans per finding/root cause
+forge-doctor fix .                    # preview/apply safety-classified text fixes
 forge-doctor root-cause .             # correlate findings into causal clusters
 forge-doctor runtime inspect .        # offline runtime evidence (exported artifacts)
 forge-doctor architecture drift .     # drift vs .forge-doctor/contract.yml

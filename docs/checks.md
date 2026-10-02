@@ -938,9 +938,24 @@ findings with runtime evidence:
 `RemediationPlan`s from `knowledge/remediation/` packs: ordered actions
 with rationale, expected effect, per-action validation and `depends_on`
 edges, plus prerequisites, risks, validation steps and rollback notes.
-Plans are advisory — Forge Doctor never edits code, generates patches,
-commits, deploys, or runs Terraform/migrations. Findings without a
-remediation mapping produce no plan.
+Plans are advisory — `remediate` itself never edits code, generates
+patches, commits, deploys, or runs Terraform/migrations. Findings
+without a remediation mapping produce no plan.
+
+## Safe fixes
+
+`forge-doctor fix .` turns findings into **safety-classified** fix
+proposals (`core/fixes.py`): `safe` transforms are pure, bounded,
+idempotent text edits (e.g. declare `requires-python` in pyproject,
+append ignore patterns to `.gitignore`, create a default `.gitignore`);
+`review-required` proposals (e.g. dropping a duplicate
+`requirements.txt` when `poetry.lock` exists) apply only with
+`--apply --class review`; `manual-only` findings (IaC resource
+semantics, IAM/Lake Formation, partition/table changes) print guidance
+and have no code path that can write. Default is a dry run printing
+unified diffs; `--apply` writes `safe` only, re-reading each file and
+aborting on stale sources, with a JSON audit record under `--json`.
+Nothing is committed or pushed — version control is the rollback.
 
 ## Architecture contract + drift
 

@@ -32,6 +32,7 @@ mystery — ask the tool to explain itself:
 forge-doctor explain SPARK001     # why it fires, when it is OK, how to fix
 forge-doctor trace SPARK001 src/job.py:42   # why THIS occurrence fired
 forge-doctor remediate .          # deterministic fix plans
+forge-doctor fix .                # preview safety-classified text fixes (--apply writes safe only)
 ```
 
 Rule ids are stable API: `SPARK001` means the same thing forever. Messages

@@ -133,6 +133,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   incremental and full scans. `--stats` reports
   `incremental: N file(s) changed, X checks rerun, Y reused`; watch
   mode inherits incremental when enabled.
+- **Safe-fix intelligence** — `forge-doctor fix <path>` produces
+  safety-classified fix proposals (`core/fixes.py`): `safe`
+  deterministic text transforms (declare `requires-python`, append
+  ignore patterns to `.gitignore`, create a default `.gitignore`),
+  `review-required` proposals applied only with `--apply --class
+  review`, and `manual-only` guidance rows for IaC/IAM/LF-class
+  findings which have no apply path at all. Dry-run prints unified
+  diffs; `--apply` re-reads targets and aborts stale sources; `--json`
+  emits an audit record. No git ops, no commits — version control is
+  the rollback.
 
 ### Fixed
 
