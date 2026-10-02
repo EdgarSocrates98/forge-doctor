@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import configparser
 import contextlib
-import os
-import shutil
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -25,15 +23,15 @@ _AWS_ENV_PROFILE_KEYS = ("AWS_PROFILE", "AWS_DEFAULT_PROFILE")
 _AWS_ENV_REGION_KEYS = ("AWS_REGION", "AWS_DEFAULT_REGION")
 
 
-def _aws_dir() -> Path:
-    return Path.home() / ".aws"
+def _aws_dir(ctx: ProjectContext) -> Path:
+    return ctx.home / ".aws"
 
 
-def _load_config() -> configparser.RawConfigParser:
+def _load_config(ctx: ProjectContext) -> configparser.RawConfigParser:
     """Parse ``~/.aws/config`` read-only; empty parser on missing/invalid files."""
     parser = configparser.RawConfigParser()
     with contextlib.suppress(configparser.Error, UnicodeDecodeError):
-        parser.read(_aws_dir() / "config", encoding="utf-8")
+        parser.read(_aws_dir(ctx) / "config", encoding="utf-8")
     return parser
 
 
@@ -57,7 +55,7 @@ class AwsCli(CheckBase):
     fix = "Install AWS CLI v2."
 
     def run(self, ctx: ProjectContext) -> list[CheckResult]:
-        binary = shutil.which("aws")
+        binary = ctx.which("aws")
         if binary is None:
             return [
                 self.result(
@@ -115,7 +113,7 @@ class AwsRegion(CheckBase):
                         f"region {region} configured via {key}",
                     )
                 ]
-        parser = _load_config()
+        parser = _load_config(ctx)
         for section in parser.sections():
             region = parser.get(section, "region", fallback=None)
             if region:
@@ -148,9 +146,9 @@ class AwsCredentials(CheckBase):
     fix = "Environment variables, ~/.aws/credentials, or SSO."
 
     def run(self, ctx: ProjectContext) -> list[CheckResult]:
-        if "AWS_ACCESS_KEY_ID" in os.environ:
+        if "AWS_ACCESS_KEY_ID" in ctx.env:
             return [self.result(Severity.PASS, "credentials via environment")]
-        if (_aws_dir() / "credentials").is_file():
+        if (_aws_dir(ctx) / "credentials").is_file():
             return [self.result(Severity.PASS, "credentials file detected")]
         return [
             self.result(
@@ -179,7 +177,7 @@ class AwsProfile(CheckBase):
             profile = ctx.env.get(key)
             if profile:
                 return [self.result(Severity.PASS, f"profile: {profile} ({key})")]
-        names = sorted({_profile_name(section) for section in _load_config().sections()})
+        names = sorted({_profile_name(section) for section in _load_config(ctx).sections()})
         if names:
             return [
                 self.result(

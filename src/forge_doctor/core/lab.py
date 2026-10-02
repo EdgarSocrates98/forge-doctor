@@ -248,7 +248,7 @@ def _capability_status(ctx: ProjectContext, entry: str) -> tuple[str, str]:
 
 def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioReport:
     """Run the full engine over one scenario and compare to ground truth."""
-    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.context import ProjectContext, ScanOptions
     from forge_doctor.core.diagnosis import cluster_findings
 
     truth = truth or load_ground_truth(scenario / EXPECTED_FILE)
@@ -256,7 +256,7 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
     if truth.name.startswith("__invalid__"):
         report.errors.append(f"invalid expected.json: {truth.name}")
         return report
-    ctx = ProjectContext(root=scenario.resolve())
+    ctx = ProjectContext(root=scenario.resolve(), options=ScanOptions(hermetic=True))
 
     results = _run_checks(ctx)
     actual_keys = {

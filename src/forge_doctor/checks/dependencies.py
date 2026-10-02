@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -220,7 +219,7 @@ class LockFreshness(CheckBase):
         if pyproject_path is None or not lock_path.is_file():
             return []
 
-        binary = shutil.which("poetry")
+        binary = ctx.which("poetry")
         if binary is not None and is_poetry_managed(ctx.pyproject or {}):
             completed = _run_poetry(binary, ["check", "--lock"], ctx.root)
             if completed is not None:
@@ -269,7 +268,7 @@ class PoetryAvailable(CheckBase):
         pyproject = ctx.pyproject
         if pyproject is None or not is_poetry_managed(pyproject):
             return []
-        binary = shutil.which("poetry")
+        binary = ctx.which("poetry")
         if binary is None:
             return [
                 self.result(
