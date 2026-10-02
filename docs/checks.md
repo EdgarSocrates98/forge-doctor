@@ -1366,10 +1366,27 @@ rules:
 - `require.terraform` — every resource of the type must satisfy
   `attr`+`op` (`present` by default).
 
+**Layering.** A pack may `extends` another pack (by name or
+project-relative path). Parent rules merge into the child; on a rule-id
+collision the child wins. Cycles and missing references become
+`POLICY010` errors:
+
+```yaml
+pack: repo-rules
+extends: org-base          # inherits all of org-base's rules
+require_approval: true      # suppressions must carry approved_by
+rules:
+  - id: ORG001             # same id overrides the parent's rule
+    severity: warning
+    message: weaker for this repo
+    ...
+```
+
 Findings carry the org rule ids (`ORG001`…) so severity policy and
 suppressions govern them like built-ins. Broken packs surface as a
 `POLICY010` error finding — never silent. Commands: `policy list`,
-`policy eval [-f json]`, `policy validate <file>`.
+`policy eval [-f json]`, `policy report [-f json]` (compliance summary:
+packs, violations by rule, suppression audit), `policy validate <file>`.
 
 ### POLICY001 — Expired suppression · warning
 
@@ -1384,5 +1401,10 @@ A suppression that matched no finding — the exception may be dead weight
 ### POLICY010 — Organization policy packs · error
 Runs every discovered org pack; emits `POLICY010` itself only for an
 invalid pack file — violations carry each rule's own id (`ORG###`).
+
+### POLICY011 — Suppression lacks approval · warning
+A pack with `require_approval: true` was loaded and a configured
+suppression has no `approved_by`. Approvals live in
+`[[tool.forge-doctor.suppressions]]` — add `approved_by = "name"`.
 
 See `forge-doctor suppressions` for the full audit.

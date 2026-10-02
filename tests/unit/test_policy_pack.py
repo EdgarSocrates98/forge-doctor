@@ -155,3 +155,114 @@ def test_check_runs_inside_scan(tmp_path: Path) -> None:
 
     results = OrgPolicyPacks().run(_ctx(tmp_path))
     assert any(r.check_id == "ORG001" for r in results)
+
+
+# -- pack layering (extends) -------------------------------------------------
+
+_BASE = """
+pack: org-base
+rules:
+  - id: ORG001
+    severity: error
+    message: base rule
+    require:
+      file: BASE_ONLY.md
+"""
+
+_CHILD = """
+pack: repo-rules
+extends: org-base
+rules:
+  - id: ORG001
+    severity: warning
+    message: child override
+    require:
+      file: CHILD_ONLY.md
+  - id: REPO001
+    severity: warning
+    message: repo rule
+    require:
+      file: REPO.md
+"""
+
+
+def _write_pack_named(tmp_path: Path, name: str, text: str) -> Path:
+    d = tmp_path / ".forge-doctor" / "policy"
+    d.mkdir(parents=True, exist_ok=True)
+    p = d / name
+    p.write_text(text)
+    return p
+
+
+def test_extends_merges_and_child_overrides(tmp_path: Path) -> None:
+    _write_pack_named(tmp_path, "base.yml", _BASE)
+    _write_pack_named(tmp_path, "repo.yml", _CHILD)
+    packs, errors = load_packs(tmp_path)
+    assert errors == []
+    child = next(p for p in packs if p.name == "repo-rules")
+    ids = [r.id for r in child.rules]
+    assert sorted(ids) == ["ORG001", "REPO001"]
+    org001 = next(r for r in child.rules if r.id == "ORG001")
+    assert org001.severity == "warning"  # child override wins
+    assert org001.require is not None and org001.require.file == "CHILD_ONLY.md"
+
+
+def test_extends_unknown_pack_is_error(tmp_path: Path) -> None:
+    _write_pack_named(tmp_path, "repo.yml", _CHILD)
+    packs, errors = load_packs(tmp_path)
+    assert any("'org-base' not found" in e.message for e in errors)
+    # Pack still evaluates with its own rules.
+    assert any(r.id == "REPO001" for p in packs for r in p.rules)
+
+
+def test_extends_cycle_is_error(tmp_path: Path) -> None:
+    _write_pack_named(tmp_path, "a.yml", "pack: a\nextends: b\nrules: []\n")
+    _write_pack_named(tmp_path, "b.yml", "pack: b\nextends: a\nrules: []\n")
+    _, errors = load_packs(tmp_path)
+    assert any("cycle" in e.message for e in errors)
+
+
+def test_extends_empty_rules_pack(tmp_path: Path) -> None:
+    """A pack may consist purely of extends (rule-less overlay)."""
+    d = tmp_path / ".forge-doctor" / "policy"
+    d.mkdir(parents=True)
+    (d / "base.yml").write_text(_BASE)
+    (d / "overlay.yml").write_text("pack: overlay\nextends: org-base\nrules: []\n")
+    packs, errors = load_packs(tmp_path)
+    assert errors == []
+    overlay = next(p for p in packs if p.name == "overlay")
+    assert [r.id for r in overlay.rules] == ["ORG001"]
+
+
+# -- require_approval --------------------------------------------------------
+
+
+def test_require_approval_flags_unapproved_suppressions(tmp_path: Path) -> None:
+    _write_pack_named(
+        tmp_path,
+        "strict.yml",
+        "pack: strict\nrequire_approval: true\nrules: []\n",
+    )
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.forge-doctor]\n"
+        "[[tool.forge-doctor.suppressions]]\n"
+        'rule = "GLUE001"\n'
+        'owner = "alice"\n'
+        "[[tool.forge-doctor.suppressions]]\n"
+        'rule = "S3_001"\n'
+        'approved_by = "bob"\n'
+    )
+    ctx = _ctx(tmp_path)
+    results = evaluate_packs(ctx, load_packs(tmp_path)[0])
+    flagged = [r for r in results if r.check_id == "POLICY011"]
+    assert len(flagged) == 1
+    assert "GLUE001" in flagged[0].message
+
+
+def test_no_require_approval_no_findings(tmp_path: Path) -> None:
+    _write_pack_named(tmp_path, "loose.yml", "pack: loose\nrules: []\n")
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.forge-doctor]\n[[tool.forge-doctor.suppressions]]\nrule = "GLUE001"\n'
+    )
+    results = evaluate_packs(_ctx(tmp_path), load_packs(tmp_path)[0])
+    assert not any(r.check_id == "POLICY011" for r in results)

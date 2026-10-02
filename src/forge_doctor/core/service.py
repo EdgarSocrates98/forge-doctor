@@ -75,6 +75,15 @@ class ScanOutcome:
         return scan_cache(self.ctx)
 
 
+def _resolve_baseline(root: Path, value: Path) -> Path:
+    """Per-branch baselines: a bare name (``main``, no directory part, no
+    ``.json`` suffix) resolves to ``.forge-doctor/baselines/<name>.json``;
+    explicit paths pass through unchanged."""
+    if value.suffix == ".json" or len(value.parts) > 1 or (root / value).is_file():
+        return value
+    return root / ".forge-doctor" / "baselines" / f"{value.name}.json"
+
+
 def _warn_default(msg: str) -> None:
     from rich.console import Console
 
@@ -195,9 +204,9 @@ class ScanService:
         report = apply_profile(report, profile)
         report = apply_policy(report, ctx.config)
         if request.baseline is not None:
-            report = apply_baseline(report, request.baseline)
+            report = apply_baseline(report, _resolve_baseline(request.path, request.baseline))
         if request.save_baseline is not None:
-            save_baseline(report, request.save_baseline)
+            save_baseline(report, _resolve_baseline(request.path, request.save_baseline))
         if request.files:
             wanted = {Path(f).as_posix().removeprefix("./") for f in request.files}
             report = dataclasses.replace(

@@ -96,6 +96,7 @@ def apply_policy(
             reason=s.suppression.reason,
             owner=s.suppression.owner,
             expires=s.suppression.expires,
+            approved_by=s.suppression.approved_by,
             status=s.status,
             matched=s.matched,
         )

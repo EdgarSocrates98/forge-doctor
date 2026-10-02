@@ -78,6 +78,7 @@ def save_baseline(report: ScanReport, path: Path) -> None:
             for r in report.results
         ],
     }
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 

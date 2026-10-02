@@ -85,11 +85,20 @@ FailOnOpt = Annotated[
 ]
 VerboseOpt = Annotated[bool, typer.Option("--verbose", "-v", help="Internal detail.")]
 BaselineOpt = Annotated[
-    Path | None, typer.Option("--baseline", help="Compare against a saved baseline file.")
+    Path | None,
+    typer.Option(
+        "--baseline",
+        help="Compare against a baseline file or a named baseline "
+        "in .forge-doctor/baselines/<name>.json.",
+    ),
 ]
 SaveBaselineOpt = Annotated[
     Path | None,
-    typer.Option("--save-baseline", help="Write this scan's results to a baseline file."),
+    typer.Option(
+        "--save-baseline",
+        help="Write results to a baseline file or a named baseline "
+        "in .forge-doctor/baselines/<name>.json.",
+    ),
 ]
 OutputOpt = Annotated[Path | None, typer.Option("--output", "-o", help="Write output to a file.")]
 WatchOpt = Annotated[bool, typer.Option("--watch", "-w", help="Re-scan whenever files change.")]
@@ -127,6 +136,13 @@ StatsOpt = Annotated[
     bool,
     typer.Option("--stats", help="Per-check timings + cache hit rate to stderr."),
 ]
+EvidenceOutOpt = Annotated[
+    Path | None,
+    typer.Option(
+        "--evidence-out",
+        help="Write a dated audit bundle (report + suppressions + policy packs).",
+    ),
+]
 
 
 @dataclass
@@ -151,6 +167,7 @@ class _ScanCli:
     show_root: bool = False
     cache: bool | None = None
     stats: bool = False
+    evidence_out: Path | None = None
 
 
 def _build_registry(
@@ -282,6 +299,55 @@ def _emit_reports(
         _stderr.print(f"[yellow]Plugin skipped:[/yellow] {error}")
 
 
+def _write_evidence(target: Path, report: ScanReport, ctx: ProjectContext) -> Path:
+    """``--evidence-out``: dated audit bundle - the full JSON report, the
+    suppression audit trail, and the policy packs that were in effect."""
+    import dataclasses
+    import json as _json
+    from datetime import UTC, datetime
+
+    from forge_doctor.core.policy_pack import load_packs
+
+    bundle = target / f"evidence-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
+    bundle.mkdir(parents=True, exist_ok=True)
+    (bundle / "report.json").write_text(
+        render_json(report, show_root=True) + "\n", encoding="utf-8"
+    )
+    (bundle / "suppressions.json").write_text(
+        _json.dumps(
+            [dataclasses.asdict(s) for s in report.suppressions],
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    packs, errors = load_packs(ctx.root, ctx.config.policy_packs)
+    (bundle / "packs.json").write_text(
+        _json.dumps(
+            {
+                "packs": [
+                    {
+                        "name": p.name,
+                        "version": p.version,
+                        "rules": [r.id for r in p.rules],
+                        "extends": list(p.extends),
+                        "require_approval": p.require_approval,
+                        "path": str(p.path),
+                    }
+                    for p in packs
+                ],
+                "errors": [e.message for e in errors],
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return bundle
+
+
 def _run_scan(opts: _ScanCli) -> None:
     """Shared engine for ``scan`` and the per-category commands."""
     _validate_scan(opts)
@@ -292,6 +358,10 @@ def _run_scan(opts: _ScanCli) -> None:
     console = Console(no_color=opts.no_color)
     with _stderr.status("[cyan]Analyzing project...[/cyan]", spinner="dots"):
         report, runner, selected, plugin_errors, ctx = _execute_scan(opts)
+
+    if opts.evidence_out is not None:
+        bundle = _write_evidence(opts.evidence_out, report, ctx)
+        console.print(f"[green]evidence bundle written:[/green] {bundle.resolve()}")
 
     _emit_reports(report, opts, console, selected, plugin_errors)
 

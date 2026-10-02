@@ -11,7 +11,7 @@ from rich.table import Table
 
 from forge_doctor.api import SCHEMA_VERSION
 from forge_doctor.cli.app import app
-from forge_doctor.cli.common import _stderr
+from forge_doctor.cli.common import _build_registry, _stderr
 from forge_doctor.core.context import ProjectContext
 from forge_doctor.core.policy_pack import (
     PolicyPackError,
@@ -119,6 +119,95 @@ def policy_eval(
         )
     console.print(table)
     raise typer.Exit(1)
+
+
+@policy_app.command(name="report")
+def policy_report(
+    path: Annotated[Path, typer.Option("--path", help="Project root.")] = Path("."),
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Compliance report: packs, violations by rule, suppression audit."""
+    import json as _json
+    from collections import Counter
+    from datetime import date
+
+    from forge_doctor.core.policy import suppression_statuses
+    from forge_doctor.core.runner import CheckRunner
+    from forge_doctor.output.json_renderer import result_to_dict
+
+    ctx = ProjectContext(root=path.resolve())
+    packs, errors = load_packs(ctx.root, ctx.config.policy_packs)
+    violations = list(errors)
+    violations.extend(evaluate_packs(ctx, packs))
+
+    # Suppression matching needs the real findings stream.
+    registry, _ = _build_registry(no_plugins=True)
+    report = CheckRunner(registry).run(ctx)
+    statuses = suppression_statuses(ctx.config.suppressions, report.results, date.today())
+
+    by_rule = Counter(v.check_id for v in violations)
+    status_counts = Counter(s.status for s in statuses)
+    unapproved = [s for s in statuses if not s.suppression.approved_by]
+
+    if fmt == "json":
+        typer.echo(
+            _json.dumps(
+                {
+                    "tool": "forge-doctor",
+                    "schema_version": SCHEMA_VERSION,
+                    "packs": [
+                        {
+                            "name": p.name,
+                            "version": p.version,
+                            "rules": len(p.rules),
+                            "extends": list(p.extends),
+                            "require_approval": p.require_approval,
+                            "path": str(p.path),
+                        }
+                        for p in packs
+                    ],
+                    "violations": {
+                        "total": len(violations),
+                        "by_rule": dict(sorted(by_rule.items())),
+                        "findings": [result_to_dict(v) for v in violations],
+                    },
+                    "suppressions": {
+                        "total": len(statuses),
+                        "by_status": dict(sorted(status_counts.items())),
+                        "unapproved": [
+                            {"rule": s.suppression.rule, "path": s.suppression.path}
+                            for s in unapproved
+                        ],
+                    },
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    console = Console()
+    console.print(f"[bold]Packs:[/bold] {len(packs)} loaded, {len(errors)} invalid")
+    for pack in packs:
+        flags = []
+        if pack.extends:
+            flags.append(f"extends {', '.join(pack.extends)}")
+        if pack.require_approval:
+            flags.append("requires approval")
+        suffix = f" [dim]({'; '.join(flags)})[/dim]" if flags else ""
+        console.print(f"  {pack.name} v{pack.version}: {len(pack.rules)} rules{suffix}")
+    console.print(f"[bold]Violations:[/bold] {len(violations)}")
+    for rule_id, count in sorted(by_rule.items()):
+        console.print(f"  {rule_id}: {count}")
+    console.print(
+        f"[bold]Suppressions:[/bold] {len(statuses)} "
+        f"({status_counts.get('active', 0)} active, "
+        f"{status_counts.get('expired', 0)} expired, "
+        f"{status_counts.get('unused', 0)} unused; "
+        f"{len(unapproved)} without approved_by)"
+    )
+    if errors or violations:
+        raise typer.Exit(1)
 
 
 @policy_app.command(name="validate")

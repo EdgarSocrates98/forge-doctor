@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 
 POLICY_CATEGORY = "policy"
 INVALID_PACK_CHECK_ID = "POLICY010"
+UNAPPROVED_CHECK_ID = "POLICY011"
 
 _FORBID_OPS = ("equals", "matches", "present")
 _REQUIRE_TF_OPS = ("equals", "matches", "present")
@@ -96,6 +97,11 @@ class PolicyPack:
     name: str
     version: str
     rules: tuple[PolicyRule, ...]
+    # Names (or project-relative paths) of packs this pack inherits rules
+    # from; the child pack overrides a parent rule with the same id.
+    extends: tuple[str, ...] = ()
+    # When true, suppressions missing ``approved_by`` emit findings.
+    require_approval: bool = False
     path: Path | None = field(default=None, compare=False)
 
 
@@ -184,6 +190,13 @@ def load_pack(path: Path) -> PolicyPack:
         raise PolicyPackError(f"{path}: pack must be a mapping")
     name = str(data.get("pack", path.stem))
     version = str(data.get("version", "1"))
+    raw_extends = data.get("extends", [])
+    if isinstance(raw_extends, str):
+        raw_extends = [raw_extends]
+    if not isinstance(raw_extends, list):
+        raise PolicyPackError(f"{path}: 'extends' must be a string or list")
+    extends = tuple(str(e) for e in raw_extends)
+    require_approval = bool(data.get("require_approval", False))
     raw_rules = data.get("rules")
     if not isinstance(raw_rules, list):
         raise PolicyPackError(f"{path}: 'rules' must be a list")
@@ -217,7 +230,14 @@ def load_pack(path: Path) -> PolicyPack:
                 recommendation=str(rr.get("recommendation", "")),
             )
         )
-    return PolicyPack(name=name, version=version, rules=tuple(rules), path=path)
+    return PolicyPack(
+        name=name,
+        version=version,
+        rules=tuple(rules),
+        extends=extends,
+        require_approval=require_approval,
+        path=path,
+    )
 
 
 def discover_packs(root: Path, extra: tuple[str, ...] = ()) -> list[Path]:
@@ -240,26 +260,96 @@ def discover_packs(root: Path, extra: tuple[str, ...] = ()) -> list[Path]:
     return found
 
 
+def _pack_error(message: str) -> CheckResult:
+    return CheckResult(
+        check_id=INVALID_PACK_CHECK_ID,
+        title="Invalid policy pack",
+        severity=Severity.ERROR,
+        category=POLICY_CATEGORY,
+        message=message,
+    )
+
+
+def _resolve_extends(packs: list[PolicyPack], errors: list[CheckResult]) -> list[PolicyPack]:
+    """Inline each pack's ``extends`` chain into its rule set.
+
+    Parents are resolved by pack name or project-relative path; on a rule
+    id collision the child (extending) pack wins. Unresolved references
+    and cycles become POLICY010 findings and the pack keeps its own rules.
+    """
+    by_name: dict[str, PolicyPack] = {p.name: p for p in packs}
+    by_path: dict[str, PolicyPack] = {p.path.as_posix(): p for p in packs if p.path is not None}
+
+    merged: dict[str, PolicyPack] = {}
+
+    def resolve(pack: PolicyPack, chain: tuple[str, ...]) -> PolicyPack | None:
+        if not pack.extends:
+            return pack
+        if pack.name in merged:
+            return merged[pack.name]
+        if pack.name in chain:
+            errors.append(
+                _pack_error(f"pack {pack.name}: extends cycle {' -> '.join((*chain, pack.name))}")
+            )
+            return pack
+        inherited: dict[str, PolicyRule] = {}
+        ok = True
+        for ref in pack.extends:
+            parent = by_name.get(ref) or by_path.get(ref)
+            if parent is None:
+                # Try as a project-relative file path.
+                candidate = pack.path.parent / ref if pack.path is not None else None
+                if candidate is not None and candidate.is_file():
+                    try:
+                        parent = load_pack(candidate)
+                    except PolicyPackError as exc:
+                        errors.append(_pack_error(str(exc)))
+                        ok = False
+                        continue
+                else:
+                    errors.append(_pack_error(f"pack {pack.name}: extends '{ref}' not found"))
+                    ok = False
+                    continue
+            resolved = resolve(parent, (*chain, pack.name))
+            if resolved is None:
+                ok = False
+                continue
+            for rule in resolved.rules:
+                inherited[rule.id] = rule
+        merged_rules: dict[str, PolicyRule] = dict(inherited)
+        for rule in pack.rules:
+            merged_rules[rule.id] = rule
+        out = PolicyPack(
+            name=pack.name,
+            version=pack.version,
+            rules=tuple(merged_rules.values()),
+            extends=pack.extends,
+            require_approval=pack.require_approval,
+            path=pack.path,
+        )
+        if ok:
+            merged[pack.name] = out
+        return out
+
+    return [resolve(p, ()) or p for p in packs]
+
+
 def load_packs(
     root: Path, extra: tuple[str, ...] = ()
 ) -> tuple[list[PolicyPack], list[CheckResult]]:
-    """Load every discovered pack; unloadable packs become findings."""
+    """Load every discovered pack; unloadable packs become findings.
+
+    ``extends`` chains are resolved after loading: the child's rules
+    override the parent's on rule-id collision.
+    """
     packs: list[PolicyPack] = []
     errors: list[CheckResult] = []
     for path in discover_packs(root, extra):
         try:
             packs.append(load_pack(path))
         except PolicyPackError as exc:
-            errors.append(
-                CheckResult(
-                    check_id=INVALID_PACK_CHECK_ID,
-                    title="Invalid policy pack",
-                    severity=Severity.ERROR,
-                    category=POLICY_CATEGORY,
-                    message=str(exc),
-                )
-            )
-    return packs, errors
+            errors.append(_pack_error(str(exc)))
+    return _resolve_extends(packs, errors), errors
 
 
 # -- evaluation ------------------------------------------------------------
@@ -403,4 +493,30 @@ def evaluate_packs(ctx: ProjectContext, packs: list[PolicyPack]) -> list[CheckRe
                 results.extend(_eval_forbid(rule, rule.forbid, pack, ctx))
             if rule.require is not None:
                 results.extend(_eval_require(rule, rule.require, pack, ctx))
+    if any(p.require_approval for p in packs):
+        results.extend(_eval_approval(ctx))
     return results
+
+
+def _eval_approval(ctx: ProjectContext) -> list[CheckResult]:
+    """``require_approval`` packs: suppressions without ``approved_by``
+    are unaudited exceptions - surface each as a finding."""
+    out: list[CheckResult] = []
+    for s in ctx.config.suppressions:
+        if s.approved_by:
+            continue
+        out.append(
+            CheckResult(
+                check_id=UNAPPROVED_CHECK_ID,
+                title="Suppression lacks approval",
+                severity=Severity.WARNING,
+                category=POLICY_CATEGORY,
+                message=(
+                    f"suppression for {s.rule}"
+                    + (f" on {s.path}" if s.path else "")
+                    + " has no approved_by - a policy pack requires approval"
+                ),
+                recommendation="Add approved_by with the approver, or remove the suppression.",
+            )
+        )
+    return out

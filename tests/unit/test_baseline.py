@@ -120,3 +120,23 @@ def test_fail_on_warning_with_baseline(tmp_path: Path):
     save_baseline(_report(_result("X001")), path)
     report = apply_baseline(_report(_result("X001"), _result("X002")), path)
     assert exit_code(report, fail_on="warning") == 1
+
+
+def test_named_baseline_resolution(tmp_path: Path):
+    """--baseline <name> resolves to .forge-doctor/baselines/<name>.json."""
+    from forge_doctor.core.service import _resolve_baseline
+
+    assert _resolve_baseline(tmp_path, Path("main")) == (
+        tmp_path / ".forge-doctor" / "baselines" / "main.json"
+    )
+    # Explicit paths pass through unchanged.
+    assert _resolve_baseline(tmp_path, Path("snap/x.json")) == Path("snap/x.json")
+    assert _resolve_baseline(tmp_path, Path("x.json")) == Path("x.json")
+    # An existing file with a plain name wins over the baselines dir.
+    (tmp_path / "mine").write_text("{}")
+    assert _resolve_baseline(tmp_path, Path("mine")) == Path("mine")
+
+
+def test_save_baseline_creates_parents(tmp_path: Path):
+    save_baseline(_report(_result("X001")), tmp_path / ".forge-doctor" / "baselines" / "main.json")
+    assert (tmp_path / ".forge-doctor" / "baselines" / "main.json").is_file()

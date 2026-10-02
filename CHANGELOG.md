@@ -73,6 +73,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   install` wraps `pipx inject`/`pip` with post-install validation;
   `[tool.forge-doctor.plugins] mode = "strict"` adds default-deny trust
   (only `trusted` may load — `allow` identities no longer suffice).
+- **Enterprise governance** — policy packs gain layering (`extends:` a
+  named or path-referenced pack; child rules override the parent's on
+  id collision; cycles/missing refs surface as `POLICY010`) and
+  `require_approval`, under which suppressions missing `approved_by`
+  emit `POLICY011` findings. `suppressions` records/report show the
+  approver. `forge-doctor policy report` summarizes compliance (packs,
+  violations by rule, suppression audit; `--format json`). `--baseline`
+  /`--save-baseline` accept bare names (`main`) that resolve to
+  `.forge-doctor/baselines/<name>.json` for per-branch baselines.
+  `scan --evidence-out <dir>` writes a dated audit bundle
+  (`report.json` + `suppressions.json` + `packs.json`).
 
 ### Fixed
 

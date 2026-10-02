@@ -14,6 +14,7 @@ from forge_doctor.cli.common import (
     CacheOpt,
     CheckOpt,
     EmitOpt,
+    EvidenceOutOpt,
     FailOnOpt,
     FilesOpt,
     FormatOpt,
@@ -61,6 +62,7 @@ def scan(
     show_root: ShowRootOpt = False,
     cache: CacheOpt = True,
     stats: StatsOpt = False,
+    evidence_out: EvidenceOutOpt = None,
 ) -> None:
     """Scan a project for data-engineering problems."""
     _run_scan(
@@ -85,6 +87,7 @@ def scan(
             show_root=show_root,
             cache=cache,
             stats=stats,
+            evidence_out=evidence_out,
         )
     )
 

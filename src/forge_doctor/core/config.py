@@ -28,6 +28,9 @@ class Suppression:
     reason: str = ""
     owner: str = ""
     expires: str | None = None  # ISO date; past date reactivates the rule
+    # Governance: who signed off. Packs with ``require_approval`` flag
+    # suppressions missing this.
+    approved_by: str = ""
 
 
 @dataclass(frozen=True)
@@ -155,6 +158,7 @@ def _parse_suppressions(value: Any) -> tuple[Suppression, ...]:
                 reason=str(item.get("reason") or ""),
                 owner=str(item.get("owner") or ""),
                 expires=expires,
+                approved_by=str(item.get("approved_by") or ""),
             )
         )
     return tuple(suppressions)

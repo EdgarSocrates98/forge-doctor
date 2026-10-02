@@ -160,6 +160,7 @@ class SuppressionRecord:
     reason: str
     owner: str
     expires: str | None
+    approved_by: str
     status: str  # "active" | "expired" | "unused"
     matched: int
 

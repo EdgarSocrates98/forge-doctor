@@ -245,6 +245,7 @@ def suppressions_cmd(
                         "path": s.suppression.path,
                         "owner": s.suppression.owner,
                         "expires": s.suppression.expires,
+                        "approved_by": s.suppression.approved_by,
                         "status": s.status,
                         "matched": s.matched,
                         "reason": s.suppression.reason,
@@ -259,7 +260,7 @@ def suppressions_cmd(
 
     console = Console()
     table = Table(title="Suppressions", title_justify="left")
-    for column in ("Rule", "Path", "Owner", "Expires", "Status", "Matched"):
+    for column in ("Rule", "Path", "Owner", "Expires", "Approved", "Status", "Matched"):
         table.add_column(column, style="bold" if column == "Rule" else "")
     style = {"active": "yellow", "expired": "red", "unused": "dim"}
     for status in statuses:
@@ -269,6 +270,7 @@ def suppressions_cmd(
             s.path or "*",
             s.owner or "-",
             s.expires or "-",
+            s.approved_by or "-",
             f"[{style.get(status.status, 'white')}]{status.status.upper()}[/]",
             str(status.matched),
         )

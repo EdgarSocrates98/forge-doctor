@@ -53,6 +53,9 @@ forge-doctor scan . --watch         # re-scan on every file change
 forge-doctor scan . --save-baseline .fd-baseline.json
 forge-doctor scan . --baseline .fd-baseline.json   # only NEW findings fail
 forge-doctor scan . --baseline .fd.json --new-only # just the new ones
+forge-doctor scan . --save-baseline main       # named: .forge-doctor/baselines/main.json
+forge-doctor scan . --baseline main --new-only # per-branch baselines
+forge-doctor scan . --evidence-out audit/      # dated audit bundle (report+suppressions+packs)
 forge-doctor diff old.json new.json     # diff two saved reports
 forge-doctor diff HEAD~1...HEAD         # diff across git refs
 forge-doctor compatibility --to 6.0     # Glue env + migration risks
@@ -70,6 +73,7 @@ forge-doctor capabilities list .      # platform capability registry report
 forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
 forge-doctor migrate plan .           # named deterministic migration plans
 forge-doctor policy list .            # organization policy packs
+forge-doctor policy report .          # compliance: violations + suppression audit
 forge-doctor lab run                  # Forge Lab scenario suites + ground truth
 forge-doctor golden run               # golden-repo snapshot regression
 forge-doctor bench run .              # performance & scale benchmark
@@ -340,10 +344,14 @@ path = "src/legacy/**"      # glob-scoped
 reason = "migration in progress"
 owner = "@data"
 expires = "2026-12-31"      # past expiry reactivates the finding
+approved_by = "@sec-lead"   # governance sign-off (POLICY011 if a pack requires it)
 ```
 
 `forge-doctor suppressions` audits every exception as ACTIVE / EXPIRED /
-UNUSED; expired ones emit `POLICY001` warnings instead of suppressing.
+UNUSED with owner and approver; expired ones emit `POLICY001` warnings
+instead of suppressing. A policy pack with `require_approval: true`
+makes unapproved suppressions emit `POLICY011` findings — and packs can
+`extends:` a shared org pack (child rules override by id).
 
 ## Workspace
 
