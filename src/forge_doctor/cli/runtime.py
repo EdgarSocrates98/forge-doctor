@@ -115,6 +115,57 @@ def runtime_inspect(
     console.print()
 
 
+@runtime_app.command(name="executions")
+def runtime_executions(
+    artifact: Annotated[Path, typer.Argument(help="Exported engine artifact.")],
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Normalize an exported artifact into QueryExecution spines."""
+    from forge_doctor.analyzers.execution_adapters import ingest_executions
+    from forge_doctor.core.execution_model import sanitize_text
+
+    source, executions = ingest_executions(artifact, adapter=adapter)
+    if as_json:
+        typer.echo(
+            sanitize_text(
+                json.dumps(
+                    {
+                        "source": source,
+                        "count": len(executions),
+                        "executions": [e.to_dict() for e in executions],
+                    },
+                    indent=2,
+                )
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Query Executions[/bold]  source={source} count={len(executions)}")
+    if source in {"unknown", "unreadable"}:
+        console.print("  no adapter matched - artifact unrecognized")
+        raise typer.Exit(2)
+    for ex in executions:
+        dur = f"{ex.duration_ms:.0f}ms" if ex.duration_ms is not None else "-"
+        console.print(
+            f"  {ex.execution_id} engine={ex.engine} status={ex.status.value} "
+            f"dur={dur} fp={ex.query_fingerprint or '-'}"
+        )
+        for st in ex.stages:
+            console.print(
+                f"    stage {st.id} kind={st.kind.value} "
+                f"in={st.input_bytes}B out={st.output_bytes}B "
+                f"shuffle={st.shuffle_bytes}B spill={st.spill_bytes}B"
+            )
+        for name, mv in sorted(ex.metrics.known().items()):
+            console.print(f"    metric {name}={mv.value:g} ({mv.basis})")
+        unknown = ex.metrics.unknown()
+        if unknown:
+            console.print(f"    unknown: {', '.join(unknown)}")
+    console.print()
+
+
 @runtime_app.command(name="diagnose")
 def runtime_diagnose(
     artifact: Annotated[Path, typer.Argument(help="Exported runtime artifact.")],
