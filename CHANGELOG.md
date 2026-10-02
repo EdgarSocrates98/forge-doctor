@@ -200,6 +200,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `entry_id`/`matched_when`/`missing_evidence`. Ontology gains
   `capability`/`knowledge_pack` kinds, `EVIDENCED_BY` rel, and the
   `knowledge` producer domain (additive vocabulary).
+- **Formal digital twin** — `core/twin.py` assembles the platform graph
+  plus a deterministic invariant suite (I1 dangling endpoints, I2
+  canonical id shape, I3 evidence-plane binding, I4 finding-file
+  resolution under root, I5 attr-completeness as informational gaps).
+  `forge-doctor twin inspect <path>` prints the summary + invariant
+  report and exits 1 on hard violations; `twin export` emits the
+  deterministic snapshot artifact (`entities`/`relationships` +
+  `invariants_ok`/`summary` header — satisfies the `platform-graph`
+  contract). Validation reports; it never mutates the graph.
 
 ### Fixed
 

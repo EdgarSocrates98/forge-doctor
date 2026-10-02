@@ -39,6 +39,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     streaming,
     streaming_bus,
     terraform,
+    twin,
     whatif,
     workspace,
 )
@@ -114,6 +115,7 @@ _PANELS: dict[str, dict[str, str]] = {
             "compatibility",
             "migrate",
             "what-if",
+            "twin",
         ),
         "Estate & change",
     ),
