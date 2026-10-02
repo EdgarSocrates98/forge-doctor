@@ -1,0 +1,6 @@
+{
+  "name": "linked",
+  "description": "gcp+azure mixed estate: object_storage parity; operational_store azure-only but geo_location/failover declared (linked -> CLOUD002 silent)",
+  "expected_findings": ["CLOUD000"],
+  "forbidden_findings": ["CLOUD002"]
+}

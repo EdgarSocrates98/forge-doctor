@@ -1,0 +1,180 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capabilities",
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html",
+    "https://cloud.google.com/storage/docs/object-versioning",
+    "https://learn.microsoft.com/azure/storage/blobs/versioning-overview",
+    "https://docs.aws.amazon.com/kinesis/",
+    "https://cloud.google.com/pubsub/docs",
+    "https://learn.microsoft.com/azure/event-hubs/",
+    "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html",
+    "https://cloud.google.com/dataproc-serverless",
+    "https://docs.aws.amazon.com/dynamodb/latest/developerguide/TTL.html",
+    "https://learn.microsoft.com/azure/cosmos-db/nosql/time-to-live",
+    "https://cloud.google.com/bigtable/docs/garbage-collection",
+    "https://docs.snowflake.com/en/user-guide/data-time-travel",
+    "https://cloud.google.com/bigquery/docs/time-travel",
+    "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html"
+  ],
+  "capabilities": [
+    {
+      "id": "VERSIONING",
+      "platform": "object_storage",
+      "status": "supported",
+      "when": {"service": "s3"},
+      "reason": "S3 bucket versioning is GA.",
+      "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html"
+    },
+    {
+      "id": "VERSIONING",
+      "platform": "object_storage",
+      "status": "supported",
+      "when": {"service": "gcs"},
+      "reason": "GCS object versioning is GA.",
+      "source": "https://cloud.google.com/storage/docs/object-versioning"
+    },
+    {
+      "id": "VERSIONING",
+      "platform": "object_storage",
+      "status": "supported",
+      "when": {"service": "storage_account"},
+      "reason": "Azure blob versioning is GA on storage accounts.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/versioning-overview"
+    },
+    {
+      "id": "VERSIONING",
+      "platform": "object_storage",
+      "status": "supported",
+      "when": {"service": "adls_gen2"},
+      "reason": "ADLS Gen2 inherits blob versioning on the storage account.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/versioning-overview"
+    },
+    {
+      "id": "ENCRYPTION_AT_REST",
+      "platform": "object_storage",
+      "status": "supported",
+      "reason": "SSE-S3/SSE-KMS, GCS default encryption, and Azure SSE are all GA across object stores.",
+      "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html"
+    },
+    {
+      "id": "MESSAGE_ORDERING",
+      "platform": "stream",
+      "status": "conditional",
+      "reason": "Ordering is scoped per shard/partition/key, not global.",
+      "source": "https://docs.aws.amazon.com/kinesis/"
+    },
+    {
+      "id": "RETENTION_CONFIG",
+      "platform": "stream",
+      "status": "supported",
+      "reason": "Kinesis retention, Event Hubs retention, and Pub/Sub retention are all configurable.",
+      "source": "https://cloud.google.com/pubsub/docs"
+    },
+    {
+      "id": "SERVERLESS_OPTION",
+      "platform": "compute_engine",
+      "status": "supported",
+      "when": {"service": "emr"},
+      "reason": "EMR Serverless is GA.",
+      "source": "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html"
+    },
+    {
+      "id": "SERVERLESS_OPTION",
+      "platform": "compute_engine",
+      "status": "supported",
+      "when": {"service": "glue"},
+      "reason": "Glue jobs are serverless by definition.",
+      "source": "https://docs.aws.amazon.com/glue/"
+    },
+    {
+      "id": "SERVERLESS_OPTION",
+      "platform": "compute_engine",
+      "status": "supported",
+      "when": {"service": "dataproc"},
+      "reason": "Dataproc Serverless is GA.",
+      "source": "https://cloud.google.com/dataproc-serverless"
+    },
+    {
+      "id": "SERVERLESS_OPTION",
+      "platform": "compute_engine",
+      "status": "conditional",
+      "when": {"service": "synapse"},
+      "reason": "Serverless SQL pools exist; Spark pools are provisioned.",
+      "source": "https://learn.microsoft.com/azure/synapse-analytics/"
+    },
+    {
+      "id": "TIME_TO_LIVE",
+      "platform": "operational_store",
+      "status": "supported",
+      "reason": "DynamoDB TTL, Cosmos TTL, and Bigtable GC policies all provide expiry.",
+      "source": "https://docs.aws.amazon.com/dynamodb/latest/developerguide/TTL.html"
+    },
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "warehouse",
+      "status": "supported",
+      "when": {"service": "snowflake"},
+      "reason": "Snowflake Time Travel is GA (0-90 days by edition).",
+      "source": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+    },
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "warehouse",
+      "status": "supported",
+      "when": {"service": "bigquery"},
+      "reason": "BigQuery time travel window is 7 days.",
+      "source": "https://cloud.google.com/bigquery/docs/time-travel"
+    },
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "warehouse",
+      "status": "unsupported",
+      "when": {"service": "redshift"},
+      "reason": "Redshift has snapshots, not query-level time travel.",
+      "source": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html"
+    },
+    {
+      "id": "ZERO_COPY_CLONE",
+      "platform": "warehouse",
+      "status": "supported",
+      "when": {"service": "snowflake"},
+      "reason": "Snowflake zero-copy cloning is GA.",
+      "source": "https://docs.snowflake.com/en/user-guide/object-clone"
+    },
+    {
+      "id": "ZERO_COPY_CLONE",
+      "platform": "warehouse",
+      "status": "supported",
+      "when": {"service": "bigquery"},
+      "reason": "BigQuery table clones are zero-copy.",
+      "source": "https://cloud.google.com/bigquery/docs/table-clones-intro"
+    },
+    {
+      "id": "FINE_GRAINED_ACCESS",
+      "platform": "catalog",
+      "status": "supported",
+      "when": {"service": "purview"},
+      "reason": "Purview provides collection/label-level access control.",
+      "source": "https://learn.microsoft.com/purview/"
+    },
+    {
+      "id": "FINE_GRAINED_ACCESS",
+      "platform": "catalog",
+      "status": "conditional",
+      "when": {"service": "glue"},
+      "reason": "Glue catalog alone is coarse; Lake Formation adds FGAC.",
+      "source": "https://docs.aws.amazon.com/lake-formation/"
+    },
+    {
+      "id": "FINE_GRAINED_ACCESS",
+      "platform": "catalog",
+      "status": "supported",
+      "when": {"service": "unity"},
+      "reason": "Unity Catalog row/column-level security is GA.",
+      "source": "https://docs.databricks.com/data-governance/unity-catalog/"
+    }
+  ]
+}

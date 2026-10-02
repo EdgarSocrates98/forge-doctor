@@ -1,0 +1,6 @@
+{
+  "name": "mixed-parity",
+  "description": "aws+azure mixed estate: object_storage has parity; stream aws-only and operational_store azure-only with no links (CLOUD002 x2)",
+  "expected_findings": ["CLOUD002"],
+  "forbidden_findings": []
+}

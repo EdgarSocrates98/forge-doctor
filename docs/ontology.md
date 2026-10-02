@@ -123,6 +123,7 @@ produced it — free text at construction, so this list is what
 | athena | Amazon Athena analytics model. |
 | aws | Generic AWS provider resources not mapped to a narrower family. |
 | clickhouse | ClickHouse real-time OLAP model. |
+| cloud | Vendor-neutral cloud abstraction view (multi-cloud parity). |
 | controlm | Control-M scheduling model. |
 | databricks | Databricks workspace model. |
 | datacontract | Data contract model (declared schema/SLA promises). |

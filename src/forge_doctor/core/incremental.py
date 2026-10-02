@@ -73,6 +73,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "aws": frozenset({ENV, HOST}),
     "bigquery": frozenset({SQL, TERRAFORM, CONFIG, FILES}),
     "ci": frozenset({CI, FILES}),
+    "cloud": frozenset({TERRAFORM, UNBOUNDED}),
     "controlm": frozenset({CONFIG, CODE, FILES}),
     "datacontract": frozenset({SQL, TERRAFORM, CONFIG, FILES}),
     "dbt": frozenset({SQL, CONFIG, FILES}),

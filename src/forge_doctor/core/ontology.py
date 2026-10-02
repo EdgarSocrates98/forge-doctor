@@ -143,6 +143,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "athena": "Amazon Athena analytics model.",
     "aws": "Generic AWS provider resources not mapped to a narrower family.",
     "clickhouse": "ClickHouse real-time OLAP model.",
+    "cloud": "Vendor-neutral cloud abstraction view (multi-cloud parity).",
     "controlm": "Control-M scheduling model.",
     "databricks": "Databricks workspace model.",
     "dbt": "dbt transformation-layer model (models, sources, tests).",

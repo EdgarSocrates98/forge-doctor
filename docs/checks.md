@@ -1894,3 +1894,32 @@ suite (declared-side finding).
 A column expectation names a field the detected schema (contract
 `field.*` attrs) no longer carries; unknown schemas stay silent.
 **Fix:** update the suite or restore the column.
+
+## Multi-cloud abstractions (CloudAbstractionModel — AWS/Azure/GCP parity)
+
+A *view over* existing evidence — Terraform `aws_*`/`azurerm_*`/
+`google_*` data-platform resources and vendor-attributed graph entities
+fold into six vendor-neutral abstractions: `object_storage` (s3 /
+adls_gen2/storage_account / gcs), `stream` (kinesis / eventhubs /
+pubsub / msk / kafka), `compute_engine` (emr / synapse / databricks /
+dataproc / glue), `catalog` (glue / purview / unity / datacatalog),
+`operational_store` (dynamodb / cosmosdb / bigtable), `warehouse`
+(redshift / synapse_sql / bigquery / snowflake). Attribute
+normalization is shallow by design: name, region/location, encryption,
+public exposure, plus a bounded vendor-attrs passthrough. Existing
+check ids and semantics are untouched — abstractions replace nothing.
+
+### CLOUD000 — Multi-cloud surface · pass/info
+Anchor census: abstracted services per kind and clouds in the estate.
+
+### CLOUD001 — Platform entity outside abstraction coverage · info
+A data-bearing entity in a platform domain (trino, analytical, search,
+neptune…) resolves to no abstraction — a blind spot in the
+vendor-neutral view; internal signal, capped at 15.
+**Fix:** extend the abstraction map (adapter-layer work, not user debt).
+
+### CLOUD002 — Single-cloud abstraction in a mixed estate · info
+The project uses ≥2 real clouds but an abstraction kind exists on only
+one, with no declared replication/migration link (`*replicat*`/
+`*mirror*`/`*failover*`/`geo_location` keys or bodies). **Fix:** deploy
+the equivalent service or declare the link.

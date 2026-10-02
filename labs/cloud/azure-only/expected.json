@@ -1,0 +1,6 @@
+{
+  "name": "azure-only",
+  "description": "Single-cloud Azure estate: abstractions resolve but CLOUD002 stays silent (not mixed)",
+  "expected_findings": ["CLOUD000"],
+  "forbidden_findings": ["CLOUD002"]
+}

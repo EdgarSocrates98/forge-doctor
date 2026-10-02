@@ -1,0 +1,6 @@
+{
+  "name": "gcp-only",
+  "description": "Single-cloud GCP estate: gcs/pubsub/bigquery/dataproc resolve; CLOUD002 silent",
+  "expected_findings": ["CLOUD000"],
+  "forbidden_findings": ["CLOUD002"]
+}

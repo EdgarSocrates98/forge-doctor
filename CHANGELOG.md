@@ -426,6 +426,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `forge-doctor quality inspect`, labs
   `labs/quality/{gx-unwired,contract-drift,soda-covered,adversarial}` —
   a bare CI `checks:` key never attributes SodaCL.
+- **Multi-cloud abstractions** (spec 223, roadmap-4 wave 6) —
+  `analyzers/abstractions.py` builds `CloudAbstractionModel`: a
+  vendor-neutral *view* over existing entities (nothing is replaced) —
+  `object_storage` ← s3/storage_account/adls_gen2/gcs, `stream` ←
+  kinesis/eventhubs/pubsub/msk/kafka, `compute_engine` ←
+  emr/synapse/databricks/dataproc/glue, `catalog` ←
+  glue/purview/unity/datacatalog, `operational_store` ←
+  dynamodb/cosmosdb/bigtable, `warehouse` ← redshift/synapse_sql/
+  bigquery/snowflake. Terraform `azurerm_*`/`google_*` data-platform
+  resources now feed the view (storage accounts, ADLS filesystems,
+  Event Hubs, Pub/Sub, Dataproc, BigQuery datasets, Cosmos DB, Synapse,
+  Purview); warehouse-domain graph entities fold in via their
+  `platform` attr. Attribute normalization is shallow per the spec's
+  open question (name/region/encryption/public + bounded passthrough).
+  `CLOUD001` reports platform entities with no abstraction mapping
+  (internal blind-spot signal); `CLOUD002` flags single-cloud
+  abstraction kinds in mixed estates lacking a declared replication/
+  migration link. Capability pack `cloud.json` answers cloud-agnostic
+  questions — `capabilities_evaluate("object_storage", "VERSIONING",
+  attributes={"service": "gcs"})` resolves the per-cloud surface.
+  New command `forge-doctor cloud inspect`, labs
+  `labs/cloud/{azure-only,gcp-only,mixed-parity,linked}`.
 
 ### Fixed
 
