@@ -1,0 +1,133 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://parquet.apache.org/docs/file-format/",
+    "https://spark.apache.org/docs/latest/sql-data-sources-parquet.html"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "check_id": "PARQ010"
+      },
+      "problem": "write pattern produces small files",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Repartition by the table partition key before write, or enable adaptive coalesce",
+          "target_entity": null,
+          "rationale": "per-task files should be sized near the target block size",
+          "expected_effect": "fewer, larger files",
+          "validation": "file-size histogram tightens around target",
+          "depends_on": []
+        }
+      ],
+      "validation_steps": [
+        "count output files before/after"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PARQ040"
+      },
+      "problem": "small-file proliferation raises metadata and scan cost",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Compact existing files (rewrite_data_files for Iceberg; OPTIMIZE or CTAS+swap for raw parquet)",
+          "target_entity": null,
+          "rationale": "compaction merges small files without changing data",
+          "expected_effect": "file count drops, scan planning faster",
+          "validation": "file count and Athena/Spark planning time drop",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Fix the writer so new files arrive at target size",
+          "target_entity": null,
+          "rationale": "compaction without writer fixes recurs",
+          "expected_effect": "steady-state file size",
+          "validation": "new partitions land near target size",
+          "depends_on": [
+            "A1"
+          ]
+        }
+      ],
+      "prerequisites": [
+        "maintenance window for compaction"
+      ],
+      "risks": [
+        "compaction rewrites data - snapshot/rollback strategy needed"
+      ],
+      "validation_steps": [
+        "compare file counts",
+        "re-run a consumer query"
+      ],
+      "rollback_notes": [
+        "Iceberg: roll back to pre-compaction snapshot"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PARQ041"
+      },
+      "problem": "excessive file count in a partition",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Compact the affected partitions and increase per-file target size",
+          "target_entity": null,
+          "rationale": "list/open cost scales with file count",
+          "expected_effect": "planning latency drops",
+          "validation": "file count under threshold",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PARQ042"
+      },
+      "problem": "inconsistent file-size distribution signals skewed writes",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Review the write key distribution; salt or rebalance skewed keys",
+          "target_entity": null,
+          "rationale": "p95 >> median usually means skewed partition values",
+          "expected_effect": "uniform file sizes, less straggler time",
+          "validation": "file-size p95/median ratio approaches 1",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "salting changes partition layout - consumers must agree"
+      ],
+      "validation_steps": [
+        "re-measure file-size distribution"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PARQ020"
+      },
+      "problem": "uncompressed analytical dataset",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Rewrite with snappy/zstd compression",
+          "target_entity": null,
+          "rationale": "compression cuts scan bytes 3-10x for columnar data",
+          "expected_effect": "less data scanned, faster queries",
+          "validation": "DataScannedInBytes drops on a reference query",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "zstd slightly slower writes than snappy"
+      ]
+    }
+  ]
+}

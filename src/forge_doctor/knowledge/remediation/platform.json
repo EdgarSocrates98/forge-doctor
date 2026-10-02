@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://airflow.apache.org/docs/apache-airflow/stable/",
+    "https://iceberg.apache.org/docs/latest/reliability/"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "check_id": "PLAT001"
+      },
+      "problem": "orchestrator retries a non-idempotent sink - duplicate-write risk",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Make the sink write idempotent (merge/upsert with deterministic keys, or staging write + atomic swap)",
+          "target_entity": null,
+          "rationale": "retries are safe only when replays converge",
+          "expected_effect": "retried runs produce identical output",
+          "validation": "force a retry in staging; diff the output",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "If the sink cannot be idempotent, cap retries at 0-1 for the writing task and alert on failure",
+          "target_entity": null,
+          "rationale": "bounded retry contains the blast radius",
+          "expected_effect": "duplicates impossible; failures surface",
+          "validation": "task retries config + failure alert fires",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "identify every retried writer path"
+      ],
+      "risks": [
+        "retry=0 trades duplicates for manual recovery"
+      ],
+      "validation_steps": [
+        "chaos-test a retried run"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PLAT003"
+      },
+      "problem": "continuous writer without storage maintenance",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Schedule compaction (rewrite_data_files / OPTIMIZE) matched to ingest rate",
+          "target_entity": null,
+          "rationale": "small files accumulate proportional to commit frequency",
+          "expected_effect": "file count stable",
+          "validation": "file-count trend flat over a week",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Schedule snapshot/manifest expiry",
+          "target_entity": null,
+          "rationale": "metadata grows with every micro-commit",
+          "expected_effect": "metadata bounded",
+          "validation": "planning latency flat",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "compaction during peak ingest can contend"
+      ],
+      "validation_steps": [
+        "run compaction during a peak window once, measure impact"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "PLAT007"
+      },
+      "problem": "stream sink retries with side effects - replay risk",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Key sink writes by (source offset, batch id) or enforce dedup on the sink",
+          "target_entity": null,
+          "rationale": "replay of the same batch is the failure mode",
+          "expected_effect": "replays converge",
+          "validation": "duplicate-detection metric stays zero",
+          "depends_on": []
+        }
+      ]
+    }
+  ]
+}

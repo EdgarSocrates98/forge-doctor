@@ -1,0 +1,160 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://spark.apache.org/docs/latest/tuning.html",
+    "https://spark.apache.org/docs/latest/sql-performance-tuning.html"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "check_id": "SPARK003"
+      },
+      "problem": "single-partition write serialization",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Remove repartition(1)/coalesce(1) or repartition by the table's partition key",
+          "target_entity": null,
+          "rationale": "a single task writes all output; partitioning keeps parallelism",
+          "expected_effect": "write stage parallelism restored",
+          "validation": "re-run the job; stage task count > 1 in the event log",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "If one output file is required, write partitioned then merge in a separate compaction step",
+          "target_entity": null,
+          "rationale": "decouples parallelism from file count",
+          "expected_effect": "parallel write + controlled file count",
+          "validation": "event log shows parallel write stage; file count matches expectation",
+          "depends_on": [
+            "A1"
+          ]
+        }
+      ],
+      "prerequisites": [
+        "confirm downstream consumers do not require a single file"
+      ],
+      "risks": [
+        "more, smaller output files if partitioning is not reviewed"
+      ],
+      "validation_steps": [
+        "compare stage task counts before/after",
+        "verify output row count unchanged"
+      ],
+      "rollback_notes": [
+        "re-add the repartition call if consumers regress"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "SPARK009"
+      },
+      "problem": "cartesian join explodes rows and skews partitions",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Replace crossJoin with a keyed join or broadcast the smaller side",
+          "target_entity": null,
+          "rationale": "cartesian product is O(n*m) shuffles",
+          "expected_effect": "bounded shuffle size, no skewed single partition",
+          "validation": "event log shuffle bytes and task skew drop",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "confirm the join semantics are truly cartesian"
+      ],
+      "risks": [
+        "wrong join key changes results"
+      ],
+      "validation_steps": [
+        "diff row counts and sample output"
+      ],
+      "rollback_notes": [
+        "revert join change if results differ"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "SPARK010"
+      },
+      "problem": "global sort forces a single-partition ordering",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Replace orderBy with sortWithinPartitions, or sort after a selective filter",
+          "target_entity": null,
+          "rationale": "global sort requires one partition for total ordering",
+          "expected_effect": "per-partition sort keeps parallelism",
+          "validation": "sort stage has >1 task",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "confirm downstream does not need total order"
+      ],
+      "risks": [
+        "output not globally ordered"
+      ],
+      "validation_steps": [
+        "verify consumer ordering requirements"
+      ],
+      "rollback_notes": [
+        "restore orderBy if total order is contractual"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "SPARK001"
+      },
+      "problem": "collect() pulls the full dataset to the driver",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Replace collect() with take(n)/bounded collect, or write to storage and read back",
+          "target_entity": null,
+          "rationale": "driver memory is bounded; unbounded collect risks OOM",
+          "expected_effect": "bounded driver memory use",
+          "validation": "driver OOM errors absent; job completes",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "consumers expecting full data get a sample"
+      ],
+      "validation_steps": [
+        "verify all rows still consumed downstream"
+      ],
+      "rollback_notes": [
+        "restore collect behind a size guard"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "SPARK006"
+      },
+      "problem": "cached data is never unpersisted",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Call unpersist() after the last use of the cached DataFrame",
+          "target_entity": null,
+          "rationale": "cached blocks hold executor memory until evicted",
+          "expected_effect": "executor memory freed between stages",
+          "validation": "storage memory drops in the event log",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "unpersisting too early recomputes the lineage"
+      ],
+      "validation_steps": [
+        "confirm no stage re-reads the source"
+      ]
+    }
+  ]
+}

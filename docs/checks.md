@@ -903,6 +903,16 @@ findings with runtime evidence:
   with runtime facts; fewer nodes degrade to STRONGLY_SUPPORTED/POSSIBLE.
   A single evidenced node never forms a cluster.
 
+## Remediation planning
+
+`forge-doctor remediate . [--root-cause <id>]` prints deterministic
+`RemediationPlan`s from `knowledge/remediation/` packs: ordered actions
+with rationale, expected effect, per-action validation and `depends_on`
+edges, plus prerequisites, risks, validation steps and rollback notes.
+Plans are advisory — Forge Doctor never edits code, generates patches,
+commits, deploys, or runs Terraform/migrations. Findings without a
+remediation mapping produce no plan.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

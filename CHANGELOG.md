@@ -321,6 +321,13 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   symptoms, related findings, affected entities, evidence, and causal
   edges. CLI: `forge-doctor root-cause . --runtime artifact.json`
   (`--json` supported).
+- **Deterministic remediation planning** — `core/remediation.py` maps
+  findings and root-cause clusters to ordered `RemediationPlan`s from
+  the new `knowledge/remediation/` packs (spark, parquet, iceberg,
+  streaming, platform families + the RC_* chains; schema-2 provenance).
+  Plans are advisory only — what/where/why/how-to-validate; nothing is
+  patched, committed, applied, or deployed. CLI:
+  `forge-doctor remediate . [--root-cause <id>]` (`--json`).
 
 ### Added (0.7.0)
 

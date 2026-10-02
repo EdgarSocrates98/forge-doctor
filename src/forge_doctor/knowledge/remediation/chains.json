@@ -1,0 +1,157 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://iceberg.apache.org/docs/latest/maintenance/",
+    "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "cluster": "RC_STREAM_COMMITS"
+      },
+      "problem": "small-file amplification: micro-batch commits amplify into small data files and consumer scan overhead",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Adjust the streaming trigger interval (larger micro-batches, or Trigger.AvailableNow for periodic catch-up)",
+          "target_entity": null,
+          "rationale": "commit frequency is the amplifier",
+          "expected_effect": "fewer commits, larger writes per commit",
+          "validation": "progress.json shows fewer, larger batches",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Review output partitioning so each batch writes a bounded set of files",
+          "target_entity": null,
+          "rationale": "unpartitioned fan-out multiplies files per commit",
+          "expected_effect": "files per commit near target size",
+          "validation": "files/commit metric in table metadata",
+          "depends_on": [
+            "A1"
+          ]
+        },
+        {
+          "id": "A3",
+          "description": "Compact existing small data files (rewrite_data_files / OPTIMIZE)",
+          "target_entity": null,
+          "rationale": "backlog of small files must be merged separately",
+          "expected_effect": "file count drops toward steady state",
+          "validation": "file count and avg size meet targets",
+          "depends_on": [
+            "A1",
+            "A2"
+          ]
+        },
+        {
+          "id": "A4",
+          "description": "Expire obsolete snapshots/manifests",
+          "target_entity": null,
+          "rationale": "amplified commit history bloats planning",
+          "expected_effect": "planning time drops",
+          "validation": "Athena/Spark planning ms drop",
+          "depends_on": [
+            "A3"
+          ]
+        },
+        {
+          "id": "A5",
+          "description": "Re-run consumer metrics (Athena scan/planning times, file counts)",
+          "target_entity": null,
+          "rationale": "close the loop - confirm the chain is broken",
+          "expected_effect": "consumer overhead gone",
+          "validation": "queue+planning < execution in athena_stats",
+          "depends_on": [
+            "A3",
+            "A4"
+          ]
+        }
+      ],
+      "prerequisites": [
+        "identify the streaming writer and the consumed table"
+      ],
+      "dependencies": [
+        "iceberg maintenance schedule",
+        "consumer SLA window"
+      ],
+      "risks": [
+        "trigger changes alter end-to-end latency",
+        "compaction contends with ingest"
+      ],
+      "validation_steps": [
+        "progress.json batch size/rate",
+        "table file count",
+        "consumer query timings"
+      ],
+      "rollback_notes": [
+        "trigger config revert; compaction rollback via snapshot"
+      ]
+    },
+    {
+      "match": {
+        "cluster": "RC_SPARK_SKEW"
+      },
+      "problem": "join/shuffle key skew spills and serializes a stage",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Identify the skewed key (cardinality + frequency of the join/groupBy key)",
+          "target_entity": null,
+          "rationale": "the fix needs the actual hot key",
+          "expected_effect": "named skewed key",
+          "validation": "key frequency table",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Salt the skewed keys or split the join into skewed/non-skewed parts",
+          "target_entity": null,
+          "rationale": "distributes the hot key across tasks",
+          "expected_effect": "task duration spread collapses",
+          "validation": "task_max/task_median approaches 1 in event log",
+          "depends_on": [
+            "A1"
+          ]
+        },
+        {
+          "id": "A3",
+          "description": "If the small side fits, broadcast it to remove the shuffle entirely",
+          "target_entity": null,
+          "rationale": "no shuffle = no skew",
+          "expected_effect": "shuffle bytes drop",
+          "validation": "shuffle metrics near zero",
+          "depends_on": [
+            "A1"
+          ]
+        },
+        {
+          "id": "A4",
+          "description": "Re-run the job and compare stage durations and spill",
+          "target_entity": null,
+          "rationale": "close the loop",
+          "expected_effect": "no spill, flat task durations",
+          "validation": "event log shows no spill, no >=3x skew events",
+          "depends_on": [
+            "A2"
+          ]
+        }
+      ],
+      "prerequisites": [
+        "event log with task metrics for the job"
+      ],
+      "risks": [
+        "salting changes shuffle layout only - results must stay identical"
+      ],
+      "validation_steps": [
+        "row counts equal",
+        "skew events absent"
+      ],
+      "rollback_notes": [
+        "revert join change if output differs"
+      ]
+    }
+  ]
+}

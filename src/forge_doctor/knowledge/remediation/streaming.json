@@ -1,0 +1,106 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "check_id": "STREAM002"
+      },
+      "problem": "streaming query has no observable checkpoint",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Set checkpointLocation on writeStream to durable storage",
+          "target_entity": null,
+          "rationale": "without a checkpoint the query cannot resume and loses offsets/state",
+          "expected_effect": "restartable query, exactly-once state recovery",
+          "validation": "progress.json shows offset commits resuming after restart",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "changing checkpoint dir restarts the stream from scratch"
+      ],
+      "validation_steps": [
+        "restart and confirm offsets resume"
+      ],
+      "rollback_notes": [
+        "restore old checkpoint dir on regression"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "STREAM003"
+      },
+      "problem": "checkpoint lives under a temporary/volatile path",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Move checkpointLocation to durable storage (S3/ADLS), not /tmp or ephemeral disk",
+          "target_entity": null,
+          "rationale": "volatile checkpoints are deleted on restart/cleanup",
+          "expected_effect": "state survives restarts",
+          "validation": "restart test resumes state",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "match": {
+        "check_id": "STREAM020"
+      },
+      "problem": "stateful operation without a watermark",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Add withWatermark(eventTime, delay) sized to the real lateness distribution",
+          "target_entity": null,
+          "rationale": "unbounded state grows forever without a watermark",
+          "expected_effect": "state rows plateau",
+          "validation": "stateOperator rows stop growing in progress.json",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "measure actual late-arrival distribution"
+      ],
+      "risks": [
+        "too-aggressive watermark drops late-but-valid data"
+      ],
+      "validation_steps": [
+        "track dropped-late-rows metric"
+      ],
+      "rollback_notes": [
+        "widen the watermark window if drops appear"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "STREAM070"
+      },
+      "problem": "foreachBatch sink - at-least-once semantics by default",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Make the batch function idempotent: dedupe on epochId/batchId or use merge/upsert keyed writes",
+          "target_entity": null,
+          "rationale": "foreachBatch retries re-run the whole batch",
+          "expected_effect": "retry-safe sink",
+          "validation": "kill mid-batch, restart, confirm no duplicates",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "sink supports keyed upsert or dedup"
+      ],
+      "validation_steps": [
+        "fault-injection restart test"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://iceberg.apache.org/docs/latest/maintenance/",
+    "https://iceberg.apache.org/docs/latest/spark-procedures/"
+  ],
+  "domain": "remediation",
+  "remediations": [
+    {
+      "match": {
+        "check_id": "ICE008"
+      },
+      "problem": "snapshots never expire - metadata grows without bound",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Schedule CALL catalog.system.expire_snapshots with a retention window",
+          "target_entity": null,
+          "rationale": "unbounded snapshots slow planning and bloat storage",
+          "expected_effect": "metadata size bounded",
+          "validation": "snapshot count and metadata size drop",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "agree retention with downstream time-travel users"
+      ],
+      "risks": [
+        "expiring snapshots kills time travel beyond the window"
+      ],
+      "validation_steps": [
+        "list snapshots before/after"
+      ],
+      "rollback_notes": [
+        "snapshots cannot be un-expired; export metadata first"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "ICE009"
+      },
+      "problem": "no data-file compaction configured",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Schedule rewrite_data_files (bin-pack or sort strategy)",
+          "target_entity": null,
+          "rationale": "streaming/upsert writers accumulate small files",
+          "expected_effect": "file count bounded at target size",
+          "validation": "avg file size near target; scan time drops",
+          "depends_on": []
+        }
+      ],
+      "risks": [
+        "concurrent writes may conflict with compaction"
+      ],
+      "validation_steps": [
+        "check commit conflicts during first runs"
+      ],
+      "rollback_notes": [
+        "roll back the compaction snapshot on conflict"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "ICE010"
+      },
+      "problem": "manifests never rewritten - planning reads many manifest files",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Schedule rewrite_manifests after ingest bursts",
+          "target_entity": null,
+          "rationale": "manifest count scales planning time",
+          "expected_effect": "faster query planning",
+          "validation": "manifest count and planning ms drop",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "match": {
+        "check_id": "ICE024"
+      },
+      "problem": "write pattern produces small Iceberg data files",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Remove single-partition writes; repartition by partition key",
+          "target_entity": null,
+          "rationale": "per-task file sizing needs parallelism",
+          "expected_effect": "larger files per commit",
+          "validation": "data-file size distribution tightens",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Enable write.distribution-mode or Spark adaptive coalesce for the sink",
+          "target_entity": null,
+          "rationale": "engine-side shuffling fixes fan-out without code churn",
+          "expected_effect": "uniform file sizes",
+          "validation": "new commits produce target-size files",
+          "depends_on": [
+            "A1"
+          ]
+        }
+      ]
+    },
+    {
+      "match": {
+        "check_id": "ICE001"
+      },
+      "problem": "format-version too low for the declared operations",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Set format-version=2 in the table properties",
+          "target_entity": null,
+          "rationale": "MERGE/UPDATE/DELETE and row-level deletes need v2",
+          "expected_effect": "operations supported",
+          "validation": "merge/update succeeds in staging",
+          "depends_on": []
+        },
+        {
+          "id": "A2",
+          "description": "Verify every writer/reader engine supports v2 before flipping",
+          "target_entity": null,
+          "rationale": "v1 readers cannot read v2 delete files",
+          "expected_effect": "no consumer regression",
+          "validation": "capability check on each engine",
+          "depends_on": []
+        }
+      ],
+      "prerequisites": [
+        "inventory all engines touching the table"
+      ],
+      "risks": [
+        "older engines silently misread or fail on v2 tables"
+      ],
+      "validation_steps": [
+        "run capability matrix per consumer"
+      ],
+      "rollback_notes": [
+        "format-version is one-way in practice; test on a copy"
+      ]
+    },
+    {
+      "match": {
+        "check_id": "ICE025"
+      },
+      "problem": "table feature requires a higher format-version",
+      "actions": [
+        {
+          "id": "A1",
+          "description": "Raise format-version to the level the feature requires, or drop the feature",
+          "target_entity": null,
+          "rationale": "features like deletion vectors/row lineage gate on format-version",
+          "expected_effect": "feature works or is removed explicitly",
+          "validation": "capability evaluation returns supported",
+          "depends_on": []
+        }
+      ]
+    }
+  ]
+}
