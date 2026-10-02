@@ -187,6 +187,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `platform-graph` contract now pins `kind`/`evidence_kind` to the
   vocabulary enums, so `contracts verify` enforces ontology conformance.
   `docs/ontology.md` tables are test-verified against the module.
+- **Capability graph** — every evaluated capability now carries its
+  deciding evidence: `CapabilityResult` gains `entry_id`,
+  `matched_when`, and `missing_evidence` (for `unknown` — the versions
+  or when-attrs that would decide). `forge-doctor capabilities graph
+  <path>` renders the provenance subgraph: `capability` entities
+  `EVIDENCED_BY` their deciding `knowledge_pack` entities plus the
+  platform entities that supplied the evaluated version; `--json`
+  emits it in `platform-graph` contract shape. `capabilities list
+  --json --provenance` adds `{status, provenance}` rows opt-in
+  (default shape unchanged); `capabilities explain` reports
+  `entry_id`/`matched_when`/`missing_evidence`. Ontology gains
+  `capability`/`knowledge_pack` kinds, `EVIDENCED_BY` rel, and the
+  `knowledge` producer domain (additive vocabulary).
 
 ### Fixed
 

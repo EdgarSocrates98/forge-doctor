@@ -45,6 +45,8 @@ class EntityKind(Enum):
     GRAPH_NODE = "graph_node"
     GRAPH_EDGE = "graph_edge"
     REPO = "repo"
+    CAPABILITY = "capability"
+    KNOWLEDGE_PACK = "knowledge_pack"
 
 
 class RelKind(Enum):
@@ -61,6 +63,7 @@ class RelKind(Enum):
     PRODUCES = "PRODUCES"
     CONSUMES = "CONSUMES"
     IMPLEMENTS = "IMPLEMENTS"
+    EVIDENCED_BY = "EVIDENCED_BY"
 
 
 @dataclass(frozen=True)

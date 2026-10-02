@@ -105,6 +105,12 @@ class CapabilityResult:
     pack: str = ""
     pack_version: str = ""
     verified_at: str = ""
+    # Provenance of the deciding fact (spec 226): which pack entry won,
+    # which ``when`` clause gated it, and - for UNKNOWN - the evidence
+    # that would have decided.
+    entry_id: str = ""
+    matched_when: tuple[tuple[str, str], ...] = ()
+    missing_evidence: tuple[str, ...] = ()
 
     @property
     def supported(self) -> bool:
@@ -332,13 +338,32 @@ class CapabilityRegistry:
         ctx = context or self._context_from_kwargs(kwargs)
         matched = self._matching(ctx, capability)
         if not matched:
+            declared = [
+                e for e in self._entries if e.platform == ctx.platform and e.id == capability
+            ]
+            missing = sorted({f"{k}={v}" for e in declared for k, v in e.when})
+            if not missing and declared:
+                missing = ["entry prerequisites (context attributes)"]
             return self._unknown(
-                ctx, capability, f"no capability facts for {ctx.platform}/{capability}"
+                ctx,
+                capability,
+                f"no capability facts for {ctx.platform}/{capability}",
+                missing_evidence=tuple(missing),
             )
         results = [self._apply(entry, ctx) for entry in matched]
         covered = [r for r in results if r[1] is not None]
         if not covered:
-            return self._unknown(ctx, capability, "no facts cover this version/context variant")
+            known = sorted(
+                {v for e in matched for v, _ in e.versions},
+                key=_version_key,
+            )
+            missing = [f"version not covered (known: {', '.join(known)})"] if known else []
+            return self._unknown(
+                ctx,
+                capability,
+                "no facts cover this version/context variant",
+                missing_evidence=tuple(missing),
+            )
         # Most specific entry (longest when-clause) wins; deterministic
         # tie-break on status precedence then nothing further - entries are
         # already sorted so the order is stable.
@@ -366,6 +391,8 @@ class CapabilityRegistry:
             pack=entry.pack,
             pack_version=entry.pack_version,
             verified_at=entry.verified_at,
+            entry_id=entry.id,
+            matched_when=entry.when,
         )
 
     def supports(
@@ -462,12 +489,18 @@ class CapabilityRegistry:
         return entry, status, reason, tuple(unmet)
 
     @staticmethod
-    def _unknown(ctx: CapabilityContext, capability: str, reason: str) -> CapabilityResult:
+    def _unknown(
+        ctx: CapabilityContext,
+        capability: str,
+        reason: str,
+        missing_evidence: tuple[str, ...] = (),
+    ) -> CapabilityResult:
         return CapabilityResult(
             capability=capability,
             platform=ctx.platform,
             status=CapabilityStatus.UNKNOWN,
             reason=reason,
+            missing_evidence=missing_evidence,
         )
 
 

@@ -78,6 +78,7 @@ forge-doctor runtime inspect .        # offline runtime evidence (exported artif
 forge-doctor architecture drift .     # drift vs .forge-doctor/contract.yml
 forge-doctor contract validate .      # verify a platform contract file
 forge-doctor capabilities list .      # platform capability registry report
+forge-doctor capabilities graph .     # capability→evidence provenance subgraph
 forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
 forge-doctor migrate plan .           # named deterministic migration plans
 forge-doctor policy list .            # organization policy packs

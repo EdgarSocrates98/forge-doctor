@@ -34,6 +34,8 @@ construction (`EntityKind`) — producers cannot invent one silently.
 | graph_node | A node inside a property graph. |
 | graph_edge | An edge inside a property graph. |
 | repo | A repository participating in a workspace. |
+| capability | A platform capability fact evaluated against context. |
+| knowledge_pack | A bundled knowledge pack (capabilities/errors/golden facts). |
 <!-- END entity_kinds -->
 
 ## Relationship kinds
@@ -54,6 +56,7 @@ Edges are typed (`RelKind`) and carry the evidence plane they came from.
 | PRODUCES | src emits records consumed downstream (stream producer). |
 | CONSUMES | src consumes records produced upstream (stream consumer). |
 | IMPLEMENTS | src provides the implementation dst declares (repo implements entity). |
+| EVIDENCED_BY | src's claim/status is established by dst (knowledge pack, evidence). |
 <!-- END relationship_kinds -->
 
 ## Evidence planes
@@ -123,6 +126,7 @@ produced it — free text at construction, so this list is what
 | iceberg | Apache Iceberg table model. |
 | kafka | Apache Kafka model. |
 | kinesis | Amazon Kinesis model. |
+| knowledge | Bundled knowledge packs (capabilities/errors provenance). |
 | lakeformation | AWS Lake Formation governance model. |
 | lambda | AWS Lambda model. |
 | neptune | Amazon Neptune model. |

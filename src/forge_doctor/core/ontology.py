@@ -69,6 +69,8 @@ _ENTITY_DEFS: dict[EntityKind, str] = {
     EntityKind.GRAPH_NODE: "A node inside a property graph.",
     EntityKind.GRAPH_EDGE: "An edge inside a property graph.",
     EntityKind.REPO: "A repository participating in a workspace.",
+    EntityKind.CAPABILITY: "A platform capability fact evaluated against context.",
+    EntityKind.KNOWLEDGE_PACK: "A bundled knowledge pack (capabilities/errors/golden facts).",
 }
 
 # -- Relationship kinds ------------------------------------------------
@@ -85,6 +87,7 @@ _REL_DEFS: dict[RelKind, str] = {
     RelKind.PRODUCES: "src emits records consumed downstream (stream producer).",
     RelKind.CONSUMES: "src consumes records produced upstream (stream consumer).",
     RelKind.IMPLEMENTS: "src provides the implementation dst declares (repo implements entity).",
+    RelKind.EVIDENCED_BY: "src's claim/status is established by dst (knowledge pack, evidence).",
 }
 
 # -- Evidence planes ----------------------------------------------------
@@ -141,6 +144,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "iceberg": "Apache Iceberg table model.",
     "kafka": "Apache Kafka model.",
     "kinesis": "Amazon Kinesis model.",
+    "knowledge": "Bundled knowledge packs (capabilities/errors provenance).",
     "lakeformation": "AWS Lake Formation governance model.",
     "lambda": "AWS Lambda model.",
     "neptune": "Amazon Neptune model.",
