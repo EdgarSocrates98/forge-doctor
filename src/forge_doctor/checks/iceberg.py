@@ -17,6 +17,14 @@ if TYPE_CHECKING:
 
 _V2_OPS = {"merge", "update", "delete"}
 
+# Op name -> capability id in knowledge/capabilities/iceberg.json. ICE001
+# asks the registry instead of hardcoding the format-version floor.
+_V2_CAPABILITY = {
+    "merge": "ICEBERG_MERGE_WRITE",
+    "update": "ICEBERG_UPDATE",
+    "delete": "ICEBERG_DELETE",
+}
+
 
 def _model(ctx: ProjectContext) -> IcebergProjectModel:
     return iceberg_model(ctx)
@@ -72,9 +80,10 @@ class FormatVersionCompat(_IcebergCheck):
         v2_ops = [e for e in model.operations if e.name in _V2_OPS]
         if not v2_ops:
             return []
+        from forge_doctor.core.capabilities import CapabilityStatus
+
         fmt = model.properties.get("format-version")
-        if fmt and fmt[0] not in {"", "1"}:
-            return []
+        fmt_value = fmt[0] if fmt else ""
         if fmt is None:
             suffix = "format-version is unset (defaults to 1)"
         else:
@@ -82,6 +91,13 @@ class FormatVersionCompat(_IcebergCheck):
             suffix = f"format-version={fmt[0] or '1'} set at {at.file.as_posix()}:{at.line}"
         results = []
         for op in v2_ops:
+            verdict = ctx.capabilities.evaluate(
+                _V2_CAPABILITY.get(op.name, "ICEBERG_MERGE_WRITE"),
+                platform="iceberg",
+                format_version=fmt_value or "1",
+            )
+            if verdict.status is not CapabilityStatus.UNSUPPORTED:
+                continue
             results.append(
                 self.result(
                     Severity.WARNING,

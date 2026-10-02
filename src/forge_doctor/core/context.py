@@ -96,6 +96,13 @@ class ProjectContext:
             return None
 
     @cached_property
+    def capabilities(self) -> Any:
+        """Shared capability registry - the single path for platform facts."""
+        from forge_doctor.core.capabilities import capability_registry
+
+        return capability_registry()
+
+    @cached_property
     def env(self) -> dict[str, str]:
         """Relevant environment variables only - values stay in-process."""
         return {key: os.environ[key] for key in _ENV_KEYS if key in os.environ}

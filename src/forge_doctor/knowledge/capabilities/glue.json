@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html",
+    "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html",
+    "https://iceberg.apache.org/docs/latest/aws/"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "ICEBERG_MERGE_WRITE",
+      "platform": "glue",
+      "status": "supported",
+      "versions": {
+        "3.0": "unsupported",
+        "4.0": "supported",
+        "5.0": "supported",
+        "6.0": "supported"
+      },
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "MERGE/UPDATE/DELETE on Iceberg require format-version=2; the table property is unset or lower."
+        }
+      ],
+      "reason": "Glue 4.0+ bundles an Iceberg connector; row-level writes need format-version=2 on the table.",
+      "limitations": [
+        "Glue 3.0 has no bundled Iceberg integration (custom connector only).",
+        "Verify the exact bundled Iceberg version per Glue release notes."
+      ],
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+    },
+    {
+      "id": "ICEBERG_UPDATE",
+      "platform": "glue",
+      "status": "supported",
+      "versions": {
+        "3.0": "unsupported",
+        "4.0": "supported",
+        "5.0": "supported",
+        "6.0": "supported"
+      },
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "UPDATE requires format-version=2; the table property is unset or lower."
+        }
+      ],
+      "reason": "Glue 4.0+ bundles an Iceberg connector; UPDATE needs format-version=2.",
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+    },
+    {
+      "id": "ICEBERG_DELETE",
+      "platform": "glue",
+      "status": "supported",
+      "versions": {
+        "3.0": "unsupported",
+        "4.0": "supported",
+        "5.0": "supported",
+        "6.0": "supported"
+      },
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "DELETE requires format-version=2; the table property is unset or lower."
+        }
+      ],
+      "reason": "Glue 4.0+ bundles an Iceberg connector; DELETE needs format-version=2.",
+      "source": "https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-format-iceberg.html"
+    }
+  ]
+}

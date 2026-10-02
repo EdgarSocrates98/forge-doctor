@@ -1,0 +1,143 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/services-ddb-batchfailurereporting.html"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "DYNAMODB_TRANSACTIONS",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "TransactWriteItems/TransactGetItems are supported on single-region tables.",
+      "limitations": [
+        "Transactions consume additional read/write capacity (2x writes).",
+        "Max 100 items per transaction."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis.html"
+    },
+    {
+      "id": "DYNAMODB_STREAMS",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "DynamoDB Streams capture ordered item-level changes for up to 24 hours.",
+      "limitations": [
+        "Each shard lives at most 24 hours; records expire.",
+        "Lambda consumers need ReportBatchItemFailures for partial-batch semantics."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html"
+    },
+    {
+      "id": "DYNAMODB_STRONG_READ",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "ConsistentRead=true is supported on tables and indexes within a region.",
+      "limitations": [
+        "GSI reads are always eventually consistent.",
+        "Strong reads consume 2x RCU per item size."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html"
+    },
+    {
+      "id": "DYNAMODB_GSI",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "Global secondary indexes carry an independent partition key and optional sort key.",
+      "limitations": [
+        "GSI reads are always eventually consistent.",
+        "Provisioned mode gives each GSI its own throughput; writes amplify."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html"
+    },
+    {
+      "id": "DYNAMODB_LSI",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "Local secondary indexes share the base partition key with an alternate sort key.",
+      "limitations": [
+        "LSI item collections are limited to 10 GB per partition key.",
+        "LSIs can only be created at table creation time."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SecondaryIndexes.html"
+    },
+    {
+      "id": "DYNAMODB_GLOBAL_TABLE_MREC",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "Global tables default to multi-region eventual consistency (MREC).",
+      "limitations": [
+        "Cross-region replication is asynchronous; last-writer-wins conflict resolution.",
+        "Transaction atomicity applies only in the region the transaction was invoked."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_GLOBAL_TABLE_MRSC",
+      "platform": "dynamodb",
+      "status": "supported",
+      "reason": "MRSC mode gives strongly consistent reads across regions with synchronous replication.",
+      "limitations": [
+        "Transactions are not supported on MRSC global tables.",
+        "Consistency mode is immutable after table creation.",
+        "MRSC tables currently support a bounded replica topology - check current docs."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_TRANSACTIONS",
+      "platform": "dynamodb_global_table",
+      "status": "conditional",
+      "reason": "Transaction semantics on a global table depend on its consistency mode (variant MREC|MRSC).",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_TRANSACTIONS",
+      "platform": "dynamodb_global_table",
+      "status": "conditional",
+      "when": {"variant": "MREC"},
+      "reason": "MREC: transactions are atomic only in the invoking region and are not replicated as a unit.",
+      "limitations": [
+        "A cross-region failure can leave regions divergent mid-transaction."
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_TRANSACTIONS",
+      "platform": "dynamodb_global_table",
+      "status": "unsupported",
+      "when": {"variant": "MRSC"},
+      "reason": "MRSC global tables do not support transaction operations.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_STRONG_READ",
+      "platform": "dynamodb_global_table",
+      "status": "conditional",
+      "reason": "Cross-region read consistency depends on the global-table mode (variant MREC|MRSC).",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_STRONG_READ",
+      "platform": "dynamodb_global_table",
+      "status": "conditional",
+      "when": {"variant": "MREC"},
+      "reason": "MREC replicas are eventually consistent; strong reads hold only within the invoking region.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    },
+    {
+      "id": "DYNAMODB_STRONG_READ",
+      "platform": "dynamodb_global_table",
+      "status": "supported",
+      "when": {"variant": "MRSC"},
+      "reason": "MRSC provides multi-region strong consistency for reads.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/V2globaltables_HowItWorks.html"
+    }
+  ]
+}

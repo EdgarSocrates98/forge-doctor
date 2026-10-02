@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://iceberg.apache.org/spec/",
+    "https://iceberg.apache.org/docs/latest/evolution/"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "ICEBERG_MERGE_WRITE",
+      "platform": "iceberg",
+      "status": "supported",
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "MERGE requires format-version=2; v1 tables only support append-style writes."
+        }
+      ],
+      "reason": "Row-level MERGE is a format-version 2 feature in the Iceberg spec.",
+      "source": "https://iceberg.apache.org/spec/#version-2-row-level-deletes"
+    },
+    {
+      "id": "ICEBERG_UPDATE",
+      "platform": "iceberg",
+      "status": "supported",
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "UPDATE requires format-version=2; v1 tables only support append-style writes."
+        }
+      ],
+      "reason": "Row-level UPDATE is a format-version 2 feature in the Iceberg spec.",
+      "source": "https://iceberg.apache.org/spec/#version-2-row-level-deletes"
+    },
+    {
+      "id": "ICEBERG_DELETE",
+      "platform": "iceberg",
+      "status": "supported",
+      "conditions": [
+        {
+          "attribute": "format_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "DELETE requires format-version=2; v1 tables only support append-style writes."
+        }
+      ],
+      "reason": "Row-level DELETE is a format-version 2 feature in the Iceberg spec.",
+      "source": "https://iceberg.apache.org/spec/#version-2-row-level-deletes"
+    }
+  ]
+}

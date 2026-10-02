@@ -1,0 +1,128 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/feature-reference-gremlin.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html",
+    "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "NEPTUNE_GREMLIN",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "Gremlin queries the property-graph model on Neptune Database.",
+      "limitations": ["Gremlin cannot query data loaded as RDF."],
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/feature-reference-gremlin.html"
+    },
+    {
+      "id": "NEPTUNE_GREMLIN",
+      "platform": "neptune",
+      "status": "unsupported",
+      "when": {"graph_model": "rdf"},
+      "reason": "Gremlin operates on property-graph data; it cannot query RDF-loaded graphs.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "NEPTUNE_OPENCYPHER",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "openCypher queries the property-graph model on Neptune Database.",
+      "limitations": ["openCypher cannot query data loaded as RDF."],
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html"
+    },
+    {
+      "id": "NEPTUNE_OPENCYPHER",
+      "platform": "neptune",
+      "status": "unsupported",
+      "when": {"graph_model": "rdf"},
+      "reason": "openCypher operates on property-graph data; it cannot query RDF-loaded graphs.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html"
+    },
+    {
+      "id": "NEPTUNE_SPARQL",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "SPARQL 1.1 queries the RDF quad model on Neptune Database.",
+      "limitations": ["SPARQL cannot query property-graph data."],
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "NEPTUNE_SPARQL",
+      "platform": "neptune",
+      "status": "unsupported",
+      "when": {"graph_model": "property_graph"},
+      "reason": "SPARQL operates on RDF data; it cannot query property-graph data.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "NEPTUNE_BULK_LOADER",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "The bulk loader is the optimized path for large ingestions from S3.",
+      "limitations": [
+        "Requires an IAM role Neptune can assume plus S3 read access.",
+        "failOnError and parallelism flags change load semantics."
+      ],
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    },
+    {
+      "id": "NEPTUNE_EXPLAIN",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "explain exists for Gremlin and openCypher (static/dynamic/details variants).",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-explain.html"
+    },
+    {
+      "id": "NEPTUNE_PROFILE",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "profile reports execution counters for Gremlin/openCypher queries.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-profile.html"
+    },
+    {
+      "id": "NEPTUNE_GLOBAL_DATABASE",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "Neptune Global Database has one primary write region; secondary regions are read-only.",
+      "limitations": [
+        "Writes to secondary regions are not supported.",
+        "Secondary region count is bounded - see current docs."
+      ],
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html"
+    },
+    {
+      "id": "NEPTUNE_ANALYTICS_ALGORITHMS",
+      "platform": "neptune_analytics",
+      "status": "supported",
+      "reason": "Neptune Analytics is a separate service with built-in graph algorithms (pathfinding, centrality, similarity, community detection, graph summaries).",
+      "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html"
+    },
+    {
+      "id": "GRAPH_PROPERTY_MODEL",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "Neptune Database hosts property graphs queried via Gremlin/openCypher.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "GRAPH_RDF_MODEL",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "Neptune Database hosts RDF quad data queried via SPARQL.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "GRAPH_BULK_LOAD",
+      "platform": "neptune",
+      "status": "supported",
+      "reason": "Neptune bulk loader ingests CSV (property graph) and RDF formats from S3.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    }
+  ]
+}

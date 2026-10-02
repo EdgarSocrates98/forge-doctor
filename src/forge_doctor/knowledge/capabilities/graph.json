@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://tinkerpop.apache.org/gremlin.html",
+    "https://opencypher.org/",
+    "https://www.w3.org/TR/sparql11-query/"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "GRAPH_PROPERTY_MODEL",
+      "platform": "graph",
+      "status": "supported",
+      "reason": "Property-graph paradigm: vertices and edges both carry labels and properties; queried via Gremlin/openCypher.",
+      "source": "https://tinkerpop.apache.org/gremlin.html"
+    },
+    {
+      "id": "GRAPH_RDF_MODEL",
+      "platform": "graph",
+      "status": "supported",
+      "reason": "RDF paradigm: subject/predicate/object triples (Neptune quads S-P-O-G); queried via SPARQL.",
+      "source": "https://www.w3.org/TR/sparql11-query/"
+    },
+    {
+      "id": "GRAPH_BULK_LOAD",
+      "platform": "graph",
+      "status": "conditional",
+      "reason": "Bulk-load availability is engine-specific - check the platform's capability entry.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    },
+    {
+      "id": "GRAPH_QUERY_LANGUAGE_OPENCYPHER",
+      "platform": "graph",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "graph_model",
+          "op": "eq",
+          "value": "property_graph",
+          "status_on_fail": "unsupported",
+          "reason": "openCypher only queries property-graph data."
+        }
+      ],
+      "reason": "openCypher is defined over the property-graph model.",
+      "source": "https://opencypher.org/"
+    },
+    {
+      "id": "GRAPH_QUERY_LANGUAGE_GREMLIN",
+      "platform": "graph",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "graph_model",
+          "op": "eq",
+          "value": "property_graph",
+          "status_on_fail": "unsupported",
+          "reason": "Gremlin only queries property-graph data."
+        }
+      ],
+      "reason": "Gremlin is defined over the property-graph model.",
+      "source": "https://tinkerpop.apache.org/gremlin.html"
+    },
+    {
+      "id": "GRAPH_QUERY_LANGUAGE_SPARQL",
+      "platform": "graph",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "graph_model",
+          "op": "eq",
+          "value": "rdf",
+          "status_on_fail": "unsupported",
+          "reason": "SPARQL only queries RDF data."
+        }
+      ],
+      "reason": "SPARQL is defined over the RDF model.",
+      "source": "https://www.w3.org/TR/sparql11-query/"
+    }
+  ]
+}

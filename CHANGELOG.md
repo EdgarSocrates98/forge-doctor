@@ -196,6 +196,22 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   optional `fixes`/`families` fields. New `lakeformation` category: LF000
   anchor, LF001 resource link without RAM share, LF002 IAMAllowedPrincipals
   alongside FGAC tags (hybrid-access ambiguity).
+- **Capability Engine** (`core/capabilities.py`) — a versioned platform
+  capability registry so checks stop hardcoding service facts.
+  `CapabilityStatus` is a four-state answer (SUPPORTED / UNSUPPORTED /
+  CONDITIONAL / UNKNOWN): uncovered versions and platforms resolve to
+  UNKNOWN — absence of proof is never proof of absence. Facts live in
+  `knowledge/capabilities/*.json` (schema 2, per-entry `source`,
+  `when`-gated variants, `versions` maps, attribute `conditions`); packs
+  missing sources are rejected at load and surfaced via
+  `registry.validation_issues`. Seeds cover Glue↔Iceberg row-level ops,
+  Iceberg format-version gating, DynamoDB (transactions, streams, GSI/LSI,
+  global-table MREC/MRSC semantics), Neptune (Gremlin/openCypher/SPARQL,
+  bulk loader, explain/profile, global database, paradigm-vs-language
+  incompatibility), and paradigm-level graph capabilities. Checks reach it
+  via `ctx.capabilities`; CLI: `forge-doctor capabilities list|explain`
+  (`--json`, `--version`, `--variant`, `--attr`). ICE001 now consults the
+  registry for its format-version floor — first migrated check.
 
 ### Added (0.7.0)
 
