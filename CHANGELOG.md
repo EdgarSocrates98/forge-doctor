@@ -209,6 +209,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deterministic snapshot artifact (`entities`/`relationships` +
   `invariants_ok`/`summary` header — satisfies the `platform-graph`
   contract). Validation reports; it never mutates the graph.
+- **Decision intelligence** — `forge-doctor advise <path>` merges
+  existing signals into one ranked, fully-cited action list
+  (`core/decisions.py`): severity, confidence, cluster membership
+  (+runtime-confirmed boost), fix safety class, remediation plan
+  presence, policy violations, and graph blast radius. The score is the
+  literal sum of documented breakdown terms; every row cites
+  fingerprints and entity ids; ties break deterministically on
+  fingerprint. `-f json` emits a stable shape; `--top N` truncates.
+  Advisory only — it points at `fix`/`remediate`, never applies.
 
 ### Fixed
 

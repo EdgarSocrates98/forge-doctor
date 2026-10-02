@@ -5,6 +5,7 @@ what populates the CLI. ``_snapshot`` is re-exported for the test-suite.
 """
 
 from forge_doctor.cli import (  # noqa: F401 - import-time command registration
+    advise,
     airflow,
     bench,
     capabilities,
@@ -116,6 +117,7 @@ _PANELS: dict[str, dict[str, str]] = {
             "migrate",
             "what-if",
             "twin",
+            "advise",
         ),
         "Estate & change",
     ),
