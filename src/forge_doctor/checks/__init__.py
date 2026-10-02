@@ -23,6 +23,7 @@ from forge_doctor.checks import (
     iac,
     iceberg,
     lakeformation,
+    metadata,
     neptune,
     parquet,
     platform_rules,
@@ -81,6 +82,7 @@ BUILTIN_MODULES = (
     trino,
     analytical,
     search,
+    metadata,
 )
 
 

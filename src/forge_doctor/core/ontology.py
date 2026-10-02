@@ -161,6 +161,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "kinesis": "Amazon Kinesis model.",
     "knowledge": "Bundled knowledge packs (capabilities/errors provenance).",
     "lakeformation": "AWS Lake Formation governance model.",
+    "metadata": "Metadata catalog declared estate (DataHub/OpenMetadata/Glue/Unity).",
     "lambda": "AWS Lambda model.",
     "neptune": "Amazon Neptune model.",
     "neptune_loader": "Neptune bulk-loader task entities (loader functions).",

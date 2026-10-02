@@ -142,6 +142,7 @@ produced it — free text at construction, so this list is what
 | knowledge | Bundled knowledge packs (capabilities/errors provenance). |
 | lakeformation | AWS Lake Formation governance model. |
 | lambda | AWS Lambda model. |
+| metadata | Metadata catalog declared estate (DataHub/OpenMetadata/Glue/Unity). |
 | neptune | Amazon Neptune model. |
 | neptune_loader | Neptune bulk-loader task entities (loader functions). |
 | parquet | Apache Parquet physical-layout model. |

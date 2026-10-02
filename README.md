@@ -100,6 +100,7 @@ forge-doctor dbt inspect .            # dbt models, sources, tests, ref/source l
 forge-doctor trino inspect .          # Trino catalogs, connectors, coordinator config, 3-part refs
 forge-doctor analytical inspect .     # ClickHouse/Pinot/Druid tables, engines, ingestion, indexes
 forge-doctor search inspect .         # OpenSearch/Elasticsearch templates, policies, domains
+forge-doctor catalog inspect .        # DataHub/OpenMetadata/Glue/Unity datasets, drift, recipes
 forge-doctor export . -f handoff      # portable bundle for downstream Forge tools
 forge-doctor contracts verify b.json  # validate a bundle against published contracts
 forge-doctor info                   # project stats, no checks

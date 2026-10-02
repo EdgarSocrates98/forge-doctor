@@ -1,0 +1,6 @@
+{
+  "name": "stale-entry",
+  "description": "DataHub export vs detected SQL entities: stale entry, coverage gap, ownerless, prod undocumented, lineage contradiction",
+  "expected_findings": ["META001", "META003", "META004"],
+  "forbidden_findings": []
+}

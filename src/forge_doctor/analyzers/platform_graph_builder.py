@@ -1096,6 +1096,48 @@ def _search(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         )
 
 
+def _catalog_meta(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Declared-catalog datasets (spec 221).
+
+    Cataloged datasets become ``dataset:metadata:<qualified>`` entities
+    carrying vendor/env/owner counts; declared upstream lineage becomes
+    ``READS_FROM`` edges only when both endpoints resolve to datasets
+    in the same export batch (never fabricating detected-side entities).
+    """
+    from forge_doctor.analyzers.metadata_model import metadata_model
+
+    model = metadata_model(ctx)
+    if not model.has_evidence:
+        return
+    ids: dict[str, str] = {}
+    for d in model.datasets:
+        ident = d.qualified or d.urn
+        ids[d.name.lower()] = g.add_entity(
+            _e(
+                K.DATASET,
+                "metadata",
+                ident,
+                d.file,
+                vendor=d.vendor,
+                env=d.environment or "-",
+                owners=str(len(d.owners)),
+            )
+        ).id
+    for d in model.datasets:
+        dst = ids.get(d.name.lower())
+        for up in d.upstreams:
+            src = ids.get(up.lower())
+            if src and dst:
+                g.add_relationship(
+                    Relationship(
+                        src=src,
+                        dst=dst,
+                        kind=R.READS_FROM,
+                        evidence_kind=_OBS,
+                    )
+                )
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1492,6 +1534,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _trino,
         _analytical,
         _search,
+        _catalog_meta,
         _iceberg,
         _parquet,
         _terraform,

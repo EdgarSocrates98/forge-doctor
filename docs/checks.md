@@ -1819,3 +1819,42 @@ objects.
 Terraform domain resource lacks `encrypt_at_rest.enabled` or
 `node_to_node_encryption.enabled`.
 **Fix:** enable both blocks.
+
+## Metadata catalogs (MetadataEstateModel — DataHub, OpenMetadata, Glue, Unity)
+
+Catalog drift checks — the declared catalog estate is compared against
+the detected platform graph in *both* directions; findings name which
+side drives them. Evidence is vendor-gated: DataHub needs
+`*.datahub.json` filenames or `urn:li:`/`entityUrn` shapes; OpenMetadata
+needs `*.ometa.json` filenames or `fullyQualifiedName`/`entityType`
+shape; Glue/Unity only under `glue*/`/`unity*/` path hints or export
+dirs. Ingestion recipes contribute connector *types* only — secrets and
+connection values are never ingested.
+
+### META000 — Catalog surface · pass/info
+Anchor census: vendors, datasets, owners, tags, lineage edges, recipes.
+
+### META001 — Stale catalog entry · warning
+Cataloged dataset has no corresponding entity in the detected platform
+graph (metadata-domain entities excluded — they can't self-match).
+**Fix:** drop or re-ingest the catalog entry (declared-side finding —
+not an auto-fix).
+
+### META002 — Platform entity absent from catalog · info (grouped)
+Detected table/dataset/view/model entities with no catalog record.
+Capped and grouped — usually a coverage gap, not an incident.
+**Fix:** add ingestion coverage (declared-side gap).
+
+### META003 — Cataloged dataset without owner · warning
+Dataset has no ownership record in the catalog export.
+**Fix:** assign an owner in the catalog (declared-side).
+
+### META004 — Production asset without description/tags · warning
+`PROD`-environment dataset has neither a description nor tags.
+**Fix:** document and tag the asset (declared-side).
+
+### META005 — Declared lineage contradicts detected lineage · warning
+Catalog upstreams differ from lineage detected in the platform graph
+(SQL query mediation resolved through read/write hops).
+**Fix:** reconcile the catalog lineage with actual pipelines (both
+directions are findings, not auto-fixes).

@@ -85,6 +85,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "iac": frozenset({TERRAFORM, CONFIG}),
     "iceberg": frozenset({SQL, CONFIG, PYTHON, TERRAFORM}),
     "lakeformation": frozenset({PYTHON, TERRAFORM, CONFIG}),
+    "metadata": frozenset({CONFIG, FILES}),
     "neptune": frozenset({PYTHON, TERRAFORM, GRAPH}),
     "parquet": frozenset({PYTHON, SQL, CONFIG}),
     "platform_rules": frozenset({UNBOUNDED}),

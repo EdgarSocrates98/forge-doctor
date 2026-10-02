@@ -1,0 +1,6 @@
+{
+  "name": "adversarial",
+  "description": "Generic JSON (no datahub/ometa filename or key markers) must not attribute",
+  "expected_findings": [],
+  "forbidden_findings": ["META001", "META002", "META003", "META004", "META005"]
+}

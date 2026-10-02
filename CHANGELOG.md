@@ -387,6 +387,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   New command `forge-doctor search inspect`, labs
   `labs/search/{prod-no-replicas,adversarial}` — the adversarial case
   pins that a bare `"mappings"` key never attributes.
+- **Metadata catalogs** (spec 221, roadmap-4 wave 3d) —
+  `analyzers/metadata_model.py` builds a `MetadataEstateModel` over
+  vendor-gated catalog exports: DataHub (`*.datahub.json` filenames or
+  `urn:li:`/`entityUrn` shapes → dataset URN, platform, environment,
+  owners, description, tags, glossary terms, schema fields, upstream
+  lineage), OpenMetadata (`*.ometa.json` filenames or
+  `fullyQualifiedName`/`entityType` shape), plus Glue/Unity presence and
+  coverage signals under `glue*/`/`unity*/` path hints only. Ingestion
+  recipes contribute connector *types* only — credentials, hosts, and
+  connection blocks are never ingested. `META` check family: `META001`
+  stale catalog entry (declared but absent from the platform graph),
+  `META002` coverage gap (detected entity with no catalog record,
+  grouped/capped), `META003` ownerless dataset, `META004` prod asset
+  without description/tags, `META005` declared lineage contradicting
+  detected graph lineage — every drift finding names which side
+  (declared vs detected) drives it; both directions are findings, not
+  auto-fixes. Catalog datasets join the graph as `dataset:metadata:*`
+  entities (domain `metadata`, excluded from coverage self-matching).
+  New command `forge-doctor catalog inspect`, labs
+  `labs/catalog/{stale-entry,adversarial}` — generic JSON without vendor
+  evidence stays silent.
 
 ### Fixed
 
