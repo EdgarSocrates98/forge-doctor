@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.databricks.com/en/release-notes/runtime/index.html",
+    "https://docs.databricks.com/en/release-notes/databricks-runtime-support-lifecycle-policy.html"
+  ],
+  "domain": "databricks",
+  "runtimes": [
+    {
+      "dbr": "12.x",
+      "spark": "3.3.x",
+      "delta": "2.x",
+      "status": "eol",
+      "note": "Non-LTS line; no Delta 3.x features."
+    },
+    {
+      "dbr": "13.3 LTS",
+      "spark": "3.4.x",
+      "delta": "2.4",
+      "status": "lts",
+      "note": "First LTS on Spark 3.4; liquid clustering preview."
+    },
+    {
+      "dbr": "14.3 LTS",
+      "spark": "3.5.x",
+      "delta": "3.x",
+      "status": "lts",
+      "note": "Deletion vectors GA; protocol r3/w7 tables readable."
+    },
+    {
+      "dbr": "15.x LTS",
+      "spark": "3.5.x",
+      "delta": "3.x",
+      "status": "lts",
+      "note": "Liquid clustering GA; UC default on new workspaces."
+    },
+    {
+      "dbr": "16.x+",
+      "spark": "3.5.x/4.x",
+      "delta": "4.x",
+      "status": "current",
+      "note": "Spark 4 line emerging; check Delta feature matrix per minor."
+    }
+  ]
+}

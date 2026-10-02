@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-release-components.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-whatsnew.html"
+  ],
+  "domain": "emr",
+  "releases": [
+    {
+      "release": "emr-5.x",
+      "spark": "2.4.x",
+      "java": "8",
+      "python": "3.6",
+      "status": "eol",
+      "note": "End of standard support; no Delta runtime, no LF integration before 5.32."
+    },
+    {
+      "release": "emr-6.x",
+      "spark": "3.x",
+      "java": "8/11/17",
+      "python": "3.7+",
+      "status": "supported",
+      "note": "Iceberg from 6.5, Delta from 6.9, LF integration via security configuration."
+    },
+    {
+      "release": "emr-7.x",
+      "spark": "3.5.x",
+      "java": "17",
+      "python": "3.9+",
+      "status": "current",
+      "note": "Latest release train; Delta 3.x features depend on the bundled connector."
+    }
+  ]
+}

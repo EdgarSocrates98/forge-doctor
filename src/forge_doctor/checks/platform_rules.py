@@ -51,6 +51,10 @@ _DEDUP_TOKENS = re.compile(
 )
 
 
+def _version_tuple(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", v)[:2])
+
+
 def _fact(
     plane: str, label: str, detail: str, file: Path | None = None, line: int | None = None
 ) -> ContributingFact:
@@ -458,6 +462,99 @@ def _eval_plat007(rc: RuleContext) -> list[CrossDomainHit]:
     return hits
 
 
+def _eval_plat008(rc: RuleContext) -> list[CrossDomainHit]:
+    """EMR release + Iceberg write ops + Lake Formation auth present."""
+    from forge_doctor.analyzers.emr_model import emr_model
+    from forge_doctor.analyzers.iceberg_model import iceberg_model
+    from forge_doctor.analyzers.lakeformation_model import lakeformation_model
+
+    emr = emr_model(rc.ctx)
+    if not emr.has_emr:
+        return []
+    ice = iceberg_model(rc.ctx)
+    write_ops = [ev for ev in ice.operations if ev.name.lower() in _IDEMPOTENT_OPS]
+    if not write_ops:
+        return []
+    lf = lakeformation_model(rc.ctx)
+    # risk: iceberg writes on EMR while LF governs the catalog - the writer
+    # must run LF-integrated (security configuration) or bypasses grants.
+    hits: list[CrossDomainHit] = []
+    for c in emr.clusters:
+        if not lf.has_lakeformation:
+            break
+        if not c.security_configuration:
+            hits.append(
+                CrossDomainHit(
+                    message=(
+                        f"EMR cluster {c.name} ({c.release}) writes Iceberg tables "
+                        "under Lake Formation but has no security_configuration - "
+                        "LF grants are not evaluated for this path"
+                    ),
+                    file=c.file,
+                    line=c.line,
+                    severity=Severity.WARNING,
+                    facts=(
+                        _fact(
+                            "config", "emr", f"cluster {c.name} release={c.release}", c.file, c.line
+                        ),
+                        _fact("code", "iceberg", f"{len(write_ops)} row-level write op(s)"),
+                        _fact("config", "lakeformation", "LF grants/resources present"),
+                    ),
+                )
+            )
+    return hits
+
+
+def _eval_plat009(rc: RuleContext) -> list[CrossDomainHit]:
+    """Databricks runtime < Delta feature protocol floor."""
+    from forge_doctor.analyzers.databricks_model import databricks_model
+    from forge_doctor.analyzers.delta_model import delta_model
+
+    dbx = databricks_model(rc.ctx)
+    delta = delta_model(rc.ctx)
+    if not (dbx.has_databricks and delta.has_delta):
+        return []
+    hits: list[CrossDomainHit] = []
+    for c in dbx.clusters:
+        ver = _version_tuple(c.dbr_version)
+        if not ver:
+            continue
+        for cap, floor, feat in (
+            ("DELTA_DELETION_VECTORS", (14, 1), "deletion_vectors"),
+            ("DELTA_LIQUID_CLUSTERING", (15, 1), "liquid_clustering"),
+            ("DELTA_CDF", (10, 4), "cdf"),
+            ("DELTA_COLUMN_MAPPING", (10, 4), "column_mapping"),
+        ):
+            if feat not in delta.features:
+                continue
+            res = rc.caps.evaluate(cap, platform="databricks", version=c.dbr_version)
+            if res.status == CapabilityStatus.UNSUPPORTED or (
+                ver < floor and res.status != CapabilityStatus.SUPPORTED
+            ):
+                hits.append(
+                    CrossDomainHit(
+                        message=(
+                            f"cluster '{c.name}' DBR {c.dbr_version} + Delta feature "
+                            f"'{feat}' - {res.reason[:80]}"
+                        ),
+                        file=c.file,
+                        line=c.line,
+                        severity=Severity.WARNING,
+                        facts=(
+                            _fact(
+                                "config",
+                                "databricks",
+                                f"{c.name} dbr={c.dbr_version}",
+                                c.file,
+                                c.line,
+                            ),
+                            _fact("code", "delta", f"feature {feat} exercised"),
+                        ),
+                    )
+                )
+    return hits
+
+
 def neptune_queries_safe(rc: RuleContext) -> list[GraphTraversal]:
     from forge_doctor.analyzers.neptune_queries import neptune_queries
 
@@ -591,6 +688,35 @@ RULES: tuple[CrossDomainRule, ...] = (
         fix="Key the sink writes on epoch/batch id or enable checkpointing.",
         required_entity_kinds=frozenset({K.STREAM}),
         evaluate=_eval_plat007,
+    ),
+    CrossDomainRule(
+        id="PLAT008",
+        title="EMR + Iceberg writes under Lake Formation without LF integration",
+        description=(
+            "An EMR cluster writes Iceberg tables while Lake Formation "
+            "governs the catalog, but the cluster has no security "
+            "configuration - the LF grants are bypassed for that path."
+        ),
+        why="Iceberg writes on EMR without LF integration ignore catalog grants.",
+        when_ok="EMR clusters that touch governed tables run an LF-integrated security config.",
+        fix="Attach an aws_emr_security_configuration with the Lake Formation integration.",
+        required_entity_kinds=frozenset({K.COMPUTE_JOB}),
+        required_capabilities=("EMR_LAKE_FORMATION", "EMR_ICEBERG"),
+        evaluate=_eval_plat008,
+    ),
+    CrossDomainRule(
+        id="PLAT009",
+        title="Databricks runtime below Delta feature floor",
+        description=(
+            "A Delta feature (deletion vectors, liquid clustering, CDF, "
+            "column mapping) is exercised on a Databricks cluster whose "
+            "runtime predates the feature's protocol floor."
+        ),
+        why="Feature-enabled tables fail or downgrade on runtimes below the protocol floor.",
+        when_ok="Cluster DBR versions satisfy every detected Delta feature's protocol floor.",
+        fix="Upgrade the cluster's spark_version or drop the feature.",
+        required_capabilities=("DELTA_DELETION_VECTORS",),
+        evaluate=_eval_plat009,
     ),
 )
 

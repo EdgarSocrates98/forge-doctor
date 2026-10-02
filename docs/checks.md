@@ -849,6 +849,18 @@ A microbatch writer sinks into a non-transactional store
 (DynamoDB/Neptune or `foreachBatch`) with no checkpoint or dedup
 (`ConditionExpression`, `batch_id` in the item key) evidence.
 
+### PLAT008 — EMR + Iceberg writes under Lake Formation · warning
+An EMR cluster performs Iceberg row-level writes
+(`merge`/`update`/`delete`/`overwrite*`) while Lake Formation governs
+the catalog, but the cluster declares no `security_configuration` —
+that path bypasses the LF grants.
+
+### PLAT009 — Databricks runtime below Delta feature floor · warning
+A Delta feature (deletion vectors, liquid clustering, CDF, column
+mapping) is exercised on a Databricks cluster whose `spark_version`
+predates the feature's protocol floor — the capability registry's
+UNSUPPORTED verdict or the floor check produces the finding.
+
 `forge-doctor platform findings` renders only this category; the same
 checks also run inside `forge-doctor scan` under `category=platform`.
 
@@ -965,6 +977,66 @@ links become `DEPENDS_ON` edges to the producer catalog.
 - **LF016** data-cells filter referenced by no grant · info
 - **LF017** hybrid access: IAM defaults retained while FGAC/LF-TBAC in use · warning
 - **LF018** grant option delegated to an external account · warning
+
+## EMR
+
+`forge-doctor emr` builds an `EmrProjectModel` from Terraform
+(`aws_emr_cluster`, `aws_emrserverless_application`,
+`aws_emrcontainers_virtual_cluster`, `aws_emr_step`,
+`aws_emr_managed_scaling_policy`), CloudFormation (`AWS::EMR::*`,
+`AWS::EMRServerless::*`, `AWS::EMRContainers::*`), and boto3
+`emr`/`emr-serverless`/`emr-containers` call-sites — release labels,
+instance fleets (spot/on-demand), autoscaling, dynamic allocation,
+roles, bootstrap actions, logging, security configuration, and step
+failure actions. Commands: `emr inspect`, `emr findings`.
+
+- **EMR000** EMR usage census · info (anchor)
+- **EMR001** release label below emr-6.x · warning
+- **EMR002** EC2 cluster without scaling/dynamic allocation · info
+- **EMR003** all-Spot instance fleets · warning
+- **EMR004** cluster without `log_uri` · info
+- **EMR005** cluster without security configuration · info
+- **EMR006** step without `action_on_failure` · info
+- **EMR007** serverless application without maximum capacity · info
+
+## Databricks
+
+`forge-doctor databricks` builds a `DatabricksProjectModel` from the
+`databricks_*` Terraform provider (jobs, clusters, SQL warehouses,
+pipelines, Unity Catalog objects, workspaces), `databricks.yml` asset
+bundles, and Python sdk/dbutils/notebook evidence — DBR versions,
+autoscale/spot/serverless posture, job-vs-existing-cluster usage, UC
+coverage. Commands: `databricks inspect`, `databricks findings`.
+
+- **DBX000** Databricks usage census · info (anchor)
+- **DBX001** job task pinned to `existing_cluster_id` · warning
+- **DBX002** fixed `num_workers` without autoscale · info
+- **DBX003** cluster on pre-13.3-LTS DBR · warning
+- **DBX004** Databricks IaC but no Unity Catalog objects · info
+- **DBX005** external_location without a storage_credential · warning
+- **DBX006** jobs/pipelines but no `databricks.yml` bundle · info
+
+## Delta Lake
+
+`forge-doctor delta` builds a `DeltaProjectModel` from SQL
+(`USING DELTA`, `MERGE INTO`, `UPDATE`, `DELETE`, `OPTIMIZE`,
+`VACUUM`, `RESTORE`, `CLUSTER BY`, `TBLPROPERTIES`), Python
+`DeltaTable`/`spark.sql` call-sites, `.format("delta")` reads/writes,
+and structured-streaming delta endpoints — table features (deletion
+vectors, CDF, liquid clustering, column mapping, schema evolution,
+identity columns) and reader/writer protocol floors. Commands:
+`delta inspect`, `delta findings`, `delta features`.
+
+- **DELTA000** Delta usage census · info (anchor)
+- **DELTA001** MERGE/UPDATE/DELETE churn without OPTIMIZE · warning
+- **DELTA002** deletion vectors — protocol/runtime floor warning · warning
+- **DELTA003** auto-merge schema-evolution flags · info
+- **DELTA004** change data feed enabled with no consumer · info
+
+Cross-domain rules added by this stage: **PLAT008** (EMR Iceberg
+writes under Lake Formation with no LF-integrated security
+configuration) and **PLAT009** (Databricks runtime below a detected
+Delta feature's protocol floor).
 
 ## Policy
 

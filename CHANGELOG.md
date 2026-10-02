@@ -354,6 +354,32 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   `knowledge/capabilities/lakeformation.json`. Platform graph gains
   principal → GOVERNS edges and resource-link DEPENDS_ON edges. CLI:
   `lakeformation inspect|permissions|graph|cross-account|compatibility|findings`.
+- **EMR + Databricks + Delta deep intelligence** — first-class models
+  (`analyzers/emr_model.py`, `databricks_model.py`, `delta_model.py`)
+  built from Terraform/CloudFormation/boto3/code evidence, offline only.
+  EMR splits EC2 clusters (release label, fleets, spot/on-demand,
+  autoscaling/dynamic allocation, roles, bootstrap, logging, security
+  config, step failure actions), EMR Serverless applications (release,
+  engine, capacity caps, auto-stop), and EMR on EKS virtual clusters.
+  Databricks covers jobs (task counts, job vs existing clusters,
+  notebook/pipeline tasks), clusters (DBR version, autoscale, spot,
+  serverless), SQL warehouses, pipelines, Unity Catalog objects
+  (catalog/schema/external location/storage credential/volume), asset
+  bundles, and sdk/dbutils/notebook evidence. Delta captures tables,
+  ops (MERGE/UPDATE/DELETE/OPTIMIZE/VACUUM/RESTORE/CLUSTER BY),
+  table features (deletion vectors, CDF, liquid clustering, column
+  mapping, schema evolution, identity columns), reader/writer
+  protocol floors, read/write/streaming counts, and CDF consumers.
+  Checks: EMR000-007, DBX000-006, DELTA000-004. Cross-domain rules:
+  PLAT008 (EMR Iceberg writes under Lake Formation without an
+  LF-integrated security configuration) and PLAT009 (Databricks
+  runtime below a detected Delta feature's protocol floor) —
+  capability-gated, fact-attributed. The platform graph gains
+  `compute_job:emr|databricks`, UC catalog/location/principal, and
+  `table:delta` entities with per-op WRITES edges. New packs:
+  `knowledge/capabilities/{emr,databricks,delta}.json`,
+  `knowledge/{emr/releases,databricks/runtime,delta/features}.json`.
+  CLI: `emr|databricks|delta inspect|findings`, `delta features`.
 
 ### Added (0.7.0)
 

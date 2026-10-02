@@ -1,0 +1,55 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.databricks.com/en/release-notes/runtime/index.html",
+    "https://docs.databricks.com/en/delta/index.html",
+    "https://docs.databricks.com/en/resources/index.html"
+  ],
+  "domain": "databricks",
+  "capabilities": [
+    {
+      "id": "DBX_UNITY_CATALOG",
+      "platform": "databricks",
+      "status": "supported",
+      "reason": "Unity Catalog is the governance plane; older workspaces may still default to hive_metastore.",
+      "limitations": [
+        "UC requires a metastore assignment per region; hive_metastore remains for legacy tables."
+      ],
+      "source": "https://docs.databricks.com/en/data-governance/unity-catalog/index.html"
+    },
+    {
+      "id": "DBX_SERVERLESS_COMPUTE",
+      "platform": "databricks",
+      "status": "conditional",
+      "reason": "Serverless compute for notebooks/jobs is available on premium+ tiers and DBR-serverless runtimes.",
+      "limitations": ["Serverless warehouses/jobs are tier-gated; all-purpose clusters are not serverless."],
+      "source": "https://docs.databricks.com/en/compute/serverless.html"
+    },
+    {
+      "id": "DBX_LAKEFLOW_PIPELINES",
+      "platform": "databricks",
+      "status": "supported",
+      "reason": "Lakeflow (DLT) pipelines run streaming/batch declarative flows; continuous vs triggered is a mode choice.",
+      "limitations": ["Pipelines require Delta output; not all sinks are supported."],
+      "source": "https://docs.databricks.com/en/delta-live-tables/index.html"
+    },
+    {
+      "id": "DBX_SQL_WAREHOUSE",
+      "platform": "databricks",
+      "status": "supported",
+      "reason": "SQL warehouses serve BI/SQL workloads; serverless warehouses minimize cold start.",
+      "limitations": ["Classic warehouses cold-start; serverless is tier-gated."],
+      "source": "https://docs.databricks.com/en/compute/sql-warehouse.html"
+    },
+    {
+      "id": "DBX_BUNDLES",
+      "platform": "databricks",
+      "status": "supported",
+      "reason": "Databricks Asset Bundles (databricks.yml) are the IaC deployment primitive for jobs/pipelines.",
+      "limitations": ["Bundles deploy to a named target; local and remote state diverge without CI."],
+      "source": "https://docs.databricks.com/en/dev-tools/bundles/index.html"
+    }
+  ]
+}

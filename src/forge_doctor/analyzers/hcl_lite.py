@@ -28,7 +28,23 @@ class IaCResource:
 
 
 _RESOURCE_HEAD = re.compile(r'resource\s+"([a-z0-9_]+)"\s+"([a-zA-Z0-9_.-]+)"\s*\{', re.IGNORECASE)
-_ATTR_RE = re.compile(r"^\s*([a-zA-Z_][\w.-]*)\s*=\s*(.+?)\s*(?:#.*|//.*)?$")
+_ATTR_RE = re.compile(r"^\s*([a-zA-Z_][\w.-]*)\s*=\s*(.+)$")
+
+
+def _strip_comment(raw: str) -> str:
+    """Drop a trailing # or // comment that sits outside double quotes."""
+    in_str = False
+    i = 0
+    while i < len(raw):
+        ch = raw[i]
+        if ch == '"':
+            in_str = not in_str
+        elif not in_str and (ch == "#" or raw[i : i + 2] == "//"):
+            return raw[:i].rstrip()
+        i += 1
+    return raw.rstrip()
+
+
 _CFN_RESOURCE_RE = re.compile(
     r"^\s{0,10}([A-Za-z0-9]+):\s*\n(?:\s+[^\n]*\n)*?\s+Type:\s*[\"']?(AWS::[A-Za-z0-9:]+|Custom::[\w-]+)[\"']?\s*$",
     re.MULTILINE,
@@ -95,7 +111,7 @@ def _flat_attrs(body: str, base_line: int) -> dict[str, Any]:
         if depth == 0:
             match = _ATTR_RE.match(line)
             if match and not stripped.startswith(("#", "//", "/*")):
-                attrs[match.group(1)] = _hcl_scalar(match.group(2))
+                attrs[match.group(1)] = _hcl_scalar(_strip_comment(match.group(2)))
         depth += stripped.count("{") - stripped.count("}")
         depth = max(depth, 0)
     return attrs

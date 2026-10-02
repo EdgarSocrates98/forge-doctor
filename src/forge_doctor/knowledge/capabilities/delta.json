@@ -1,0 +1,120 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://github.com/delta-io/delta/blob/master/PROTOCOL.md",
+    "https://docs.databricks.com/en/delta/deletion-vectors.html",
+    "https://docs.databricks.com/en/delta/clustering.html",
+    "https://docs.databricks.com/en/delta/delta-change-data-feed.html"
+  ],
+  "domain": "delta",
+  "capabilities": [
+    {
+      "id": "DELTA_MERGE",
+      "platform": "delta",
+      "status": "supported",
+      "reason": "MERGE INTO is a first-class Delta operation; performance depends on file pruning and partition layout.",
+      "limitations": [
+        "Large merges without ZORDER or partitioning rewrite many files; combine with OPTIMIZE."
+      ],
+      "source": "https://docs.databricks.com/en/delta/merge.html"
+    },
+    {
+      "id": "DELTA_DELETION_VECTORS",
+      "platform": "delta",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "reader_version",
+          "op": "gte",
+          "value": "3",
+          "status_on_fail": "unsupported",
+          "reason": "Deletion vectors require reader protocol 3 / writer protocol 7 (DBR 14.1+, Delta 3.x, EMR with the matching runtime)."
+        }
+      ],
+      "reason": "Deletion vectors mark rows deleted without rewriting files - they pin the table to protocol r3/w7; older readers cannot read the table.",
+      "limitations": [
+        "Enabling DVs is one-way unless the table is rewritten; verify all readers support protocol 3.",
+        "Writers without DV support fail on tables with the feature enabled."
+      ],
+      "source": "https://github.com/delta-io/delta/blob/master/PROTOCOL.md#deletion-vectors"
+    },
+    {
+      "id": "DELTA_COLUMN_MAPPING",
+      "platform": "delta",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "reader_version",
+          "op": "gte",
+          "value": "2",
+          "status_on_fail": "unsupported",
+          "reason": "Column mapping requires reader/writer protocol 2/5."
+        }
+      ],
+      "reason": "Column mapping decouples logical column names from file column names, enabling rename/drop without rewrites.",
+      "limitations": ["Mode 'name'/'id' is irreversible without a full rewrite; older readers fail."],
+      "source": "https://docs.databricks.com/en/delta/delta-column-mapping.html"
+    },
+    {
+      "id": "DELTA_CDF",
+      "platform": "delta",
+      "status": "conditional",
+      "reason": "Change Data Feed emits change records per commit; storage cost grows with enabled tables and few consumers.",
+      "limitations": [
+        "CDF data expires with the log retention window - readers must consume within it.",
+        "CDF is not a CDC pipeline - order across merges is commit order, not key order."
+      ],
+      "source": "https://docs.databricks.com/en/delta/delta-change-data-feed.html"
+    },
+    {
+      "id": "DELTA_LIQUID_CLUSTERING",
+      "platform": "delta",
+      "status": "conditional",
+      "conditions": [
+        {
+          "attribute": "writer_version",
+          "op": "gte",
+          "value": "7",
+          "status_on_fail": "unsupported",
+          "reason": "Liquid clustering requires writer protocol 7 (DBR 15.1+/Delta 3.x class runtimes)."
+        }
+      ],
+      "reason": "Liquid clustering replaces static partitioning/ZORDER with incremental layout - clusters evolve without full rewrites.",
+      "limitations": [
+        "Tables using clustering cannot also use partitionBy on the same keys.",
+        "OPTIMIZE with liquid clustering reclusters incrementally, not like ZORDER."
+      ],
+      "source": "https://docs.databricks.com/en/delta/clustering.html"
+    },
+    {
+      "id": "DELTA_SCHEMA_EVOLUTION",
+      "platform": "delta",
+      "status": "supported",
+      "reason": "mergeSchema/autoMerge allow incoming writes to widen the table schema automatically.",
+      "limitations": [
+        "Auto-merged columns arrive as NULLs for existing rows; downstream schemas must tolerate drift."
+      ],
+      "source": "https://docs.databricks.com/en/delta/delta-schema-evolution.html"
+    },
+    {
+      "id": "DELTA_VACUUM",
+      "platform": "delta",
+      "status": "supported",
+      "reason": "VACUUM removes data files older than the retention threshold - required for GDPR and storage cost.",
+      "limitations": [
+        "The default 7-day retention bounds time travel; shorter retention risks version recovery."
+      ],
+      "source": "https://docs.databricks.com/en/delta/vacuum.html"
+    },
+    {
+      "id": "DELTA_OPTIMIZE",
+      "platform": "delta",
+      "status": "supported",
+      "reason": "OPTIMIZE compacts small files; ZORDER co-locates related rows for skipping.",
+      "limitations": ["OPTIMIZE is not automatic; no OPTIMIZE on merge-heavy tables = small-file debt."],
+      "source": "https://docs.databricks.com/en/optimizations/file-mgmt.html"
+    }
+  ]
+}

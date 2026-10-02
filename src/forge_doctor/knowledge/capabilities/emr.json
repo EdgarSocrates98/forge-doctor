@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-release-components.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-whatsnew.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-lake-formation.html"
+  ],
+  "domain": "emr",
+  "capabilities": [
+    {
+      "id": "EMR_ICEBERG",
+      "platform": "emr",
+      "status": "conditional",
+      "versions": {"5.29": "unsupported", "6.5": "supported", "6.9": "supported", "7.0": "supported"},
+      "reason": "EMR 6.5+ bundles an Iceberg runtime for Spark; earlier releases need a custom connector.",
+      "limitations": [
+        "Iceberg tables on EMR honor LF only when the cluster runs an LF-integrated security configuration."
+      ],
+      "source": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-iceberg.html"
+    },
+    {
+      "id": "EMR_DELTA",
+      "platform": "emr",
+      "status": "conditional",
+      "versions": {"6.9": "conditional", "6.11": "supported", "7.0": "supported"},
+      "reason": "EMR 6.9+ ships a Delta Lake runtime for Spark; features depend on the bundled Delta version.",
+      "limitations": [
+        "Delta on EMR uses the bundled connector; open-source delta-io versions differ.",
+        "Deletion vectors and liquid clustering depend on the Delta version bundled per release."
+      ],
+      "source": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-delta.html"
+    },
+    {
+      "id": "EMR_LAKE_FORMATION",
+      "platform": "emr",
+      "status": "conditional",
+      "versions": {"5.31": "unsupported", "5.32": "conditional", "6.0": "conditional", "7.0": "conditional"},
+      "reason": "EMR on EC2 integrates with Lake Formation for Spark/EMRFS reads from release 5.32, gated on a security configuration.",
+      "limitations": [
+        "Requires a security configuration enabling the Lake Formation integration.",
+        "EMR Serverless and EMR on EKS have their own LF support matrices."
+      ],
+      "source": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-lake-formation.html"
+    },
+    {
+      "id": "EMR_SERVERLESS",
+      "platform": "emr",
+      "status": "supported",
+      "versions": {"6.6": "supported", "7.0": "supported"},
+      "reason": "EMR Serverless (Spark/Hive) is available from release emr-6.6; jobs run without cluster provisioning.",
+      "limitations": ["Per-job capacity caps are required for predictable cost."],
+      "source": "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html"
+    }
+  ]
+}

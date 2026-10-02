@@ -22,6 +22,7 @@ from forge_doctor.checks import (
     neptune,
     parquet,
     platform_rules,
+    platforms,
     python_env,
     repository,
     spark,
@@ -55,6 +56,7 @@ BUILTIN_MODULES = (
     dynamodb,
     neptune,
     architecture,
+    platforms,
 )
 
 

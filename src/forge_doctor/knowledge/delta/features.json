@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://github.com/delta-io/delta/blob/master/PROTOCOL.md",
+    "https://docs.databricks.com/en/delta/feature-compatibility.html"
+  ],
+  "domain": "delta",
+  "features": [
+    {
+      "name": "deletion_vectors",
+      "property": "delta.deletionVectors.enabled",
+      "protocol": {"min_reader": 3, "min_writer": 7},
+      "rationale": "Row-level soft deletes; pins the table to a modern protocol - older readers fail."
+    },
+    {
+      "name": "column_mapping",
+      "property": "delta.columnMapping.mode",
+      "protocol": {"min_reader": 2, "min_writer": 5},
+      "rationale": "Rename/drop columns without rewriting data files."
+    },
+    {
+      "name": "liquid_clustering",
+      "property": "delta.feature.clustering / CLUSTER BY",
+      "protocol": {"min_reader": 3, "min_writer": 7},
+      "rationale": "Replaces static partitioning; incompatible with partitionBy on clustered keys."
+    },
+    {
+      "name": "cdf",
+      "property": "delta.enableChangeDataFeed",
+      "protocol": {"min_reader": 1, "min_writer": 1},
+      "rationale": "Emits change records per commit; storage overhead proportional to churn."
+    },
+    {
+      "name": "schema_evolution",
+      "property": "mergeSchema / autoMerge / allowSourceEvolution",
+      "protocol": {"min_reader": 1, "min_writer": 1},
+      "rationale": "Widens schema on write - convenience at the cost of silent drift."
+    },
+    {
+      "name": "identity_columns",
+      "property": "GENERATED ALWAYS AS IDENTITY",
+      "protocol": {"min_reader": 2, "min_writer": 5},
+      "rationale": "Server-assigned surrogate keys."
+    }
+  ]
+}

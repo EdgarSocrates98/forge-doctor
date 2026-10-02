@@ -51,6 +51,19 @@ _TF_TYPED: dict[str, tuple[K, str]] = {
     "aws_kinesis_stream": (K.STREAM, "kinesis"),
     "aws_neptune_cluster": (K.GRAPH, "neptune"),
     "aws_glue_catalog_database": (K.CATALOG, "glue"),
+    "aws_emr_cluster": (K.COMPUTE_JOB, "emr"),
+    "aws_emrserverless_application": (K.COMPUTE_JOB, "emr"),
+    "aws_emrcontainers_virtual_cluster": (K.COMPUTE_JOB, "emr"),
+    "databricks_job": (K.COMPUTE_JOB, "databricks"),
+    "databricks_cluster": (K.COMPUTE_JOB, "databricks"),
+    "databricks_pipeline": (K.COMPUTE_JOB, "databricks"),
+    "databricks_sql_warehouse": (K.COMPUTE_JOB, "databricks"),
+    "databricks_sql_endpoint": (K.COMPUTE_JOB, "databricks"),
+    "databricks_catalog": (K.CATALOG, "databricks"),
+    "databricks_schema": (K.CATALOG, "databricks"),
+    "databricks_volume": (K.STORAGE_LOCATION, "databricks"),
+    "databricks_external_location": (K.STORAGE_LOCATION, "databricks"),
+    "databricks_storage_credential": (K.PRINCIPAL, "databricks"),
 }
 
 # Streaming source/sink class -> entity kind (bus/topic vs table vs blob).
@@ -666,6 +679,7 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 or res.attrs.get("function_name")
                 or res.attrs.get("bucket")
                 or res.attrs.get("cluster_identifier")
+                or res.attrs.get("cluster_name")
                 or res.labels[-1]
             )
         )
@@ -734,6 +748,74 @@ def _lakeformation(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             )
 
 
+def _platforms(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """EMR / Databricks compute + Delta tables/ops as canonical entities."""
+    from forge_doctor.analyzers.databricks_model import databricks_model
+    from forge_doctor.analyzers.delta_model import delta_model
+    from forge_doctor.analyzers.emr_model import emr_model
+
+    emr = emr_model(ctx)
+    for c in emr.clusters:
+        g.add_entity(
+            _e(K.COMPUTE_JOB, "emr", c.name, c.file, c.line, release=c.release, kind="ec2")
+        )
+    for app in emr.serverless_apps:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "emr",
+                app.name,
+                app.file,
+                app.line,
+                release=app.release,
+                kind="serverless",
+            )
+        )
+    for vc in emr.eks_clusters:
+        g.add_entity(_e(K.COMPUTE_JOB, "emr", vc.name, vc.file, vc.line, kind="eks"))
+
+    dbx = databricks_model(ctx)
+    for j in dbx.jobs:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", j.name, j.file, j.line, kind="job"))
+    for dc in dbx.clusters:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "databricks",
+                dc.name,
+                dc.file,
+                dc.line,
+                dbr=dc.dbr_version,
+                kind="job_cluster" if dc.is_job_cluster else "cluster",
+            )
+        )
+    for w in dbx.warehouses:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", w.name, w.file, w.line, kind="sql_warehouse"))
+    for p in dbx.pipelines:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", p.name, p.file, p.line, kind="pipeline"))
+    for uc in dbx.uc_objects:
+        kind = (
+            K.PRINCIPAL
+            if uc.kind == "storage_credential"
+            else K.STORAGE_LOCATION
+            if uc.kind in ("external_location", "volume")
+            else K.CATALOG
+        )
+        g.add_entity(_e(kind, "databricks", uc.name, uc.file, uc.line, uc_kind=uc.kind))
+
+    delta = delta_model(ctx)
+    for tname in sorted(delta.tables):
+        g.add_entity(_e(K.TABLE, "delta", tname))
+    for op in delta.ops:
+        q = _e(K.QUERY, "delta", f"{op.file.as_posix()}:{op.line}", op.file, op.line, op=op.op)
+        g.add_entity(q)
+        if op.target:
+            t = _e(K.TABLE, "delta", op.target)
+            g.add_entity(t)
+            rel = R.WRITES if op.op not in ("optimize", "vacuum") else R.DEPENDS_ON
+            g.add_relationship(Relationship(src=q.id, dst=t.id, kind=rel, evidence_kind=_STA))
+
+
 def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
     """Fuse every domain model into one canonical graph (memoized)."""
     cached = getattr(ctx, _CACHE_ATTR, None)
@@ -749,6 +831,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _dynamodb,
         _neptune,
         _lakeformation,
+        _platforms,
         _sql,
         _iceberg,
         _parquet,

@@ -20,6 +20,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     neptune,
     parquet,
     platform,
+    platforms,
     plugins,
     remediate,
     rootcause,
