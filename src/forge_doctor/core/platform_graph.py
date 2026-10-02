@@ -52,6 +52,7 @@ class EntityKind(Enum):
     VIEW = "view"
     SCHEMA = "schema"
     DBT_MODEL = "dbt_model"
+    DATA_CONTRACT = "data_contract"
 
 
 class RelKind(Enum):

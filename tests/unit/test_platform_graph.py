@@ -158,6 +158,7 @@ def test_enum_surface_matches_spec() -> None:
         "capability",
         "knowledge_pack",
         "dbt_model",
+        "data_contract",
     }
     assert {k.value for k in RelKind} == {
         "INVOKES",

@@ -154,6 +154,16 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") 
                     "changes": [dataclasses.asdict(c) for c in diff.changes],
                     "unmapped_files": list(diff.unmapped_files),
                     "findings_delta": {"added": added, "removed": removed},
+                    "contract_changes": [
+                        {
+                            "check_id": "DCTR004",
+                            "entity": c.entity_id,
+                            "breaking": list(c.breaking),
+                            "impacted": list(c.impacted),
+                        }
+                        for c in diff.changes
+                        if c.breaking
+                    ],
                     "capabilities": [
                         {
                             "capability": t.capability,
@@ -211,6 +221,11 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") 
                 str(len(c.impacted)) if c.impacted else "-",
             )
         console.print(table)
+        breaking = [c for c in diff.changes if c.breaking]
+        if breaking:
+            console.print("[bold]Breaking contract changes[/bold] (DCTR004):")
+            for c in breaking:
+                console.print(f"  [red]![/red] {c.entity_id}: {'; '.join(c.breaking)}")
         impacted = diff.impacted_entities
         if impacted:
             console.print("[bold]Blast radius[/bold] (depends on changed entities):")

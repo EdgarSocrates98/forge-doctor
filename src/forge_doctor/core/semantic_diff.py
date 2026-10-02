@@ -31,6 +31,8 @@ RISK_HIGH = "high"
 _IMPACT_INBOUND = {
     RelKind.DEPENDS_ON,
     RelKind.READS,
+    RelKind.READS_FROM,
+    RelKind.WRITES_TO,
     RelKind.CONSUMES,
     RelKind.STORED_IN,
     RelKind.INVOKES,
@@ -42,6 +44,7 @@ _IMPACT_OUTBOUND = {
     RelKind.INVOKES,
     RelKind.TRIGGERS,
     RelKind.WRITES,
+    RelKind.WRITES_TO,
     RelKind.PRODUCES,
 }
 
@@ -83,6 +86,92 @@ class EntityChange:
     via_files: tuple[str, ...] = ()  # changed files that touch the entity
     attr_diffs: tuple[str, ...] = ()  # attr keys whose values differ
     impacted: tuple[str, ...] = ()  # blast radius in the base graph
+    breaking: tuple[str, ...] = ()  # contract-field breaks (spec 217)
+
+
+# Contract-governed relations carry declared fields as ``field.<name>``
+# attrs (platform_graph_builder._contracts). A removed field or a
+# narrowed type is a breaking schema change (DCTR004 surface).
+
+_FIELD_ATTR = "field."
+
+
+def _type_split(decl: str) -> tuple[str, tuple[int, ...] | None]:
+    import re
+
+    m = re.fullmatch(r"\s*([a-z0-9_ ]+?)\s*(?:\(([\d,\s]+)\))?\s*", decl.lower())
+    if m is None:
+        return decl.strip().lower(), None
+    params = tuple(int(p) for p in m.group(2).split(",") if p.strip()) if m.group(2) else None
+    return m.group(1).strip(), params
+
+
+_NUMERIC_ORDER = {
+    "tinyint": 1,
+    "byteint": 1,
+    "smallint": 2,
+    "int": 3,
+    "integer": 3,
+    "bigint": 4,
+    "decimal": 5,
+    "numeric": 5,
+    "number": 5,
+    "float": 6,
+    "real": 6,
+    "double": 7,
+    "double precision": 7,
+}
+_TEXT_FAMILY = {"char", "varchar", "character", "string", "text"}
+
+
+def _type_relation(old: str, new: str) -> str:
+    """``same|widened|narrowed|changed`` — deterministic type lattice."""
+    if old == new:
+        return "same"
+    ob, op = _type_split(old)
+    nb, np = _type_split(new)
+    if ob == nb:
+        if op == np:
+            return "same"
+        if op and np and len(op) == len(np):
+            if all(a <= b for a, b in zip(op, np, strict=True)):
+                return "widened"
+            if all(a >= b for a, b in zip(op, np, strict=True)):
+                return "narrowed"
+        return "changed"  # params appear/disappear or diverge — honest
+    if ob in _NUMERIC_ORDER and nb in _NUMERIC_ORDER:
+        return "widened" if _NUMERIC_ORDER[nb] > _NUMERIC_ORDER[ob] else "narrowed"
+    if ob in _TEXT_FAMILY and nb in _TEXT_FAMILY:
+        # bounded -> unbounded widens; unbounded -> bounded narrows;
+        # both bounded is covered by the same-base-name branch only when
+        # the names match, so "varchar" vs "string" params compare here.
+        if np is not None and op is not None and len(np) == len(op) == 1:
+            return "widened" if np[0] >= op[0] else "narrowed"
+        if np is None and ob != "text":
+            return "widened"
+        if op is None and nb != "text":
+            return "narrowed"
+        return "changed"
+    if ob == "date" and nb == "timestamp":
+        return "widened"
+    return "changed"
+
+
+def _field_breaks(base: dict[str, str], head: dict[str, str]) -> tuple[str, ...]:
+    """Breaking schema changes among ``field.*`` attrs on one entity."""
+    out: list[str] = []
+    for key in sorted(set(base) | set(head)):
+        if not key.startswith(_FIELD_ATTR):
+            continue
+        name = key[len(_FIELD_ATTR) :]
+        old, new = base.get(key), head.get(key)
+        if old is not None and new is None:
+            out.append(f"{name} removed")
+        elif old is not None and new is not None and old != new:
+            rel = _type_relation(old, new)
+            if rel in {"narrowed", "changed"}:
+                out.append(f"{name}: {old} -> {new} ({rel})")
+    return tuple(out)
 
 
 @dataclass
@@ -172,6 +261,9 @@ def diff_graphs(
         if file_changed and f:
             touched_files.add(f)
         if diffs:
+            ea_ent, eb_ent = base.entity(eid), head.entity(eid)
+            ea_attrs = dict(ea_ent.attrs) if ea_ent is not None else {}
+            eb_attrs = dict(eb_ent.attrs) if eb_ent is not None else {}
             changes.append(
                 EntityChange(
                     entity_id=eid,
@@ -179,6 +271,7 @@ def diff_graphs(
                     via_files=(f,) if file_changed and f else (),
                     attr_diffs=diffs,
                     impacted=tuple(sorted(impact_fn(base, eid))),
+                    breaking=_field_breaks(ea_attrs, eb_attrs),
                 )
             )
         elif file_changed:
@@ -222,10 +315,23 @@ def _classify(changes: list[EntityChange], base: DataPlatformGraph) -> tuple[str
         ent = base.entity(c.entity_id)
         kind = ent.kind if ent else None
         n = len(c.impacted)
-        if c.change == "removed" and n:
+        if c.change == "modified" and c.breaking:
+            bump(
+                RISK_HIGH,
+                f"breaking schema change on {c.entity_id}: {'; '.join(c.breaking)}",
+            )
+        elif c.change == "removed" and n:
             bump(
                 RISK_HIGH,
                 f"removed {c.entity_id} impacts {n} entit{'y' if n == 1 else 'ies'}",
+            )
+        elif c.change == "removed" and (
+            kind == EntityKind.DATA_CONTRACT
+            or (ent is not None and any(k.startswith(_FIELD_ATTR) for k, _ in ent.attrs))
+        ):
+            bump(
+                RISK_HIGH,
+                f"removed contracted relation {c.entity_id} (declared schema lost)",
             )
         elif c.change == "removed":
             bump(RISK_MEDIUM, f"removed {c.entity_id} (no dependents)")

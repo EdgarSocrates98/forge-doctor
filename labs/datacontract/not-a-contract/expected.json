@@ -1,0 +1,6 @@
+{
+  "name": "not-a-contract",
+  "description": "Adversarial: generic yml+sql without contract markers must not attribute",
+  "expected_findings": [],
+  "forbidden_findings": ["DCTR001", "DCTR002", "DCTR003", "DCTR004"]
+}

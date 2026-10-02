@@ -936,6 +936,62 @@ def _dbt(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             ensure(K.DATASET, s.name, file=s.file)
 
 
+def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Data contracts (spec 217).
+
+    Contract files become ``data_contract`` entities; each schema object
+    governs the relation naming it — tail-matched against existing
+    TABLE/VIEW/DATASET entities across domains, else a
+    ``table:datacontract:<name>`` placeholder is emitted. Declared
+    field families land as ``field.<name>`` attrs on the governed
+    relation so ``diff --semantic`` surfaces per-field evolution
+    (add/remove/type change) with blast radius to consumers.
+    """
+    from forge_doctor.analyzers.datacontract_model import datacontract_model
+
+    model = datacontract_model(ctx)
+    if not model.has_evidence:
+        return
+
+    def tail(name: str) -> str:
+        return name.rpartition(".")[2].lower()
+
+    relations = [e for e in g.entities() if e.kind in {K.TABLE, K.VIEW, K.DATASET}]
+
+    for c in model.contracts:
+        cid = g.add_entity(
+            _e(
+                K.DATA_CONTRACT,
+                "datacontract",
+                c.id,
+                c.file,
+                format=c.format,
+                owner=c.owner,
+            )
+        ).id
+        for obj in c.objects:
+            attrs = {f"field.{f.name}": f.type for f in obj.fields}
+            attrs["contract"] = c.id
+            hits = [e for e in relations if tail(e.identifier) == tail(obj.name)]
+            if not hits:
+                placeholder = g.add_entity(_e(K.TABLE, "datacontract", obj.name, c.file))
+                relations.append(placeholder)
+                hits = [placeholder]
+            for hit in hits:
+                g.add_entity(
+                    Entity(
+                        kind=hit.kind,
+                        domain=hit.domain,
+                        identifier=hit.identifier,
+                        file=c.file,
+                        attrs=tuple(sorted(attrs.items())),
+                    )
+                )
+                g.add_relationship(
+                    Relationship(src=cid, dst=hit.id, kind=R.GOVERNS, evidence_kind=_CFG)
+                )
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1328,6 +1384,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _sql,
         _warehouse,
         _dbt,
+        _contracts,
         _iceberg,
         _parquet,
         _terraform,

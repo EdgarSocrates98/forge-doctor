@@ -1,0 +1,6 @@
+{
+  "name": "drifted-prod",
+  "description": "Contract on prod server w/o SLA + field type drift vs CREATE TABLE",
+  "expected_findings": ["DCTR002", "DCTR003"],
+  "forbidden_findings": ["DCTR001", "DCTR005"]
+}

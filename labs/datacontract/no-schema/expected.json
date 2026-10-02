@@ -1,0 +1,6 @@
+{
+  "name": "no-schema",
+  "description": "Contract file with no schema section on a non-prod server",
+  "expected_findings": ["DCTR001"],
+  "forbidden_findings": ["DCTR002", "DCTR003"]
+}

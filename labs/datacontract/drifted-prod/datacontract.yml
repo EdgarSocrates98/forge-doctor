@@ -1,0 +1,19 @@
+dataContractSpecification: 1.1.0
+id: orders-contract
+info:
+  title: Orders contract
+  owner: analytics-team
+servers:
+  prod:
+    type: snowflake
+    environment: prod
+schema:
+  - name: orders
+    fields:
+      order_id:
+        type: bigint
+        required: true
+      amount:
+        type: decimal(10,2)
+      note:
+        type: varchar

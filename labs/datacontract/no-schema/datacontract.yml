@@ -1,0 +1,9 @@
+dataContractSpecification: 1.1.0
+id: empty-contract
+info:
+  owner: analytics-team
+servers:
+  dev:
+    type: s3
+terms:
+  usage: internal only

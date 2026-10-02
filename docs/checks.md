@@ -1620,3 +1620,44 @@ A source is declared in properties yml but no model calls
 Described models fall below 50% of the total — the semantic layer
 consumers see unnamed tables.
 **Fix:** add `description:` to undocumented models in schema yml.
+
+## Data contracts (DataContractModel — contract lint + schema evolution)
+
+Evidence: `datacontract.yml|yaml`, `*.datacontract.*`, `*.odcs.*`, or
+any YAML/JSON doc carrying `dataContractSpecification`/`kind:
+DataContract` — datacontract-cli and ODCS shapes normalize to a minimal
+subset (id, owner, servers, schema fields+types, SLA properties,
+quality terms). Top-level keys outside the subset are recorded as
+parsed-but-unchecked, never silently dropped. Detected table schemas
+for cross-checks come from `CREATE TABLE` column defs (sql index),
+Terraform `google_bigquery_table` `schema` JSON, and observed column
+exports (`columns` shape rows). DCTR004 lives in `diff --semantic`: a
+governed relation's `field.*` attrs diff to removed/narrowed fields,
+which classify as breaking (high risk) and surface blast radius to
+consuming models.
+
+### DCTR000 — Contract surface · pass/info
+Anchor census: contracts, fields, SLA props, servers, detected schemas.
+
+### DCTR001 — Contract missing schema section · warning
+Contract file declares no schema fields — consumers cannot type-check.
+**Fix:** add a `schema:`/`properties` section with named objects and
+typed fields.
+
+### DCTR002 — Production contract without SLA · warning
+A contract declares a production server (`prod`/`production` name or
+environment) but no `servicelevels`/`slaProperties` — availability and
+freshness are unguarded.
+**Fix:** declare SLA properties for the production server.
+
+### DCTR003 — Contract field type drift · warning
+A contract field's normalized type family disagrees with the detected
+real schema (DDL, Terraform schema, or column export) for the governed
+relation. The finding carries the detected schema's evidence plane.
+**Fix:** align the contract type or the table; re-scan.
+
+### DCTR004 — Breaking contract change in semantic diff · high risk
+In `diff --semantic`: a governed relation's field was removed or its
+type narrowed/changed between refs (`field.*` attr diff). Surfaced as a
+"Breaking contract changes" section + `contract_changes` rows in JSON,
+and bumps risk to HIGH with blast radius to consuming models.

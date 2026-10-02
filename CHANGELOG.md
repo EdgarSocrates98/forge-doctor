@@ -315,6 +315,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unused sources, and low documentation coverage. New command
   `forge-doctor dbt inspect`, labs `labs/dbt/basic-project` +
   adversarial `plain-dir`.
+- **Data contracts + schema evolution** (spec 217, roadmap-4 wave 2b) —
+  `analyzers/datacontract_model.py` discovers `datacontract.yml`,
+  `*.odcs.*`, or marker-keyed YAML/JSON contract files; datacontract-cli
+  and ODCS normalize to a minimal subset (id, owner, servers, schema
+  fields+types, SLA properties, quality terms) with unknown top-level
+  keys recorded as parsed-but-unchecked. `DCTR001`–`DCTR003`: missing
+  schema section, production server without SLA, and field type drift
+  vs detected real schemas (CREATE TABLE defs, Terraform BigQuery
+  `schema`, observed column exports — findings carry the detected
+  plane). Graph: `data_contract` entities `GOVERNS` their relations;
+  declared fields land as `field.<name>` attrs so `diff --semantic`
+  surfaces per-field evolution — removed/narrowed fields classify as
+  breaking (`DCTR004` section + `contract_changes` JSON, risk HIGH)
+  with blast radius to consumers. Blast radius now also traverses
+  `READS_FROM`/`WRITES_TO` edges (dbt lineage participates in impact).
+  Labs `labs/datacontract/{drifted-prod,no-schema,not-a-contract}`.
 
 ### Fixed
 
