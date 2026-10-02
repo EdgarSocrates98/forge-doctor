@@ -185,6 +185,17 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   cartesian/comma joins, SQL003 non-sargable predicates. Unparseable
   statements are counted, never fatal; without the extra the category is
   absent and `explain SQL###` points at `forge-doctor[sql]`.
+- **Lake Formation pack + diagnose correlation** — `knowledge/lakeformation/`
+  covers credential vending (GetTemporaryCredentialsForTableV2), FGAC,
+  resource links, RAM/cross-account, hybrid access, IAMAllowedPrincipals,
+  LF-tags, DATA_LOCATION_ACCESS, and registered-location requirements; each
+  entry carries signature patterns + causes + fix hints. `diagnose` now
+  accepts `--path` and, when a vending-family signature matches and repo
+  evidence shows Glue >=5.x + LF/FGAC config + a write op, appends the
+  vending/write-path conflict correlation line. Error signatures gained
+  optional `fixes`/`families` fields. New `lakeformation` category: LF000
+  anchor, LF001 resource link without RAM share, LF002 IAMAllowedPrincipals
+  alongside FGAC tags (hybrid-access ambiguity).
 
 ### Added (0.7.0)
 

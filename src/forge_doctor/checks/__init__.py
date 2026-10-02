@@ -15,6 +15,7 @@ from forge_doctor.checks import (
     glue,
     iac,
     iceberg,
+    lakeformation,
     parquet,
     python_env,
     repository,
@@ -43,6 +44,7 @@ BUILTIN_MODULES = (
     parquet,
     stepfunctions,
     streaming,
+    lakeformation,
 )
 
 

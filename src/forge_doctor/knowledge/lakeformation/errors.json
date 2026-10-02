@@ -1,0 +1,240 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/access-control-overview.html",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/hybrid-access-mode.html"
+  ],
+  "domain": "lakeformation",
+  "errors": [
+    {
+      "id": "LAKE-E001",
+      "title": "Lake Formation permission denied",
+      "patterns": [
+        "Insufficient Lake Formation permission",
+        "re:Lake ?Formation.*(denied|permission|not authorized)",
+        "AccessDeniedException.*lakeformation"
+      ],
+      "causes": [
+        "role needs LF grant on database/table/columns",
+        "cross-account access missing resource-link or grant"
+      ],
+      "fixes": [
+        "grant the caller LF permissions (SELECT/INSERT/ALTER/DROP as needed) on the database/table/columns via aws_lakeformation_permissions or the console",
+        "for cross-account: create a resource link in the consumer account and grant DESCRIBE on the link plus the shared permission on the target"
+      ],
+      "related": [
+        "GLUE-E002",
+        "LAKE-E006"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E002",
+      "title": "Table version invalid",
+      "patterns": [
+        "INVALID_TABLE_VERSION",
+        "re:table version.*invalid"
+      ],
+      "causes": [
+        "governed table metadata drifted",
+        "concurrent commits invalidated the table version read at job start"
+      ],
+      "fixes": [
+        "retry after a catalog refresh; check LF transaction state",
+        "pin/refresh the table version used by the job run"
+      ],
+      "related": [],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E003",
+      "title": "Credential vending failed",
+      "patterns": [
+        "re:(GetDataAccess|vend).*fail|Unable to vend credentials",
+        "Failed to vend credentials"
+      ],
+      "causes": [
+        "registered location role cannot vend for the caller",
+        "S3 registered location misconfigured for the table",
+        "caller lacks DATA_LOCATION_ACCESS on the registered location"
+      ],
+      "fixes": [
+        "register the S3 prefix with an IAM role Lake Formation can assume (iam-role, not service-linked) and grant it S3 access",
+        "grant the job role DATA_LOCATION_ACCESS on the registered location",
+        "for Glue 5.x jobs: LF vends scoped credentials for writes - check the vending/write-path conflict if the job writes governed tables"
+      ],
+      "related": [
+        "LAKE-E001",
+        "LAKE-E004",
+        "LAKE-E009"
+      ],
+      "families": [
+        "credential-vending"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E004",
+      "title": "GetTemporaryCredentials denied",
+      "patterns": [
+        "GetTemporaryCredentialsForTableV2",
+        "GetTemporaryCredentialsForTable",
+        "re:GetTemporaryCredentials.*(denied|AccessDenied|not authorized)",
+        "re:AccessDenied.*GetTemporaryCredentials"
+      ],
+      "causes": [
+        "caller principal lacks permission for credential vending on this table",
+        "hybrid access mode: principal not enrolled while IAMAllowedPrincipals grant exists",
+        "Glue 5.x write path requires vending even when reads succeed"
+      ],
+      "fixes": [
+        "grant the job role SELECT/INSERT on the table AND DATA_LOCATION_ACCESS on the underlying registered location",
+        "enroll the principal in hybrid access mode, or remove the IAMAllowedPrincipals grant",
+        "Glue 5.x + FGAC + write: ensure the registered-location role can vend scoped credentials for the write path"
+      ],
+      "related": [
+        "LAKE-E003",
+        "LAKE-E007"
+      ],
+      "families": [
+        "credential-vending"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E005",
+      "title": "Registered-location S3 deny",
+      "patterns": [
+        "re:(registered|register(ed)?).*(location|path).*(denied|not registered|access)",
+        "re:S3.*(denied|AccessDenied).*(lakeformation|registered location)",
+        "re:path.*not.*registered"
+      ],
+      "causes": [
+        "table data lives under an S3 prefix that is not registered as an LF data location",
+        "registered-location role lacks s3:GetObject/PutObject on the prefix"
+      ],
+      "fixes": [
+        "register the S3 prefix via aws_lakeformation_resource (or RegisterResource) with a vending-capable role",
+        "grant the registered-location role S3 access to the exact prefix (no wildcard gaps)"
+      ],
+      "related": [
+        "LAKE-E003",
+        "LAKE-E009"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E006",
+      "title": "Resource link / cross-account access failed",
+      "patterns": [
+        "resource link",
+        "ResourceLink",
+        "re:cross.?account.*(denied|fail|not authorized)",
+        "re:RAM.*(denied|share|association).*fail"
+      ],
+      "causes": [
+        "consumer account has no resource link to the shared database",
+        "RAM resource share missing or not accepted for the Data Catalog object",
+        "grant went to the linked name instead of the target"
+      ],
+      "fixes": [
+        "share the catalog object via aws_ram_resource_share + principal association to the consumer account",
+        "create the resource link in the consumer catalog and grant DESCRIBE on it"
+      ],
+      "related": [
+        "LAKE-E001"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E007",
+      "title": "IAMAllowedPrincipals / hybrid access conflict",
+      "patterns": [
+        "IAM_ALLOWED_PRINCIPALS",
+        "IAMAllowedPrincipals",
+        "re:hybrid access.*(denied|fail|not enrolled)",
+        "re:not enrolled.*hybrid"
+      ],
+      "causes": [
+        "IAMAllowedPrincipals grant bypasses LF for principals not enrolled in hybrid access mode",
+        "principal behavior is ambiguous while both IAM grants and LF grants apply"
+      ],
+      "fixes": [
+        "enroll the job principal in hybrid access mode (aws_lakeformation_opt_in / DataLakePrincipal enrollments)",
+        "or remove the IAMAllowedPrincipals grant so LF is the only gate"
+      ],
+      "related": [
+        "LAKE-E004"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E008",
+      "title": "LF-Tag policy mismatch",
+      "patterns": [
+        "re:LF.?Tag.*(denied|mismatch|not authorized)",
+        "re:tag expression.*(denied|fail)",
+        "re:LFTag.*AccessDenied"
+      ],
+      "causes": [
+        "principal's LF-Tag grant expression does not cover the tagged resource",
+        "resource tagged with a key/value the principal grant does not include"
+      ],
+      "fixes": [
+        "grant the principal an LF-Tag expression matching the resource's tags (key + value pair, not just the key)",
+        "verify aws_lakeformation_resource_lf_tags actually attached the intended tag values"
+      ],
+      "related": [
+        "LAKE-E001"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E009",
+      "title": "DATA_LOCATION_ACCESS missing",
+      "patterns": [
+        "DATA_LOCATION_ACCESS",
+        "re:data location.*(denied|permission|access)"
+      ],
+      "causes": [
+        "writes/DDL under a registered location need DATA_LOCATION_ACCESS on top of table grants",
+        "principal has table-level grants but not location-level access"
+      ],
+      "fixes": [
+        "grant DATA_LOCATION_ACCESS on the registered S3 location to the job role",
+        "for new tables under governed paths, register the prefix first"
+      ],
+      "related": [
+        "LAKE-E003",
+        "LAKE-E005"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "LAKE-E010",
+      "title": "Fine-grained (FGAC) access denied",
+      "patterns": [
+        "re:fine.?grained.*(denied|fail)",
+        "re:column.*(denied|not authorized|permission).*lake ?formation",
+        "re:cell.*filter.*(denied|fail)",
+        "re:row.?level.*(denied|fail).*lake ?formation"
+      ],
+      "causes": [
+        "column-level or cell-level grants exclude the queried columns",
+        "data-cells filter excludes the rows/columns the job reads"
+      ],
+      "fixes": [
+        "extend the LF grant to cover the needed columns (column inclusion/exclusion lists)",
+        "check AWS::LakeFormation::DataCellsFilter / aws_lakeformation_data_cells_filter coverage"
+      ],
+      "related": [
+        "LAKE-E001",
+        "LAKE-E008"
+      ],
+      "severity": "error"
+    }
+  ]
+}

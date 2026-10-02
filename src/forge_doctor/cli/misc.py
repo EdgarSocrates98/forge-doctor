@@ -695,23 +695,31 @@ def version_cmd() -> None:
 def diagnose_cmd(
     source: Annotated[str, typer.Argument(help="Log file path, or '-' to read stdin.")],
     fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+    path: Annotated[
+        Path, typer.Option("--path", help="Project root for repo-evidence correlations.")
+    ] = Path("."),
 ) -> None:
     """Fingerprint log errors against known signatures (deterministic, offline)."""
     import json as _json
     import sys
 
-    from forge_doctor.core.diagnose import diagnose_text
+    from forge_doctor.core.diagnose import diagnose_text, project_correlations
 
     if source == "-":
         text = sys.stdin.read()
     else:
-        path = Path(source)
-        if not path.is_file():
+        log_path = Path(source)
+        if not log_path.is_file():
             _stderr.print(f"[red]Not a file:[/red] {source}")
             raise typer.Exit(INTERNAL_ERROR_EXIT)
-        text = path.read_text(encoding="utf-8", errors="replace")
+        text = log_path.read_text(encoding="utf-8", errors="replace")
 
     diagnoses = diagnose_text(text)
+    # Repo-evidence correlations only make sense once a governed-domain
+    # signature matched; skip the project scan entirely otherwise.
+    correlations: list[str] = []
+    if path.is_dir() and any(d.signature.domain == "lakeformation" for d in diagnoses):
+        correlations = project_correlations(ProjectContext(root=path), diagnoses)
     if fmt == "json":
         typer.echo(
             _json.dumps(
@@ -726,11 +734,13 @@ def diagnose_cmd(
                             "domain": d.signature.domain,
                             "count": d.count,
                             "causes": list(d.signature.causes),
+                            "fixes": list(d.signature.fixes),
                             "related": list(d.signature.related),
                             "samples": d.samples,
                         }
                         for d in diagnoses
                     ],
+                    "correlations": correlations,
                 },
                 indent=2,
                 ensure_ascii=False,
@@ -757,8 +767,12 @@ def diagnose_cmd(
         console.print(f"\n[bold]{d.signature.id}[/bold] {d.signature.title}")
         for cause in d.signature.causes:
             console.print(f"  [dim]->[/dim] {cause}")
+        for fix_hint in d.signature.fixes:
+            console.print(f"  [dim]fix:[/dim] {fix_hint}")
         if d.signature.related:
             console.print(f"  [dim]related: {', '.join(d.signature.related)}[/dim]")
+    for line in correlations:
+        console.print(f"\n[yellow]correlation:[/yellow] {line}")
     raise typer.Exit(1)
 
 
