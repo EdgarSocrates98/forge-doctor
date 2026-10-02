@@ -1260,6 +1260,26 @@ evidence. Seed corpus: `airflow-glue-athena`, `databricks-delta`,
 `dynamodb-neptune`, `dynamodb-streams-lambda`, `emr-iceberg`,
 `glue-4-to-5`, `kafka-spark-iceberg`, `lf-cross-account`.
 
+## Performance benchmark
+
+`forge-doctor bench run` measures the engine on a project — or a
+deterministic synthetic corpus (`--files N --seed S`):
+
+```text
+files=200 py=122 findings=103
+cold=13050ms warm=5538ms ratio=0.42 packs=74 (34ms)
+ast=122/122 graph=1317ms (117 ent/63 rel) peak=12MB
+```
+
+- **cold / warm** — full check pass, cold vs disk-cached index
+- **ast=N/M** — one AST parse per `.py` file is the ideal
+- **graph** — platform-graph build time + size
+- **packs** — knowledge-pack load, **peak** — tracemalloc MB
+
+Budgets (`--budget b.json`) are portable ratios/counts, not wall clocks:
+`warm_ratio_max`, `ast_parse_max_ratio`, `graph_ms_per_1k_files`,
+`cold_ms_per_1k_files`. Violations print and exit 1.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

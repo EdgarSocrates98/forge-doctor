@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `golden/<name>/repo` + `expected/` snapshots pin full engine output
   (findings, graph, root causes, remediations, migrations) for
   regression gating. 8-repo seed corpus.
+- **Performance benchmark** — `forge-doctor bench run [--files N]`
+  measures cold/warm scan time, AST parse count, graph build, pack load,
+  and peak memory; `--budget` enforces portable ratio/count budgets.
 
 ### Fixed
 
