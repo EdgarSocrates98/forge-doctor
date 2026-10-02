@@ -143,6 +143,14 @@ EvidenceOutOpt = Annotated[
         help="Write a dated audit bundle (report + suppressions + policy packs).",
     ),
 ]
+RecordOpt = Annotated[
+    bool,
+    typer.Option("--record", help="Append a history snapshot to .forge-doctor/history/."),
+]
+KeepOpt = Annotated[
+    int | None,
+    typer.Option("--keep", help="With --record: retain only the newest N snapshots."),
+]
 
 
 @dataclass
@@ -168,6 +176,8 @@ class _ScanCli:
     cache: bool | None = None
     stats: bool = False
     evidence_out: Path | None = None
+    record: bool = False
+    keep: int | None = None
 
 
 def _build_registry(
@@ -358,6 +368,17 @@ def _run_scan(opts: _ScanCli) -> None:
     console = Console(no_color=opts.no_color)
     with _stderr.status("[cyan]Analyzing project...[/cyan]", spinner="dots"):
         report, runner, selected, plugin_errors, ctx = _execute_scan(opts)
+
+    if opts.record:
+        from forge_doctor.core.history import prune, record_snapshot
+
+        root = opts.path.resolve()
+        snap_path = record_snapshot(report, root, ctx)
+        console.print(f"[green]snapshot recorded:[/green] {snap_path}")
+        if opts.keep is not None:
+            removed = prune(root, opts.keep)
+            if removed:
+                console.print(f"[dim]pruned {len(removed)} oldest snapshot(s)[/dim]")
 
     if opts.evidence_out is not None:
         bundle = _write_evidence(opts.evidence_out, report, ctx)

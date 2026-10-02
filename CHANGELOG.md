@@ -93,6 +93,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (dependency-aware blast radius incl. cross-repo links), `findings
   <check-id|glob>` (per-repo scan). `fleet report` = estate census +
   findings roll-up; text + JSON. See `docs/fleet.md`.
+- **Historical intelligence** — `scan --record [--keep N]` appends a
+  compact snapshot to `.forge-doctor/history/<utc>.json` (summary
+  counts, finding fingerprints, entity census, capability states, ARCH
+  drift ids). `forge-doctor history` lists snapshots; `history diff
+  <a> <b>`/`--last` reports new/resolved findings (fingerprint join
+  key), entity adds/removals, capability transitions, drift changes;
+  `history trend` shows per-category counts over the series + a debt
+  trajectory. History commands never re-scan; snapshots are only
+  written on `--record`.
 
 ### Fixed
 

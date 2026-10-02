@@ -17,6 +17,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     fleet,
     golden,
     graph,
+    history,
     iceberg,
     lab,
     lakeformation,

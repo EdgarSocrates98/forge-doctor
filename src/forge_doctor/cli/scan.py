@@ -19,6 +19,7 @@ from forge_doctor.cli.common import (
     FilesOpt,
     FormatOpt,
     IgnoreOpt,
+    KeepOpt,
     NewOnlyOpt,
     NoColorOpt,
     NoPluginsOpt,
@@ -26,6 +27,7 @@ from forge_doctor.cli.common import (
     PathArg,
     ProfileOpt,
     QuietOpt,
+    RecordOpt,
     SaveBaselineOpt,
     ShowRootOpt,
     StatsOpt,
@@ -63,6 +65,8 @@ def scan(
     cache: CacheOpt = True,
     stats: StatsOpt = False,
     evidence_out: EvidenceOutOpt = None,
+    record: RecordOpt = False,
+    keep: KeepOpt = None,
 ) -> None:
     """Scan a project for data-engineering problems."""
     _run_scan(
@@ -88,6 +92,8 @@ def scan(
             cache=cache,
             stats=stats,
             evidence_out=evidence_out,
+            record=record,
+            keep=keep,
         )
     )
 

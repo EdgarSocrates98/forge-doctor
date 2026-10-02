@@ -56,6 +56,10 @@ forge-doctor scan . --baseline .fd.json --new-only # just the new ones
 forge-doctor scan . --save-baseline main       # named: .forge-doctor/baselines/main.json
 forge-doctor scan . --baseline main --new-only # per-branch baselines
 forge-doctor scan . --evidence-out audit/      # dated audit bundle (report+suppressions+packs)
+forge-doctor scan . --record --keep 30         # append a history snapshot, prune to 30
+forge-doctor history .              # recorded snapshots
+forge-doctor history diff --last    # new/resolved findings, entity+capability+drift deltas
+forge-doctor history trend          # finding counts over the series + debt trajectory
 forge-doctor diff old.json new.json     # diff two saved reports
 forge-doctor diff HEAD~1...HEAD         # diff across git refs
 forge-doctor compatibility --to 6.0     # Glue env + migration risks
