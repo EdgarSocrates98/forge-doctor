@@ -199,7 +199,8 @@ def test_metrics_perfect_run(tmp_path: Path) -> None:
     rows = compute_metrics(lab, forbidden_declarations(lab))
     total = rows[-1]
     assert total.name == "TOTAL"
-    assert total.precision == 1.0 and total.recall == 1.0
+    extras = [r.findings.extra for r in lab.reports]
+    assert total.precision == 1.0 and total.recall == 1.0, f"unaccounted findings: {extras}"
     assert total.fpr == 0.0
     assert total.parser_coverage == 1.0
 
