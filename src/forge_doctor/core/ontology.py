@@ -213,8 +213,15 @@ def capability_families() -> tuple[str, ...]:
 
 
 def vocabulary() -> dict[str, list[dict[str, str]]]:
-    """Deterministic JSON-serializable vocabulary (stable key order)."""
-    return {
+    """Deterministic JSON-serializable vocabulary (stable key order).
+
+    The semantic-model sections (spec 230) come from
+    :mod:`forge_doctor.core.platform_ontology`; the two modules together
+    are the canonical ontology.
+    """
+    from forge_doctor.core.platform_ontology import semantic_vocabulary
+
+    vocab = {
         "capability_families": [{"name": n, "definition": ""} for n in capability_families()],
         "entity_kinds": [{"name": t.name, "definition": t.definition} for t in entity_kinds()],
         "evidence_domains": [
@@ -230,6 +237,8 @@ def vocabulary() -> dict[str, list[dict[str, str]]]:
             {"name": t.name, "definition": t.definition} for t in relationship_kinds()
         ],
     }
+    vocab.update(semantic_vocabulary())
+    return vocab
 
 
 def validate_graph(graph: DataPlatformGraph) -> list[str]:

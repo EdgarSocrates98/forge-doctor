@@ -591,6 +591,118 @@ def ontology_validate(
     console.print(f"[green]ontology clean[/green] — {n_e} entities, {n_r} relationships conform")
 
 
+@ontology_app.command(name="platform")
+def ontology_platform(
+    name: Annotated[
+        str | None, typer.Argument(help="Platform id/alias for detail (omit to list all).")
+    ] = None,
+    as_json: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Platform implementations mapped onto vendor-neutral kinds (spec 230)."""
+    from forge_doctor.core.platform_ontology import (
+        implementation_for,
+        implementations,
+        validate_implementations,
+    )
+
+    console = Console()
+    if as_json:
+        rows = [
+            {
+                "id": p.id,
+                "vendor": p.vendor,
+                "product": p.product,
+                "kind": p.kind.value,
+                "capabilities": list(p.capabilities),
+                "aliases": list(p.aliases),
+                "deployment_mode": p.deployment_mode,
+            }
+            for p in implementations()
+        ]
+        typer.echo(json.dumps(rows, indent=2))
+        return
+    if name is not None:
+        impl = implementation_for(name)
+        if impl is None:
+            _stderr.print(f"[red]unknown platform:[/red] {name}")
+            raise typer.Exit(1)
+        console.print(f"[bold]{impl.id}[/bold] — {impl.product}")
+        console.print(f"  vendor:     {impl.vendor}")
+        console.print(f"  kind:       {impl.kind.value}")
+        if impl.deployment_mode:
+            console.print(f"  deployment: {impl.deployment_mode}")
+        if impl.capabilities:
+            console.print(f"  capabilities: {', '.join(impl.capabilities)}")
+        if impl.aliases:
+            console.print(f"  aliases:    {', '.join(impl.aliases)}")
+        return
+    issues = validate_implementations()
+    for issue in issues:
+        _stderr.print(f"[yellow]registry issue:[/yellow] {issue}")
+    table = Table(title="Platform implementations", title_justify="left")
+    table.add_column("Id", style="bold")
+    table.add_column("Vendor")
+    table.add_column("Kind")
+    table.add_column("Product")
+    for p in implementations():
+        table.add_row(p.id, p.vendor, p.kind.value, p.product)
+    console.print(table)
+    if issues:
+        raise typer.Exit(1)
+
+
+@ontology_app.command(name="workloads")
+def ontology_workloads(
+    as_json: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Workload intents and the platform kinds that can serve them."""
+    from forge_doctor.core.platform_ontology import (
+        WorkloadIntent,
+        workload_intents,
+        workload_kinds,
+    )
+
+    rows = [
+        {
+            "name": name,
+            "definition": definition,
+            "platform_kinds": [k.value for k in workload_kinds(WorkloadIntent(name))],
+        }
+        for name, definition in workload_intents()
+    ]
+    if as_json:
+        typer.echo(json.dumps(rows, indent=2))
+        return
+    console = Console()
+    table = Table(title="Workload intents", title_justify="left")
+    table.add_column("Intent", style="bold")
+    table.add_column("Served by (platform kinds)")
+    table.add_column("Definition", style="dim")
+    for row in rows:
+        table.add_row(row["name"], ", ".join(row["platform_kinds"]), row["definition"])
+    console.print(table)
+
+
+@ontology_app.command(name="access-patterns")
+def ontology_access_patterns(
+    as_json: Annotated[bool, typer.Option("--json")] = False,
+) -> None:
+    """Data-access patterns the ontology distinguishes."""
+    from forge_doctor.core.platform_ontology import access_patterns
+
+    rows = [{"name": n, "definition": d} for n, d in access_patterns()]
+    if as_json:
+        typer.echo(json.dumps(rows, indent=2))
+        return
+    console = Console()
+    table = Table(title="Data access patterns", title_justify="left")
+    table.add_column("Pattern", style="bold")
+    table.add_column("Definition", style="dim")
+    for row in rows:
+        table.add_row(row["name"], row["definition"])
+    console.print(table)
+
+
 knowledge_app = typer.Typer(name="knowledge", help="Knowledge-pack provenance.")
 app.add_typer(knowledge_app, name="knowledge")
 

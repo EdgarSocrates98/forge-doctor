@@ -71,6 +71,14 @@ def test_vocabulary_is_deterministic_and_serializable() -> None:
         "evidence_planes",
         "producer_domains",
         "relationship_kinds",
+        "consistency_models",
+        "data_access_patterns",
+        "data_movement_modes",
+        "lifecycle_states",
+        "materialization_kinds",
+        "ownership_sources",
+        "platform_kinds",
+        "workload_intents",
     ]
 
 
@@ -156,3 +164,16 @@ def test_ontology_doc_matches_vocabulary() -> None:
     assert _doc_section(doc, "evidence_planes") == [t.name for t in evidence_planes()]
     assert _doc_section(doc, "evidence_domains") == [t.name for t in evidence_domains()]
     assert _doc_section(doc, "producer_domains") == [t.name for t in producer_domains()]
+    # semantic-model sections (spec 230) — same parity rule
+    vocab = vocabulary()
+    for section in (
+        "platform_kinds",
+        "workload_intents",
+        "data_access_patterns",
+        "materialization_kinds",
+        "consistency_models",
+        "data_movement_modes",
+        "lifecycle_states",
+        "ownership_sources",
+    ):
+        assert _doc_section(doc, section) == [t["name"] for t in vocab[section]]
