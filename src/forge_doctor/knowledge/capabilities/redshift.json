@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.03",
+  "verified_at": "2026-10-03",
+  "sources": [
+    "https://docs.aws.amazon.com/redshift/latest/dg/c_Spectrum.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/datashare-overview.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/managed-storage-overview.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/concurrency-scaling.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/t_Creating_tables.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "SPECTRUM_EXTERNAL",
+      "platform": "redshift",
+      "status": "supported",
+      "reason": "Spectrum queries external tables on S3 via external schemas.",
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/c_Spectrum.html"
+    },
+    {
+      "id": "DATASHARES",
+      "platform": "redshift",
+      "status": "supported",
+      "reason": "Datashares share live data across clusters/accounts without copies.",
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/datashare-overview.html"
+    },
+    {
+      "id": "RA3_MANAGED_STORAGE",
+      "platform": "redshift",
+      "status": "conditional",
+      "reason": "Managed storage requires RA3 node types or Serverless.",
+      "conditions": [
+        {
+          "attribute": "node_type",
+          "op": "matches",
+          "value": "^(ra3|dc2|ds2)\\.",
+          "status_on_fail": "unsupported",
+          "reason": "dc1 node types use local storage, not managed storage"
+        }
+      ],
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/managed-storage-overview.html"
+    },
+    {
+      "id": "SERVERLESS_RPU",
+      "platform": "redshift",
+      "status": "supported",
+      "reason": "Redshift Serverless meters compute in RPUs (8-512 base).",
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/serverless-overview.html"
+    },
+    {
+      "id": "CONCURRENCY_SCALING",
+      "platform": "redshift",
+      "status": "supported",
+      "reason": "Concurrency scaling adds transient capacity per WLM queue.",
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/concurrency-scaling.html"
+    },
+    {
+      "id": "AUTO_MATERIALIZED_VIEWS",
+      "platform": "redshift",
+      "status": "conditional",
+      "reason": "Auto MVs/ATO are available on ra3+/dc2+/serverless, not dc1.",
+      "conditions": [
+        {
+          "attribute": "node_type",
+          "op": "matches",
+          "value": "^(ra3|dc2|ds2)\\.",
+          "status_on_fail": "unsupported",
+          "reason": "dc1 lacks automatic table optimization"
+        }
+      ],
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html"
+    },
+    {
+      "id": "DIST_SORT_KEYS",
+      "platform": "redshift",
+      "status": "supported",
+      "reason": "DISTSTYLE/DISTKEY/SORTKEY layout controls are core Redshift DDL.",
+      "source": "https://docs.aws.amazon.com/redshift/latest/dg/t_Creating_tables.html"
+    }
+  ]
+}

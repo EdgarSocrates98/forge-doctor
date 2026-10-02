@@ -1,0 +1,6 @@
+{
+  "name": "skewed-even",
+  "description": "Large observed table with DISTSTYLE EVEN joined in authored SQL - distribution risk",
+  "expected_findings": ["RS001"],
+  "forbidden_findings": ["RS004", "RS005"]
+}

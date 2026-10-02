@@ -1,0 +1,11 @@
+[
+  {
+    "table": "fact",
+    "schema": "public",
+    "size": "5000",
+    "tbl_rows": "50000000",
+    "diststyle": "EVEN",
+    "skew_rows": "0.45",
+    "unsorted": "12.0"
+  }
+]

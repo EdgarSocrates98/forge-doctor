@@ -1,0 +1,6 @@
+{
+  "name": "public-cluster",
+  "description": "Redshift cluster flagged public and unencrypted in Terraform",
+  "expected_findings": ["RS004"],
+  "forbidden_findings": ["RS001", "RS002", "RS005"]
+}

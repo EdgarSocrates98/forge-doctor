@@ -278,6 +278,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inspect`, capability pack `bigquery.json` (partitioning, clustering,
   BI Engine, slots vs on-demand, time travel, BigLake, DML quotas),
   labs `labs/bigquery/unpartitioned` + adversarial `plain-sql`.
+- **Redshift adapter** (spec 215, roadmap-4 wave 1d) —
+  `analyzers/redshift_model.py` populates a vendor detail model from
+  Redshift DDL (`CREATE TABLE ... DISTSTYLE|DISTKEY|SORTKEY|ENCODE`,
+  `CREATE EXTERNAL SCHEMA|TABLE` Spectrum, materialized views,
+  datashares), Terraform `aws_redshift*` resources (provisioned
+  clusters, Serverless workgroups/namespaces, parameter/subnet groups —
+  `parameter{}` blocks mined for WLM/`auto_analyze`), and observed
+  `SVV_*`/`STL_*` exports (claimed only with a positive field signal in
+  shared dirs). `VACUUM`/`ANALYZE` alone never attribute — Postgres
+  shares them. Checks `RS001`–`RS005`: large EVEN/ALL-distributed
+  tables under joins, unsorted tables behind range predicates, ATO
+  disabled with observed skew, public/unencrypted clusters, and manual
+  maintenance scripts on ATO-eligible compute. STL/SVV-derived findings
+  carry `evidence_kind=observed_metadata`. `RedshiftQueryLogAdapter`
+  ingests STL_QUERY exports as runtime evidence (exec + WLM queue
+  times). New command `forge-doctor redshift inspect`, capability pack
+  `redshift.json` (Spectrum, datashares, RA3 managed storage,
+  Serverless RPU, concurrency scaling, auto MVs, dist/sort keys), labs
+  `labs/redshift/public-cluster` + `skewed-even` + adversarial
+  `postgres`.
 
 ### Fixed
 

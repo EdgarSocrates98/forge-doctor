@@ -400,6 +400,7 @@ def _from_snowflake(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
 
 PLATFORM_SNOWFLAKE = "snowflake"
 PLATFORM_BIGQUERY = "bigquery"
+PLATFORM_REDSHIFT = "redshift"
 
 
 def _from_bigquery(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
@@ -483,6 +484,97 @@ def _from_bigquery(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
             )
 
 
+def _from_redshift(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
+    """Merge redshift-model facts into the shared warehouse model."""
+    from forge_doctor.analyzers.redshift_model import redshift_model
+
+    rs = redshift_model(ctx)
+    if not rs.has_evidence:
+        return
+    known_compute = {c.name for c in model.compute}
+    known_ns = {n.name for n in model.namespaces}
+    known_tables = {t.name for t in model.tables}
+    known_views = {v.name for v in model.views}
+    if rs.compute or rs.namespaces or rs.tables or rs.views:
+        model.platforms = tuple(sorted(set(model.platforms) | {PLATFORM_REDSHIFT}))
+    for c in rs.compute:
+        if c.name not in known_compute:
+            model.compute.append(
+                WarehouseCompute(c.name, PLATFORM_REDSHIFT, c.file, c.line, c.attrs)
+            )
+    for ns in rs.namespaces:
+        if ns.name not in known_ns:
+            kind = "schema" if ns.kind == "external_schema" else ns.kind
+            model.namespaces.append(
+                WarehouseNamespace(ns.name, PLATFORM_REDSHIFT, kind, ns.file, ns.line, ns.attrs)
+            )
+    for t in rs.tables:
+        if t.name not in known_tables:
+            model.tables.append(
+                WarehouseTable(
+                    t.name,
+                    PLATFORM_REDSHIFT,
+                    t.kind == "external_table",
+                    t.file,
+                    t.line,
+                    t.attrs,
+                )
+            )
+    for v in rs.views:
+        if v.name not in known_views:
+            read = v.attr("tables_read")
+            model.views.append(
+                WarehouseView(
+                    v.name,
+                    PLATFORM_REDSHIFT,
+                    v.kind == "materialized_view",
+                    tuple(r for r in read.split(",") if r),
+                    v.file,
+                    v.line,
+                    v.attrs,
+                )
+            )
+    for q in rs.queries:
+        model.queries.append(
+            WarehouseQuery(
+                f"{q.file.as_posix()}:{q.line or 0}",
+                PLATFORM_REDSHIFT,
+                q.tables_read,
+                q.tables_written,
+                q.file,
+                q.line,
+            )
+        )
+    # Parameter groups carry WLM config; datashares are sharing surfaces.
+    for obj in rs.objects:
+        if obj.kind == "parameter_group":
+            model.workload_management.append(
+                {
+                    "kind": "parameter_group",
+                    "name": obj.name,
+                    "platform": PLATFORM_REDSHIFT,
+                    "file": obj.file.as_posix() if obj.file else "",
+                    "line": obj.line,
+                }
+            )
+        elif obj.kind in {"datashare", "datashare_authz", "datashare_consumer"}:
+            model.sharing.append(
+                {
+                    "kind": obj.kind,
+                    "name": obj.name,
+                    "platform": PLATFORM_REDSHIFT,
+                    "file": obj.file.as_posix() if obj.file else "",
+                    "line": obj.line,
+                }
+            )
+    for row in rs.observed_tables():
+        name = row.get("table", "tablename", "table_name", "name")
+        if name and name not in known_tables:
+            model.tables.append(
+                WarehouseTable(name, PLATFORM_REDSHIFT, False, row.file, None, row.fields)
+            )
+
+
 def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
     """Memoized vendor-neutral warehouse model over ctx evidence."""
     cached = getattr(ctx, _CACHE_ATTR, None)
@@ -493,5 +585,6 @@ def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
     _from_sql(model, ctx)
     _from_snowflake(model, ctx)
     _from_bigquery(model, ctx)
+    _from_redshift(model, ctx)
     setattr(ctx, _CACHE_ATTR, model)
     return model

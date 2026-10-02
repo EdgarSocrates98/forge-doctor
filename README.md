@@ -95,6 +95,7 @@ forge-doctor ontology                 # canonical vocabulary (entity/rel kinds, 
 forge-doctor ontology validate .      # graph conformance vs the vocabulary
 forge-doctor snowflake inspect .      # Snowflake warehouse model + vendor objects
 forge-doctor bigquery inspect .       # BigQuery datasets, partitions, slots, jobs
+forge-doctor redshift inspect .       # Redshift clusters, dist/sort keys, WLM, datashares
 forge-doctor export . -f handoff      # portable bundle for downstream Forge tools
 forge-doctor contracts verify b.json  # validate a bundle against published contracts
 forge-doctor info                   # project stats, no checks

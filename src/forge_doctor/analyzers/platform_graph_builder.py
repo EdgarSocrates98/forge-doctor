@@ -841,6 +841,33 @@ def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         # materialized views already land via model.views -> READS_FROM;
         # dataset access grants view a dataset CONTAINment.
 
+    # Redshift vendor objects (datashares, param/subnet groups, schedules,
+    # endpoint/accessory resources) the shared model doesn't carry.
+    from forge_doctor.analyzers.redshift_model import redshift_model
+
+    rs = redshift_model(ctx)
+    if rs.has_evidence:
+        _RS_KINDS = {
+            "datashare": K.CATALOG,
+            "datashare_authz": K.PRINCIPAL,
+            "datashare_consumer": K.PRINCIPAL,
+            "iam_roles": K.PRINCIPAL,
+            "auth_profile": K.PRINCIPAL,
+            "routine": K.COMPUTE_JOB,
+        }
+        for rs_obj in rs.objects:
+            ent_kind = _RS_KINDS.get(rs_obj.kind, K.INFRASTRUCTURE_RESOURCE)
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"redshift/{rs_obj.kind}:{rs_obj.name}",
+                rs_obj.file,
+                rs_obj.line,
+                platform="redshift",
+            )
+            g.add_entity(e)
+            contains(wh("redshift"), e.id, _STA if rs_obj.source == "sql" else _CFG)
+
 
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model

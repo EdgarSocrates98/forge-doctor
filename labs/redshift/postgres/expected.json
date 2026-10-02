@@ -1,0 +1,6 @@
+{
+  "name": "postgres",
+  "description": "Adversarial: Postgres DDL/maintenance must not attribute to Redshift or trip RS checks",
+  "expected_findings": [],
+  "forbidden_findings": ["RS001", "RS002", "RS003", "RS004", "RS005"]
+}

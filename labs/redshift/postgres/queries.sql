@@ -1,0 +1,4 @@
+CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);
+VACUUM users;
+ANALYZE;
+SELECT id, name FROM users WHERE id > 10;

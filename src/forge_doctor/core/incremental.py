@@ -88,6 +88,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "platforms": frozenset({CODE, PYTHON, CONFIG, NOTEBOOK, SQL, TERRAFORM}),
     "policy_pack": frozenset({PACKAGING, CONFIG, FILES}),
     "python_env": frozenset({ENV, HOST, PACKAGING, CONFIG, FILES}),
+    "redshift": frozenset({SQL, TERRAFORM, CONFIG, FILES}),
     "repository": frozenset({FILES}),
     "serverless": frozenset({PYTHON, SQL, TERRAFORM, CONFIG}),
     "snowflake": frozenset({SQL, TERRAFORM, CONFIG, FILES}),

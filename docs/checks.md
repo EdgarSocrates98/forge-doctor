@@ -1535,3 +1535,45 @@ is an unreviewed sharing path (warning).
 The base table receives writes (authored DML or observed jobs) and the
 view declares no `max_staleness` — it silently serves stale data.
 **Fix:** `OPTIONS(max_staleness = INTERVAL ...)`.
+
+## Redshift (RedshiftProjectModel — vendor adapter on the warehouse core)
+
+Evidence: Redshift-only DDL in `.sql` (`CREATE TABLE ...
+DISTSTYLE|DISTKEY|SORTKEY|ENCODE`, `CREATE EXTERNAL SCHEMA|TABLE`
+(Spectrum), `CREATE MATERIALIZED VIEW`, `CREATE DATASHARE`, `UNLOAD
+TO`, `IAM_ROLE`), Terraform `aws_redshift*` resources (clusters,
+serverless workgroups/namespaces, parameter/subnet groups, datashares),
+and observed `SVV_*`/`STL_*`/`STV_*` exports under `redshift/` or
+`.forge-doctor/evidence/` (claimed only with a positive Redshift field
+signal). `VACUUM`/`ANALYZE` alone are not markers — Postgres shares
+them, and the adversarial lab pins that. Findings grounded in STL/SVV
+exports carry `evidence_kind=observed_metadata`.
+
+### RS000 — Redshift surface · pass/info
+Anchor census: compute, namespaces, tables, views, vendor objects,
+queries, observed rows.
+
+### RS001 — Large table with broadcast/even distribution under joins · warning
+Observed table (≥1 GB or ≥10 M rows) with `DISTSTYLE EVEN|ALL` and join
+evidence (authored SQL or STL query text) — forced data movement.
+**Fix:** `DISTSTYLE KEY` + `DISTKEY(<join column>)`, or enable ATO.
+
+### RS002 — Unsorted table scanned by range predicates · warning
+A table without `SORTKEY` is read through `WHERE` range filters
+(`BETWEEN`, `>`, `<`) — zone maps cannot prune.
+**Fix:** `SORTKEY(<range column>)` or enable ATO.
+
+### RS003 — automatic_table_optimization off with skewed tables · warning
+A parameter group disables `auto_analyze`/ATO (or a cluster sets
+`automatic_table_optimization` off) while observed tables carry skew.
+**Fix:** remove the disabling parameter or set `auto_analyze=true`.
+
+### RS004 — Public or unencrypted cluster · error/warning
+`publicly_accessible=true` (error) or `encrypted=false` (warning) on a
+declared cluster/workgroup.
+**Fix:** `publicly_accessible=false`, `encrypted=true` (or KMS).
+
+### RS005 — Manual VACUUM/ANALYZE scripts with ATO available · info
+Authored `VACUUM`/`ANALYZE` statements while ATO-eligible compute
+(ra3+/dc2+/serverless) exists — hand-rolled maintenance drifts.
+**Fix:** prefer `automatic_table_optimization`/`auto_analyze`.

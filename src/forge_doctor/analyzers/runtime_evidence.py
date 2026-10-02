@@ -760,9 +760,93 @@ class BigQueryJobsAdapter:
         return model
 
 
+# --- Redshift query log exports -------------------------------------------------
+
+
+class RedshiftQueryLogAdapter:
+    """Redshift STL_QUERY / SVV_QUERY export rows.
+
+    Recognizes JSON arrays (or objects with ``rows``/``data``) or CSV with
+    ``querytxt``/``total_exec_time``/``service_class``-style headers —
+    deterministic, offline.
+    """
+
+    name = "redshift_query_log"
+
+    _FIELDS = re.compile(
+        r'"(query|querytxt|query_text|total_exec_time|service_class|'
+        r'starttime|endtime|label|userid)"',
+        re.IGNORECASE,
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return (
+            (
+                ("querytxt" in head or "query_text" in head)
+                and ("total_exec_time" in head or "starttime" in head or "service_class" in head)
+            )
+            or ('"service_class"' in head and '"query"' in head)
+            or bool(self._FIELDS.search(text[:4000]) and "service_class" in head)
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        rows: list[dict[str, Any]] = []
+        data = _json_doc(text)
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("rows", "data", "results", "queries"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+        if not rows:
+            import csv
+            import io
+
+            try:
+                reader = csv.DictReader(io.StringIO(text))
+                rows = [dict(r) for r in reader if r]
+            except csv.Error:
+                rows = []
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            qid = str(low.get("query") or low.get("query_id") or "")
+            scope = str(low.get("database") or low.get("label") or "")
+            ex_ms = _num(low.get("total_exec_time") or low.get("elapsed"))
+            queue_ms = _num(low.get("queue_time") or low.get("wlm_queue_time"))
+            aborted = str(low.get("aborted") or "0")
+            state = "failed" if aborted not in {"", "0", "false"} else "completed"
+            if qid:
+                model.executions.append(
+                    RuntimeExecution(id=qid, kind="query", state=state, duration_ms=ex_ms)
+                )
+            if ex_ms is not None:
+                model.metrics.append(
+                    ExecutionMetric("execution_time", ex_ms, "ms", scope=qid or scope)
+                )
+            if queue_ms is not None:
+                model.metrics.append(
+                    ExecutionMetric("wlm_queue_time", queue_ms, "ms", scope=qid or scope)
+                )
+            if state == "failed":
+                model.errors.append(
+                    ExecutionError(
+                        code="aborted",
+                        message=str(low.get("querytxt") or "")[:200],
+                        execution_id=qid,
+                    )
+                )
+        if rows:
+            model.identifiers["rows"] = str(len(rows))
+        return model
+
+
 ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
     SnowflakeHistoryAdapter(),
     BigQueryJobsAdapter(),
+    RedshiftQueryLogAdapter(),
     SparkEventLogAdapter(),
     AthenaStatsAdapter(),
     StepFunctionsHistoryAdapter(),
