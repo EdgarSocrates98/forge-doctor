@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/kinesis-extended-retention.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html"
+  ],
+  "domain": "kinesis",
+  "capabilities": [
+    {
+      "id": "KINESIS_ENHANCED_FANOUT",
+      "platform": "kinesis",
+      "status": "supported",
+      "reason": "Registered consumers (aws_kinesis_stream_consumer / SubscribeToShard) get a dedicated 2 MB/s per shard instead of sharing the polling budget.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html"
+    },
+    {
+      "id": "KINESIS_EXTENDED_RETENTION",
+      "platform": "kinesis",
+      "status": "supported",
+      "reason": "Retention is configurable from 24h (default) to 8760h; lagging consumers lose records at expiry (IteratorAgeMilliseconds signal).",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/kinesis-extended-retention.html"
+    },
+    {
+      "id": "KINESIS_ON_DEMAND_MODE",
+      "platform": "kinesis",
+      "status": "supported",
+      "reason": "ON_DEMAND stream_mode scales shards automatically up to account limits; PROVISIONED keeps shard_count fixed.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/how-do-i-size-a-stream.html"
+    },
+    {
+      "id": "KINESIS_REPLAYABLE_SOURCE",
+      "platform": "kinesis",
+      "status": "supported",
+      "reason": "Shards retain records for the retention window — replayable within retention, a prerequisite for at-least-once recovery.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html"
+    }
+  ]
+}

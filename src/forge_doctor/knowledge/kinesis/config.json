@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.02",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/kinesis-extended-retention.html"
+  ],
+  "domain": "kinesis",
+  "limits": [
+    {
+      "id": "shard-write-1mb",
+      "summary": "Each shard supports up to 1 MB/s or 1000 records/s writes and 2 MB/s reads; single-shard streams serialize throughput.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html"
+    },
+    {
+      "id": "shared-read-budget",
+      "summary": "Polling consumers (GetRecords) share the shard's 2 MB/s read budget; multiple consumers contend without enhanced fan-out.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html"
+    },
+    {
+      "id": "efo-2mb-per-consumer",
+      "summary": "Enhanced fan-out gives each registered consumer its own 2 MB/s per shard via SubscribeToShard.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/enhanced-consumers.html"
+    },
+    {
+      "id": "retention-default-24h",
+      "summary": "Default retention is 24 hours (up to 8760h); lagging consumers lose records permanently at expiry. IteratorAgeMilliseconds is the runtime signal.",
+      "source": "https://docs.aws.amazon.com/streams/latest/dev/kinesis-extended-retention.html"
+    }
+  ]
+}

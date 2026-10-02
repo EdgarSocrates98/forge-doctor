@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.02",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html",
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/"
+  ],
+  "domain": "streaming",
+  "semantics": [
+    {
+      "id": "at-most-once",
+      "summary": "Records may be lost but never duplicated. Derived when no checkpoint exists or offsets auto-commit before processing.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+    },
+    {
+      "id": "at-least-once",
+      "summary": "Records are never lost but may be duplicated. The floor for checkpointed streams writing to non-transactional sinks (console, kafka, plain foreachBatch).",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+    },
+    {
+      "id": "effectively-once",
+      "summary": "Duplicates are suppressed by transactional/idempotent writes (delta/iceberg micro-batch commits, batch_id dedup in foreachBatch). Not engine-claimed exactly-once.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+    },
+    {
+      "id": "exactly-once-claim",
+      "summary": "An engine-level claim (Flink CheckpointingMode.EXACTLY_ONCE + two-phase transactional sink). Static analysis reports it as a *claim* - end-to-end truth still depends on the sink honoring transaction boundaries.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/"
+    },
+    {
+      "id": "unknown",
+      "summary": "Insufficient evidence (missing source/sink/checkpoint facts) - never fabricate a guarantee.",
+      "source": ""
+    }
+  ],
+  "rules": [
+    {
+      "id": "no-checkpoint-caps-at-most-once",
+      "summary": "Without a checkpoint, a restart cannot recover progress - records may be lost.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+    },
+    {
+      "id": "non-replayable-source-caps-at-least-once",
+      "summary": "A non-replayable source (socket, custom non-replayable) cannot re-read lost input, capping recovery at at-least-once even with a transactional sink.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html"
+    },
+    {
+      "id": "kafka-sink-is-at-least-once",
+      "summary": "Spark SS kafka sinks write at-least-once; exactly-once to kafka requires consumer-side dedup not visible statically.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "flink-exactly-once-needs-exactly-once-sink",
+      "summary": "Flink EXACTLY_ONCE checkpointing only yields end-to-end exactly-once when the sink participates in the two-phase commit protocol.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/guarantees/"
+    }
+  ]
+}

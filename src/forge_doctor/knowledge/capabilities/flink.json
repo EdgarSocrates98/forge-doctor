@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/",
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/guarantees/",
+    "https://docs.aws.amazon.com/managed-flink/latest/java/how-scaling.html"
+  ],
+  "domain": "flink",
+  "capabilities": [
+    {
+      "id": "FLINK_EXACTLY_ONCE_CHECKPOINTING",
+      "platform": "flink",
+      "status": "conditional",
+      "reason": "CheckpointingMode.EXACTLY_ONCE gives end-to-end exactly-once only when the sink participates in the two-phase commit protocol (e.g. KafkaSink with DeliveryGuarantee.EXACTLY_ONCE); otherwise it is at-least-once internally.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/guarantees/"
+    },
+    {
+      "id": "FLINK_SAVEPOINT_UPGRADES",
+      "platform": "flink",
+      "status": "supported",
+      "reason": "Savepoints provide the operational path for upgrades and rescaling; code changes across savepoints must keep state-schema compatibility.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/state/savepoints/"
+    },
+    {
+      "id": "FLINK_ROCKSDB_STATE",
+      "platform": "flink",
+      "status": "supported",
+      "reason": "RocksDBStateBackend spills keyed state to disk; HashMapStateBackend keeps it on-heap and is fast but bounded by memory.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/state/state_backends/"
+    },
+    {
+      "id": "MANAGED_FLINK_AUTOSCALING",
+      "platform": "managed_flink",
+      "status": "supported",
+      "reason": "Managed Service for Apache Flink (KinesisAnalyticsV2) scales parallelism automatically when auto_scaling_enabled is true.",
+      "source": "https://docs.aws.amazon.com/managed-flink/latest/java/how-scaling.html"
+    }
+  ]
+}

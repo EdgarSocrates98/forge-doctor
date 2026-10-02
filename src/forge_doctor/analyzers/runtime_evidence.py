@@ -477,11 +477,130 @@ class NeptuneExplainAdapter:
         return model
 
 
+# --- Flink checkpoint history -------------------------------------------------
+
+
+class FlinkCheckpointAdapter:
+    """Flink REST checkpoint history JSON (``/jobs/:id/checkpoints``)."""
+
+    name = "flink_checkpoints"
+
+    def matches(self, path: Path, text: str) -> bool:
+        return (
+            '"checkpoints"' in text
+            and ('"history"' in text or '"latest"' in text or '"counts"' in text)
+            and '"status"' in text
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        if not isinstance(data, dict):
+            return model
+        cp = data.get("checkpoints") or {}
+        if not isinstance(cp, dict):
+            cp = data
+        counts = cp.get("counts") or {}
+        if isinstance(counts, dict):
+            for key in ("completed", "failed", "in_progress", "restored", "total"):
+                num = _num(counts.get(key))
+                if num is not None:
+                    model.metrics.append(ExecutionMetric(f"checkpoints_{key}", num, "count"))
+        history = cp.get("history") or []
+        failed = completed = 0
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            status = str(entry.get("status") or "").upper()
+            cid = str(entry.get("id") or "?")
+            state = {"COMPLETED": "completed", "FAILED": "failed"}.get(
+                status, status.lower() or "unknown"
+            )
+            if status == "FAILED":
+                failed += 1
+            elif status == "COMPLETED":
+                completed += 1
+            model.executions.append(
+                RuntimeExecution(
+                    id=f"checkpoint-{cid}",
+                    kind="checkpoint",
+                    state=state,
+                    duration_ms=_num(entry.get("end_to_end_duration")),
+                )
+            )
+            model.events.append(f"checkpoint {cid}: {state}")
+        if failed:
+            model.errors.append(
+                ExecutionError(
+                    code="CheckpointFailed",
+                    message=f"{failed} checkpoint(s) failed in checkpoint history",
+                    count=failed,
+                )
+            )
+        model.identifiers["checkpoints_total"] = str(len(history))
+        model.identifiers["checkpoints_failed"] = str(failed)
+        model.identifiers["checkpoints_completed"] = str(completed)
+        return model
+
+
+# --- Kinesis / kafka runtime metrics (cloudwatch exports) ---------------------
+
+
+class StreamMetricsAdapter:
+    """Generic streaming metric exports (iterator age, lag, records in/out).
+
+    Recognizes JSON lists/maps of ``{name, value, unit}`` metric points —
+    e.g. ``MillisBehindLatest`` (kinesis iterator age) or kafka
+    ``records-lag`` exports — so runtime findings can name the lag.
+    """
+
+    name = "stream_metrics"
+
+    _KNOWN = re.compile(
+        r"millisbehindlatest|iteratorage|records?[-_ ]?lag|"
+        r"consumerlag|readprovisioned|writeprovisioned|incomingrecords",
+        re.IGNORECASE,
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        return bool(self._KNOWN.search(text)) and '"value"' in text.lower()
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        points: list[Any] = []
+        if isinstance(data, list):
+            points = data
+        elif isinstance(data, dict):
+            for key in ("metrics", "datapoints", "results"):
+                if isinstance(data.get(key), list):
+                    points = data[key]
+                    break
+            if not points:
+                points = [{"name": k, "value": v} for k, v in data.items() if _num(v) is not None]
+        for p in points:
+            if not isinstance(p, dict):
+                continue
+            name = str(p.get("name") or p.get("metric") or p.get("metricName") or "")
+            if not self._KNOWN.search(name):
+                continue
+            value = _num(p.get("value"))
+            if value is None:
+                continue
+            unit = str(p.get("unit") or ("ms" if "millis" in name.lower() else "count"))
+            scope = str(p.get("stream") or p.get("consumer") or p.get("scope") or "")
+            model.metrics.append(ExecutionMetric(name, value, unit, scope=scope))
+            model.events.append(f"{name}={value:g}{unit}")
+        return model
+
+
 ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
     SparkEventLogAdapter(),
     AthenaStatsAdapter(),
     StepFunctionsHistoryAdapter(),
     StreamingProgressAdapter(),
+    FlinkCheckpointAdapter(),
+    StreamMetricsAdapter(),
     LambdaReportAdapter(),
     GlueLogAdapter(),
     NeptuneExplainAdapter(),

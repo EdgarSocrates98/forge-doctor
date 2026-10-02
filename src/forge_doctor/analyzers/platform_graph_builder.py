@@ -14,6 +14,7 @@ producers emit the same id only when the identifier is identical.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -69,6 +70,12 @@ _TF_TYPED: dict[str, tuple[K, str]] = {
     "aws_athena_database": (K.CATALOG, "glue"),
     "aws_athena_data_catalog": (K.CATALOG, "athena"),
     "aws_athena_workgroup": (K.COMPUTE_JOB, "athena"),
+    "aws_msk_cluster": (K.STREAM, "kafka"),
+    "aws_msk_serverless_cluster": (K.STREAM, "kafka"),
+    "aws_msk_topic": (K.STREAM, "kafka"),
+    "kafka_topic": (K.STREAM, "kafka"),
+    "aws_kinesis_firehose_delivery_stream": (K.STREAM, "firehose"),
+    "aws_kinesisanalyticsv2_application": (K.COMPUTE_JOB, "flink"),
 }
 
 # Streaming source/sink class -> entity kind (bus/topic vs table vs blob).
@@ -821,6 +828,59 @@ def _platforms(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             g.add_relationship(Relationship(src=q.id, dst=t.id, kind=rel, evidence_kind=_STA))
 
 
+def _streaming_bus(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Kafka/Kinesis/Flink model entities + consumer/EFO edges.
+
+    Topic/stream entities converge with ``_streaming`` endpoint entities
+    by canonical id (``stream:kafka:<topic>``, ``stream:kinesis:<name>``).
+    """
+    from forge_doctor.analyzers.flink_model import flink_model
+    from forge_doctor.analyzers.kafka_model import kafka_model
+    from forge_doctor.analyzers.kinesis_model import kinesis_model
+
+    km = kafka_model(ctx)
+    for c in km.clusters:
+        g.add_entity(_e(K.STREAM, "kafka", c.name, c.file, c.line, producer=c.source))
+    for t in km.topics:
+        g.add_entity(_e(K.STREAM, "kafka", t.name, t.file, t.line, partitions=str(t.partitions)))
+    for grp in sorted(km.consumer_groups):
+        pe = _e(K.PRINCIPAL, "kafka", f"group:{grp}")
+        g.add_entity(pe)
+        for topic in sorted(km.subscribed_topics):
+            tid = f"stream:kafka:{topic}"
+            if any(e.id == tid for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=pe.id, dst=tid, kind=R.CONSUMES, evidence_kind=_STA)
+                )
+
+    kn = kinesis_model(ctx)
+    for s in kn.streams:
+        g.add_entity(_e(K.STREAM, "kinesis", s.name, s.file, s.line, producer=s.source))
+    for cons in kn.consumers:
+        pe = _e(K.PRINCIPAL, "kinesis", str(cons["name"]), cons["file"], cons["line"])
+        g.add_entity(pe)
+        # resolve stream_arn "aws_kinesis_stream.<label>.arn" → stream name
+        arn = str(cons.get("stream_arn") or "")
+        m = re.match(r"aws_kinesis_stream\.([\w-]+)", arn)
+        target = ""
+        if m:
+            for s in kn.streams:
+                if s.tf_label == m.group(1):
+                    target = s.name
+        elif arn:
+            target = arn.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+        if target:
+            tid = f"stream:kinesis:{target}"
+            if any(e.id == tid for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=pe.id, dst=tid, kind=R.CONSUMES, evidence_kind=_CFG)
+                )
+
+    fm = flink_model(ctx)
+    for j in fm.jobs:
+        g.add_entity(_e(K.COMPUTE_JOB, "flink", j.name, j.file, j.line, producer=j.source))
+
+
 def _serverless(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     """Lambda/Athena model entities + trigger/destination edges."""
     from forge_doctor.analyzers.athena_model import athena_model
@@ -928,6 +988,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _neptune,
         _lakeformation,
         _platforms,
+        _streaming_bus,
         _serverless,
         _sql,
         _iceberg,

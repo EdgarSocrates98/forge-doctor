@@ -899,6 +899,12 @@ without any cloud access. Auto-detected adapters:
   exceptions).
 - `neptune_explain` — the phase-4 explain/profile parser exposed as a
   runtime adapter (steps, max cardinality, flags).
+- `flink_checkpoints` — Flink REST checkpoint history JSON
+  (`checkpoints.counts` + `history`): per-checkpoint executions,
+  completed/failed counts, `CheckpointFailed` errors.
+- `stream_metrics` — generic metric-point exports (`{name, value,
+  unit}` lists/maps): `MillisBehindLatest`, `records-lag`,
+  consumer-lag, `IncomingRecords`.
 
 `runtime diagnose <artifact>` additionally matches the artifact's text
 and extracted errors against the known-error signature packs.
@@ -1104,6 +1110,72 @@ Distributed Map `MaxConcurrency`/`ToleratedFailurePercentage`.
 Cross-domain rules added: **PLAT010** (SFN + Lambda poller → native
 `.sync` candidate) and **PLAT011** (Distributed Map concurrency exceeds
 the invoked Lambda's reserved concurrency).
+
+## Streaming bus (Kafka / Kinesis / Flink)
+
+Deep models fuse Terraform/CFN resources, Spark SS source options, and
+Python client calls into per-domain project models:
+
+- `KafkaProjectModel` — MSK clusters (encryption-in-transit, auth,
+  broker count, public access), topics (partitions/replication/config),
+  SS options (`subscribe`, `startingOffsets`, `maxOffsetsPerTrigger`,
+  `failOnDataLoss`, `kafka.group.id`), Python clients
+  (`KafkaConsumer`/`KafkaProducer`/`SchemaRegistryClient`), consumer
+  groups, schema-registry presence, TLS/SASL evidence.
+- `KinesisProjectModel` — streams (shards, stream_mode, retention,
+  encryption), EFO consumers, Firehose streams, managed-Flink apps,
+  SS kinesis options, boto3 `kinesis` calls (with StreamName/Consumer
+  literals).
+- `FlinkProjectModel` — jobs (code entrypoints + managed
+  KinesisAnalyticsV2 apps), evidence kinds (env, source, keyed_op,
+  window, timer, checkpoint, savepoint, parallelism, sink,
+  delivery_mode, state_backend, watermark), checkpoint mode/interval.
+
+Checks:
+
+- **KFK000** anchor · info — cluster/topic/call census.
+- **KFK001** MSK plaintext client-broker · warning
+- **KFK002** single-partition topic · warning
+- **KFK003** kafka source without `maxOffsetsPerTrigger` · warning
+- **KFK004** kafka without schema-registry evidence · warning
+- **KFK005** `KafkaConsumer` without `group.id` · warning
+- **KFK006** kafka without any TLS/SASL evidence · warning
+- **KIN000** anchor · info — stream/consumer/api census.
+- **KIN001** single-shard provisioned stream · warning
+- **KIN002** stream at default (≤24h) retention · warning
+- **KIN003** multiple polling consumers without EFO · warning
+- **FLK000** anchor · info — job/evidence census.
+- **FLK001** flink job without checkpointing · warning
+- **FLK002** keyed state without checkpointing · error
+- **FLK003** managed app without autoscaling/parallelism · warning
+- **FLK004** declared `AT_LEAST_ONCE` mode · warning
+- **STREAM080** derived delivery semantics per query · info/warning —
+  reports `at-most-once`/`at-least-once`/`effectively-once`/
+  `exactly-once-claim`/`unknown` with the full basis tuple
+  (source+checkpoint+engine+sink+idempotency). A checkpoint alone never
+  yields exactly-once.
+
+Runtime streaming diagnostics (`streaming diagnose <progress*.json>`)
+derive from a `StreamingQueryProgress` batch series:
+
+- **SRATE001** input rate exceeds processing rate → backlog growth
+- **SSTATE002** monotonic state-row growth across ≥3 batches
+- **SWM003** watermark far behind max event time (>60s)
+- **SCKPT004** walCommit/commit phase instability (>3× baseline)
+- **SKFK005** non-zero source partition backlog (kafka offsets)
+- **SDUR006** slow micro-batch (>30s) — trigger-interval fit
+
+New runtime adapters: `flink_checkpoints` (Flink REST checkpoint
+history: counts/history/failed) and `stream_metrics` (generic metric
+exports: `MillisBehindLatest`, `records-lag`, consumer lag).
+
+`streaming semantics` renders the derived delivery claims;
+`kafka|kinesis|flink inspect|findings` expose the models and risks.
+Platform-graph integration adds `stream:kafka:*`, `stream:kinesis:*`,
+`stream:firehose:*`, `compute_job:flink:*`, `principal:kafka:group:*`
+and `principal:kinesis:*` (EFO consumer → stream `CONSUMES` edges).
+Knowledge packs: `streaming/delivery`, `kafka/config`,
+`kinesis/config`, `flink/config`, `capabilities/{kafka,kinesis,flink}`.
 
 ## Policy
 

@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html",
+    "https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html",
+    "https://kafka.apache.org/documentation/"
+  ],
+  "domain": "kafka",
+  "capabilities": [
+    {
+      "id": "KAFKA_REPLAYABLE_SOURCE",
+      "platform": "kafka",
+      "status": "supported",
+      "reason": "Kafka topics are replayable within retention — a replayable source is a prerequisite for at-least-once recovery.",
+      "source": "https://kafka.apache.org/documentation/"
+    },
+    {
+      "id": "KAFKA_TRANSACTIONAL_SINK",
+      "platform": "spark_ss",
+      "status": "conditional",
+      "reason": "Spark SS kafka sinks write at-least-once; exactly-once to kafka requires consumer-side dedup outside static view.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "KAFKA_CONSUMER_GROUPS",
+      "platform": "kafka",
+      "status": "supported",
+      "reason": "Consumer groups commit offsets per partition and drive lag monitoring (records-lag, consumer_lag).",
+      "source": "https://kafka.apache.org/documentation/#consumerconfigs_group.id"
+    },
+    {
+      "id": "MSK_SERVERLESS",
+      "platform": "msk",
+      "status": "supported",
+      "reason": "MSK Serverless removes broker sizing; throughput and storage scale automatically.",
+      "source": "https://docs.aws.amazon.com/msk/latest/developerguide/serverless.html"
+    },
+    {
+      "id": "MSK_IAM_AUTH",
+      "platform": "msk",
+      "status": "supported",
+      "reason": "MSK supports IAM authentication (SASL AWS_MSK_IAM), SCRAM secrets, and mutual TLS.",
+      "source": "https://docs.aws.amazon.com/msk/latest/developerguide/iam-access-control.html"
+    }
+  ]
+}

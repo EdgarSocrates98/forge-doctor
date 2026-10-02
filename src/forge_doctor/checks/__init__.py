@@ -29,6 +29,7 @@ from forge_doctor.checks import (
     spark,
     stepfunctions,
     streaming,
+    streaming_bus,
     terraform,
 )
 from forge_doctor.plugins.protocol import Check
@@ -51,6 +52,7 @@ BUILTIN_MODULES = (
     parquet,
     stepfunctions,
     streaming,
+    streaming_bus,
     lakeformation,
     graph,
     platform_rules,

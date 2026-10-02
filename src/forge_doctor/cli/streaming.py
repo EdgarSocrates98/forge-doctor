@@ -113,8 +113,70 @@ def streaming_progress(
     console.print()
 
 
+@streaming_app.command(name="diagnose")
+def streaming_diagnose(
+    artifacts: Annotated[
+        list[Path],
+        typer.Argument(help="One or more StreamingQueryProgress JSON exports."),
+    ],
+) -> None:
+    """Deterministic runtime diagnostics over a progress batch series."""
+    from forge_doctor.analyzers.streaming_runtime import diagnose_progress
+
+    report = diagnose_progress(artifacts)
+    console = Console()
+    console.print()
+    console.print("[bold]Streaming Diagnostics[/bold]")
+    if not report.batches:
+        console.print("  no parseable progress artifacts")
+        for name in report.unparsed:
+            console.print(f"  skipped: {name}")
+        raise typer.Exit(2)
+    console.print(
+        f"  stream={report.stream_name or '?'} batches={len(report.batches)} "
+        f"(artifacts: {report.artifact_count})"
+    )
+    for d in report.diagnoses:
+        sev = "yellow" if d.severity == "warn" else "cyan"
+        console.print(f"  [{sev}]{d.code}[/{sev}] {d.message}")
+        for e in d.evidence:
+            console.print(f"      {e}")
+    if not report.diagnoses:
+        console.print("  no runtime anomalies detected")
+    if report.unparsed:
+        console.print(f"  unparsed artifacts: {', '.join(report.unparsed)}")
+    console.print()
+
+
+@streaming_app.command(name="semantics")
+def streaming_semantics(
+    path: _PathOpt = Path("."),
+) -> None:
+    """Derived delivery semantics per streaming query."""
+    from forge_doctor.core.delivery import per_query
+
+    ctx = ProjectContext(root=path.resolve())
+    pairs = per_query(ctx)
+    console = Console()
+    console.print()
+    console.print("[bold]Delivery Semantics[/bold]")
+    if not pairs:
+        console.print("  no streaming queries detected")
+        return
+    for name, sem in pairs:
+        color = {
+            "exactly-once-claim": "green",
+            "effectively-once": "green",
+            "at-least-once": "cyan",
+            "at-most-once": "yellow",
+        }.get(sem.level, "white")
+        console.print(f"  [bold]{name}[/bold] → [{color}]{sem.level}[/{color}] ({sem.certainty})")
+        console.print(f"      basis: {'; '.join(sem.basis)}")
+    console.print()
+
+
 @streaming_app.callback(invoke_without_command=True)
 def _streaming_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:
-        _stderr.print("use `forge-doctor streaming inspect|progress`")
+        _stderr.print("use `forge-doctor streaming inspect|progress|diagnose|semantics`")
         raise typer.Exit(2)

@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.02",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/",
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/state/",
+    "https://docs.aws.amazon.com/managed-flink/latest/java/how-scaling.html"
+  ],
+  "domain": "flink",
+  "concepts": [
+    {
+      "id": "keyed-state-needs-checkpoint",
+      "summary": "Keyed state (ValueState/MapState/...) is lost on restart without checkpointing; windows and dedup silently reset.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/state/"
+    },
+    {
+      "id": "checkpoint-modes",
+      "summary": "CheckpointingMode.EXACTLY_ONCE barriers align snapshots; AT_LEAST_ONCE skips alignment for throughput and delivers duplicates.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/"
+    },
+    {
+      "id": "savepoints-are-operational",
+      "summary": "Savepoints are manually triggered snapshots for upgrades/re-scaling; their presence signals an operational upgrade path.",
+      "source": "https://nightlies.apache.org/flink/flink-docs-stable/docs/ops/state/savepoints/"
+    },
+    {
+      "id": "managed-flink-autoscaling",
+      "summary": "Managed Service for Apache Flink scales via auto_scaling_enabled; without it, parallelism is fixed at deployment.",
+      "source": "https://docs.aws.amazon.com/managed-flink/latest/java/how-scaling.html"
+    }
+  ]
+}

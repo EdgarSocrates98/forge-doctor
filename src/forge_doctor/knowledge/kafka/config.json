@@ -1,0 +1,50 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.02",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html",
+    "https://kafka.apache.org/documentation/",
+    "https://docs.aws.amazon.com/msk/latest/developerguide/msk-encryption.html"
+  ],
+  "domain": "kafka",
+  "options": [
+    {
+      "id": "maxOffsetsPerTrigger",
+      "summary": "Caps the number of offsets read per trigger interval; absent it, a catch-up burst pulls an unbounded micro-batch.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "failOnDataLoss",
+      "summary": "When true (default), a query fails rather than silently skipping data when offsets are out of range (e.g. after retention expiry).",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "kafka.group.id",
+      "summary": "Spark SS ignores group.id for offset commits (it tracks its own) but it matters for consumer-group lag monitoring.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "startingOffsets",
+      "summary": "earliest/latest/json per-partition offsets; earliest replays retained history on first start.",
+      "source": "https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html"
+    },
+    {
+      "id": "enable.auto.commit",
+      "summary": "Consumer-side offset auto-commit advances offsets before processing completes - an at-most-once risk on failure.",
+      "source": "https://kafka.apache.org/documentation/#consumerconfigs_enable.auto.commit"
+    }
+  ],
+  "security": [
+    {
+      "id": "plaintext-transit",
+      "summary": "MSK client_broker PLAINTEXT leaves broker traffic unencrypted; use TLS or TLS_PLAINTEXT during migration.",
+      "source": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-encryption.html"
+    },
+    {
+      "id": "sasl-iam",
+      "summary": "MSK IAM authentication (SASL AWS_MSK_IAM) uses IAM principals; the alternative is SCRAM secrets or mutual TLS.",
+      "source": "https://docs.aws.amazon.com/msk/latest/developerguide/iam-access-control.html"
+    }
+  ]
+}

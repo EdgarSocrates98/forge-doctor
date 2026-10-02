@@ -405,6 +405,37 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   `lambda/runtimes.json`, `stepfunctions/query-languages.json`.
   CLI: `athena|lambda inspect|findings`; `stepfunctions inspect`
   shows query language, retry attempts, map detail, payload keys.
+- **Streaming runtime + Kafka/Kinesis/Flink deep intelligence** —
+  `analyzers/kafka_model.py` (MSK provisioned/serverless clusters with
+  encryption-in-transit, client auth, broker counts; topics with
+  partitions/replication/config keys; SS `subscribe`/`startingOffsets`/
+  `maxOffsetsPerTrigger`/`failOnDataLoss`/`kafka.group.id` options;
+  `KafkaConsumer`/`KafkaProducer`/`SchemaRegistryClient` call sites;
+  consumer groups; schema-registry and TLS/SASL presence),
+  `analyzers/kinesis_model.py` (streams with shards/stream_mode/
+  retention/encryption; EFO consumers; Firehose; managed-Flink
+  KinesisAnalyticsV2 apps; SS kinesis options; boto3 `kinesis` calls
+  with StreamName/Consumer literals), `analyzers/flink_model.py`
+  (StreamExecutionEnvironment jobs; sources; keyed state; windows;
+  timers; checkpointing + `CheckpointingMode`; savepoints; parallelism;
+  sinks; managed apps). `core/delivery.py` derives delivery semantics
+  (`at-most-once`/`at-least-once`/`effectively-once`/
+  `exactly-once-claim`/`unknown`) from source+checkpoint+engine+sink+
+  idempotency — a checkpoint alone never claims exactly-once.
+  `analyzers/streaming_runtime.py` diagnoses progress batch series:
+  SRATE001 rate imbalance, SSTATE002 state growth, SWM003 watermark
+  lag, SCKPT004 commit instability, SKFK005 source offset backlog,
+  SDUR006 slow batches. Checks: KFK000-006, KIN000-003, FLK000-004,
+  STREAM080 (derived semantics per query). Runtime adapters:
+  `flink_checkpoints` (checkpoint history + `CheckpointFailed` errors)
+  and `stream_metrics` (`MillisBehindLatest`/records-lag exports).
+  Platform graph: `stream:kafka:*`, `stream:kinesis:*`,
+  `stream:firehose:*`, `compute_job:flink:*`, `principal:kafka:group:*`,
+  `principal:kinesis:*` + EFO→stream CONSUMES edges. Packs:
+  `streaming/delivery`, `kafka/config`, `kinesis/config`,
+  `flink/config`, `capabilities/{kafka,kinesis,flink}`. CLI:
+  `kafka|kinesis|flink inspect|findings`, `streaming diagnose`,
+  `streaming semantics`.
 
 ### Added (0.7.0)
 

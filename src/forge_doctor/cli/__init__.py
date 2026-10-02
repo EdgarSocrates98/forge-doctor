@@ -29,6 +29,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     serverless,
     stepfunctions,
     streaming,
+    streaming_bus,
     terraform,
     workspace,
 )
