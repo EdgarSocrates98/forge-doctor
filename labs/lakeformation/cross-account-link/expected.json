@@ -1,0 +1,9 @@
+{
+  "name": "cross-account-link",
+  "description": "Resource link to an external catalog db with no RAM share",
+  "expected_findings": ["LF001", "LF012"],
+  "forbidden_findings": [],
+  "expected_graph_edges": [
+    "depends_on|catalog:lakeformation:shared_link->catalog:glue:999988887777:shared_db"
+  ]
+}

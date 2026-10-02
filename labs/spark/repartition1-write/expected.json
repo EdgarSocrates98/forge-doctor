@@ -1,0 +1,6 @@
+{
+  "name": "repartition1-write",
+  "description": "repartition(1) + collect() in a PySpark job",
+  "expected_findings": ["SPARK001", "SPARK003"],
+  "forbidden_findings": ["DELTA001", "ICE001"]
+}

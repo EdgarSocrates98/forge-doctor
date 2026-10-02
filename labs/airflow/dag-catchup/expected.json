@@ -1,0 +1,9 @@
+{
+  "name": "dag-catchup",
+  "description": "DAG with datetime.now() start_date + Variable.get at parse time",
+  "expected_findings": ["AIR013", "AIR025"],
+  "forbidden_findings": ["AIR003"],
+  "expected_graph_edges": [
+    "invokes|workflow:airflow:daily_load->task:airflow:load"
+  ]
+}

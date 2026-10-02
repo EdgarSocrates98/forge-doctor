@@ -1206,6 +1206,27 @@ entities, blockers, warnings, required changes, validation steps, and
 rollback considerations — generated from knowledge packs only, never
 executed. Facts the packs lack surface as UNKNOWN entries.
 
+## Forge Lab
+
+`labs/<domain>/<scenario>/` holds reproducible mini-projects with a
+declared `expected.json` ground truth:
+
+```json
+{
+  "expected_findings": ["SPARK003", "PARQ040@jobs/etl.py"],
+  "forbidden_findings": ["DELTA001"],
+  "expected_graph_edges": ["writes|compute_job:glue:etl->dataset:parquet:out"],
+  "expected_capabilities": ["iceberg:ICEBERG_MERGE_WRITE;format_version=2=supported"],
+  "expected_root_causes": ["RC_STREAM_COMMITS"]
+}
+```
+
+`forge-doctor lab run` executes the full engine per scenario and compares
+against truth — missed expectations and forbidden hits fail; detected
+but undeclared findings are reported as `extra` for FP analysis.
+Optional `runtime/` artifact dirs feed root-cause clustering.
+`lab list` / `lab report` / `--json` supported; exit code 1 on failure.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

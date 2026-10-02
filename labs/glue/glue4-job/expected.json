@@ -1,0 +1,10 @@
+{
+  "name": "glue4-job",
+  "description": "Glue 4.0 job with coalesce(1) write",
+  "expected_findings": ["GLUE003"],
+  "forbidden_findings": [],
+  "expected_graph_edges": [
+    "defines|infrastructure_resource:aws:aws_glue_job.etl->compute_job:glue:etl"
+  ],
+  "expected_capabilities": ["glue:ICEBERG_MERGE_WRITE@4.0=conditional"]
+}

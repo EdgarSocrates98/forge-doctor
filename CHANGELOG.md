@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (roadmap-2: production readiness)
+
+- **Forge Lab** — `forge-doctor lab list|run|report`: reproducible
+  scenario suites under `labs/` with `expected.json` ground truth
+  (findings, forbidden findings, graph edges, capability statuses, root
+  causes). Ten seed scenarios, one per domain dir.
+
+### Fixed
+
+- **Delta false positive** — generic SQL DML (`MERGE`/`UPDATE`/`DELETE`/
+  `OPTIMIZE`/`VACUUM`) is no longer attributed to Delta without any
+  project-level delta signal; self-evident syntax (`USING DELTA`,
+  `table_changes(`) still counts.
+
 A full platform evolution: semantic fingerprints, a real plugin SDK,
 policy-as-code, incremental analysis, runtime diagnosis, data intelligence,
 and the integration surface (MCP/LSP/SBOM/intelligence graph) - followed

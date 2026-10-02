@@ -1,0 +1,1 @@
+g.V().hasLabel('Account').repeat(out('TRANSFERS')).until(has('flag','suspicious')).path()

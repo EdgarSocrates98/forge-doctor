@@ -1,0 +1,9 @@
+{
+  "name": "plaintext-msk",
+  "description": "MSK cluster without encryption-in-transit evidence",
+  "expected_findings": ["KFK001"],
+  "forbidden_findings": ["KFK002"],
+  "expected_graph_edges": [
+    "defines|infrastructure_resource:aws:aws_msk_cluster.bus->stream:kafka:bus"
+  ]
+}

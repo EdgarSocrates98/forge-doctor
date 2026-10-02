@@ -1,0 +1,7 @@
+{
+  "name": "merge-churn",
+  "description": "Iceberg table with MERGE/DELETE churn on format-version 1",
+  "expected_findings": ["ICE001", "ICE022", "ICE008"],
+  "forbidden_findings": ["DELTA001"],
+  "expected_capabilities": ["iceberg:ICEBERG_MERGE_WRITE;format_version=1=unsupported", "iceberg:ICEBERG_MERGE_WRITE;format_version=2=supported"]
+}

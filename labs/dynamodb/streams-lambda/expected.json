@@ -1,0 +1,10 @@
+{
+  "name": "streams-lambda",
+  "description": "DynamoDB stream consumed by Lambda via event source mapping",
+  "expected_findings": ["DDB001", "LAM002"],
+  "forbidden_findings": [],
+  "expected_graph_edges": [
+    "produces|table:dynamodb:orders->stream:dynamodb:orders",
+    "triggers|stream:dynamodb:orders->compute_job:lambda:consumer"
+  ]
+}

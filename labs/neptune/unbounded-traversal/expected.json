@@ -1,0 +1,6 @@
+{
+  "name": "unbounded-traversal",
+  "description": "Gremlin repeat() traversal without step cap",
+  "expected_findings": ["GRAPH021", "NEP001"],
+  "forbidden_findings": []
+}

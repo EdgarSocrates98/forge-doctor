@@ -75,6 +75,19 @@ _SQL_TARGET = {
 
 _DELTA_TABLE_RE = re.compile(r"DeltaTable\.(forName|forPath)\s*\(\s*[\"']([^\"']+)")
 
+# Definitive delta evidence. Generic SQL DML (MERGE/UPDATE/DELETE/OPTIMIZE/
+# VACUUM) is only attributed to Delta when one of these tokens appears
+# anywhere in the project - otherwise the statement may target Iceberg or a
+# plain catalog table and would be a false positive.
+_DELTA_SIGNAL_RE = re.compile(
+    r"using\s+delta|deltatable|format\(\s*[\"']delta|spark\.databricks\.delta"
+    r"|io\.delta|delta\.tables|table_changes\s*\(",
+    re.IGNORECASE,
+)
+
+# SQL ops that are self-evidencing (the syntax only exists for Delta).
+_SELF_EVIDENT_OPS = frozenset({"create_using_delta", "cdf_read"})
+
 
 @dataclass(frozen=True)
 class DeltaOp:
@@ -133,12 +146,22 @@ def delta_model(ctx: ProjectContext) -> DeltaProjectModel:
     model = DeltaProjectModel()
     index = project_index(ctx)
 
+    # Project-level delta signal: without it, generic SQL DML is unattributed
+    # (Iceberg/plain tables support MERGE/DELETE too) — gates false positives.
+    delta_signal = any(
+        _DELTA_SIGNAL_RE.search(ctx.read_text(relative) or "")
+        for relative in sorted(ctx.files)
+        if relative.suffix.lower() in (".py", ".sql", ".scala", ".ipynb")
+    )
+
     # ---- .sql files: DML + maintenance ops, DDL, TBLPROPERTIES ----
     for relative in sorted(ctx.files):
         if relative.suffix.lower() != ".sql":
             continue
         text = ctx.read_text(relative) or ""
         for op_name, rex in _SQL_OPS.items():
+            if op_name not in _SELF_EVIDENT_OPS and not delta_signal:
+                continue
             for m in rex.finditer(text):
                 tgt_rex = _SQL_TARGET.get(op_name)
                 tgt = ""
@@ -214,6 +237,8 @@ def delta_model(ctx: ProjectContext) -> DeltaProjectModel:
                             )
                     if dotted.endswith("spark.sql") and lit_args:
                         for op_name, rex in _SQL_OPS.items():
+                            if op_name not in _SELF_EVIDENT_OPS and not delta_signal:
+                                continue
                             if rex.search(lit_args[0]):
                                 model.ops.append(
                                     DeltaOp(
