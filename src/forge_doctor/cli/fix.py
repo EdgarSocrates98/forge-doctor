@@ -112,7 +112,9 @@ def _manual_row(action: FixAction) -> dict[str, object]:
     }
 
 
-def _print_actions(actions: list[FixAction], applied: list[dict[str, object]], applying: bool) -> None:
+def _print_actions(
+    actions: list[FixAction], applied: list[dict[str, object]], applying: bool
+) -> None:
     console.print()
     console.print("[bold]Fix Plan[/bold]")
     if not actions:

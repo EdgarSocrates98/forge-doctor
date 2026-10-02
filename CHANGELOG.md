@@ -143,6 +143,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   diffs; `--apply` re-reads targets and aborts stale sources; `--json`
   emits an audit record. No git ops, no commits — version control is
   the rollback.
+- **Experiment engine** — `forge-doctor lab experiment <scenario>
+  --hypothesis <name>` applies a named deterministic transform
+  (`bump-glue-version`, `partition-data`, `add-checkpoint`,
+  `increase-trigger-interval`) to a temporary copy of a lab fixture,
+  rescans it hermetically, and reports a before/after comparison:
+  findings resolved/introduced by fingerprint, severity deltas, file
+  counts, and a verdict (`improved` | `regressed` | `neutral`) with
+  reasons. `--json` emits both sides plus deltas. The original
+  fixture is never touched; hypotheses are pure file edits — no live
+  runtime measurement, no subprocesses.
 
 ### Fixed
 

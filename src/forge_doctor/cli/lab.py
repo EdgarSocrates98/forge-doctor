@@ -194,3 +194,54 @@ def lab_report(labs: _LabsOpt = Path("labs"), as_json: _JsonOpt = False) -> None
     console.print(f"\n  {report.passed} passed, {report.failed} failed")
     if report.failed:
         raise typer.Exit(1)
+
+
+@lab_app.command(name="experiment")
+def lab_experiment(
+    scenario: Annotated[str, typer.Argument(help="Scenario name or fixture directory.")],
+    hypothesis: Annotated[str, typer.Option("--hypothesis", help="Named transform to apply.")],
+    labs: _LabsOpt = Path("labs"),
+    as_json: _JsonOpt = False,
+) -> None:
+    """Apply a named hypothesis to a scenario copy and compare findings.
+
+    Never mutates the fixture: the scenario is copied to a temp dir,
+    transformed, rescanned hermetically, and reported as
+    improved | regressed | neutral with reasons.
+    """
+    from forge_doctor.core.experiments import HYPOTHESES, run_experiment
+
+    path = Path(scenario)
+    if not path.is_dir():
+        root = labs if labs != Path("labs") else _default_labs()
+        matches = [d for d in discover_scenarios(root) if d.name == scenario]
+        if not matches:
+            _stderr.print(f"[red]unknown scenario[/red] {scenario} under {root}")
+            raise typer.Exit(1)
+        path = matches[0]
+    try:
+        result = run_experiment(path, hypothesis)
+    except KeyError as exc:
+        _stderr.print(f"[red]{exc.args[0]}[/red]")
+        raise typer.Exit(1) from exc
+
+    if as_json:
+        typer.echo(json.dumps(result.to_dict(), indent=2))
+        return
+    console = Console()
+    color = {"improved": "green", "regressed": "red"}.get(result.verdict, "yellow")
+    console.print()
+    console.print(
+        f"[bold]Experiment[/bold]  {result.scenario} + {result.hypothesis} "
+        f"-> [{color}]{result.verdict.upper()}[/{color}]"
+    )
+    for reason in result.reasons:
+        console.print(f"  [dim]{reason}[/dim]")
+    if result.changed_files:
+        console.print(f"  changed: {', '.join(result.changed_files)}")
+    for row in result.resolved_findings:
+        console.print(f"  [green]resolved[/green] {row['check_id']} {row.get('file') or ''}")
+    for row in result.introduced_findings:
+        console.print(f"  [red]introduced[/red] {row['check_id']} {row.get('file') or ''}")
+    known = ", ".join(sorted(HYPOTHESES))
+    console.print(f"  [dim]hypotheses: {known}[/dim]")
