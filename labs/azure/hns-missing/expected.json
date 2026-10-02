@@ -1,0 +1,6 @@
+{
+  "name": "hns-missing",
+  "description": "ADLS filesystem on a flat-namespace account (AZ001); anchor AZ000 fires",
+  "expected_findings": ["AZ000", "AZ001"],
+  "forbidden_findings": []
+}

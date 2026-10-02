@@ -1,0 +1,6 @@
+{
+  "name": "dataflow-cancel",
+  "description": "Dataflow job configured to cancel (not drain) on delete (GCP003)",
+  "expected_findings": ["GCP000", "GCP003"],
+  "forbidden_findings": ["GCP001", "GCP002"]
+}

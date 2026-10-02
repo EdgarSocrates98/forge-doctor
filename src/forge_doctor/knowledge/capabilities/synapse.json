@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://learn.microsoft.com/azure/synapse-analytics/sql/on-demand-workspace-overview",
+    "https://learn.microsoft.com/azure/synapse-analytics/sql/develop-tables-cetas"
+  ],
+  "domain": "synapse",
+  "capabilities": [
+    {
+      "id": "SYNAPSE_SERVERLESS_SQL",
+      "platform": "synapse",
+      "status": "supported",
+      "reason": "The serverless SQL pool queries ADLS Gen2 files on demand and is provisioned with every workspace.",
+      "source": "https://learn.microsoft.com/azure/synapse-analytics/sql/on-demand-workspace-overview"
+    },
+    {
+      "id": "SYNAPSE_CETAS",
+      "platform": "synapse",
+      "status": "supported",
+      "reason": "CETAS materializes external tables to storage from serverless or dedicated SQL pools.",
+      "source": "https://learn.microsoft.com/azure/synapse-analytics/sql/develop-tables-cetas"
+    },
+    {
+      "id": "SYNAPSE_SPARK_AUTOSCALE",
+      "platform": "synapse",
+      "status": "supported",
+      "reason": "Synapse Spark pools autoscale nodes between a configured min/max.",
+      "source": "https://learn.microsoft.com/azure/synapse-analytics/spark/apache-spark-autoscale"
+    }
+  ]
+}

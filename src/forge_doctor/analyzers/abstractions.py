@@ -10,6 +10,7 @@ vendor-attributed graph entities fold into six abstractions:
 - ``catalog`` ← glue | purview | unity | datacatalog
 - ``operational_store`` ← dynamodb | cosmosdb | bigtable
 - ``warehouse`` ← redshift | synapse_sql | bigquery | snowflake | fabric
+- ``orchestrator`` ← adf | composer (spec 233)
 
 Attribute normalization is deliberately shallow (spec open question):
 ``name``, ``region``/``location``, ``encryption``, ``public``
@@ -35,6 +36,7 @@ ABSTRACTIONS = (
     "catalog",
     "operational_store",
     "warehouse",
+    "orchestrator",
 )
 
 
@@ -115,13 +117,27 @@ _TF_RESOURCE_MAP: dict[str, tuple[str, str, str]] = {
     "aws_glue_job": ("compute_engine", "aws", "glue"),
     "azurerm_synapse_workspace": ("compute_engine", "azure", "synapse"),
     "azurerm_databricks_workspace": ("compute_engine", "azure", "databricks"),
+    "azurerm_fabric_capacity": ("compute_engine", "azure", "fabric"),
+    "azurerm_function_app": ("compute_engine", "azure", "functions"),
+    "azurerm_linux_function_app": ("compute_engine", "azure", "functions"),
+    "azurerm_windows_function_app": ("compute_engine", "azure", "functions"),
     "google_dataproc_cluster": ("compute_engine", "gcp", "dataproc"),
+    "google_dataflow_job": ("compute_engine", "gcp", "dataflow"),
+    "google_dataflow_flex_template_job": ("compute_engine", "gcp", "dataflow"),
+    "google_cloudfunctions_function": ("compute_engine", "gcp", "functions"),
+    "google_cloudfunctions2_function": ("compute_engine", "gcp", "functions"),
     "databricks_workspace": ("compute_engine", "databricks", "databricks"),
     # catalog
     "aws_glue_catalog_database": ("catalog", "aws", "glue"),
     "aws_glue_catalog_table": ("catalog", "aws", "glue"),
     "azurerm_purview_account": ("catalog", "azure", "purview"),
     "google_data_catalog_entry_group": ("catalog", "gcp", "datacatalog"),
+    "google_dataplex_lake": ("catalog", "gcp", "dataplex"),
+    "google_dataplex_zone": ("catalog", "gcp", "dataplex"),
+    # orchestrator
+    "azurerm_data_factory": ("orchestrator", "azure", "adf"),
+    "azurerm_data_factory_pipeline": ("orchestrator", "azure", "adf"),
+    "google_composer_environment": ("orchestrator", "gcp", "composer"),
     # operational_store
     "aws_dynamodb_table": ("operational_store", "aws", "dynamodb"),
     "azurerm_cosmosdb_account": ("operational_store", "azure", "cosmosdb"),

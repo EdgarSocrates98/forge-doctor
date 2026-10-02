@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://cloud.google.com/pubsub/docs/exactly-once-delivery",
+    "https://cloud.google.com/pubsub/docs/dead-letter",
+    "https://cloud.google.com/pubsub/docs/ordering"
+  ],
+  "domain": "pubsub",
+  "capabilities": [
+    {
+      "id": "PUBSUB_EXACTLY_ONCE",
+      "platform": "pubsub",
+      "status": "supported",
+      "reason": "Exactly-once delivery suppresses redelivery after ack within the delivery guarantee window.",
+      "source": "https://cloud.google.com/pubsub/docs/exactly-once-delivery"
+    },
+    {
+      "id": "PUBSUB_ORDERING_KEYS",
+      "platform": "pubsub",
+      "status": "supported",
+      "reason": "enable_message_ordering delivers messages per ordering key in publish order.",
+      "source": "https://cloud.google.com/pubsub/docs/ordering"
+    },
+    {
+      "id": "PUBSUB_DEAD_LETTER",
+      "platform": "pubsub",
+      "status": "supported",
+      "reason": "dead_letter_policy forwards messages that exhaust max_delivery_attempts to a DLQ topic.",
+      "source": "https://cloud.google.com/pubsub/docs/dead-letter"
+    },
+    {
+      "id": "PUBSUB_SEEK",
+      "platform": "pubsub",
+      "status": "supported",
+      "reason": "Seek replays or discards acknowledged messages against a snapshot or timestamp.",
+      "source": "https://cloud.google.com/pubsub/docs/replay-overview"
+    }
+  ]
+}

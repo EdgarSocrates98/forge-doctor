@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://learn.microsoft.com/purview/concept-data-lineage",
+    "https://learn.microsoft.com/purview/apply-classifications"
+  ],
+  "domain": "purview",
+  "capabilities": [
+    {
+      "id": "PURVIEW_AUTOMATED_SCAN",
+      "platform": "purview",
+      "status": "supported",
+      "reason": "Purview scans registered sources (ADLS Gen2, Synapse, Power BI) on schedules for schema and classification.",
+      "source": "https://learn.microsoft.com/purview/register-scan-adls-gen2"
+    },
+    {
+      "id": "PURVIEW_LINEAGE",
+      "platform": "purview",
+      "status": "supported",
+      "reason": "Purview records asset-level lineage across ADF pipelines, Synapse and Power BI sources.",
+      "source": "https://learn.microsoft.com/purview/concept-data-lineage"
+    },
+    {
+      "id": "PURVIEW_CLASSIFICATION",
+      "platform": "purview",
+      "status": "supported",
+      "reason": "Built-in and custom classifiers tag columns/files during scans.",
+      "source": "https://learn.microsoft.com/purview/apply-classifications"
+    }
+  ]
+}

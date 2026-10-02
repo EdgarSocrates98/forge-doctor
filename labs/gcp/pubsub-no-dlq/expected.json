@@ -1,0 +1,7 @@
+{
+  "name": "pubsub-no-dlq",
+  "description": "Pub/Sub subscription without dead_letter_policy (GCP001); topic edge CONSUMES lands",
+  "expected_findings": ["GCP000", "GCP001"],
+  "expected_graph_edges": ["consumes|stream:pubsub:sub-events->stream:pubsub:events"],
+  "forbidden_findings": ["GCP002", "GCP003"]
+}

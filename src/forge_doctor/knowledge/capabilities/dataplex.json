@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://cloud.google.com/dataplex/docs/understand-data-lakes",
+    "https://cloud.google.com/dataplex/docs/check-quality-and-detect-anomalies"
+  ],
+  "domain": "dataplex",
+  "capabilities": [
+    {
+      "id": "DATAPLEX_LAKE_ZONES",
+      "platform": "dataplex",
+      "status": "supported",
+      "reason": "Zones partition a lake into raw/curated tiers with per-zone policy and discovery.",
+      "source": "https://cloud.google.com/dataplex/docs/understand-data-lakes"
+    },
+    {
+      "id": "DATAPLEX_DATA_QUALITY",
+      "platform": "dataplex",
+      "status": "supported",
+      "reason": "Dataplex data-quality tasks run rule-based checks over zone assets and publish results to Data Catalog.",
+      "source": "https://cloud.google.com/dataplex/docs/check-quality-and-detect-anomalies"
+    },
+    {
+      "id": "DATAPLEX_AUTO_DISCOVERY",
+      "platform": "dataplex",
+      "status": "supported",
+      "reason": "Discovery scans assets in zones and registers tables/filesets automatically.",
+      "source": "https://cloud.google.com/dataplex/docs/discover-and-catalog-data"
+    }
+  ]
+}

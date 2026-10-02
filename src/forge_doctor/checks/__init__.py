@@ -9,6 +9,7 @@ from forge_doctor.checks import (
     analytical,
     architecture,
     aws,
+    azure,
     bigquery,
     ci,
     cloud,
@@ -18,6 +19,7 @@ from forge_doctor.checks import (
     dependencies,
     docker,
     dynamodb,
+    gcp,
     git_checks,
     glue,
     graph,
@@ -87,6 +89,8 @@ BUILTIN_MODULES = (
     search,
     metadata,
     quality,
+    azure,
+    gcp,
 )
 
 

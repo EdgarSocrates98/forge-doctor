@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling",
+    "https://cloud.google.com/dataproc-serverless/docs/overview"
+  ],
+  "domain": "dataproc",
+  "capabilities": [
+    {
+      "id": "DATAPROC_AUTOSCALING",
+      "platform": "dataproc",
+      "status": "supported",
+      "reason": "autoscaling_config attaches a policy that scales primary/secondary workers on YARN metrics.",
+      "source": "https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling"
+    },
+    {
+      "id": "DATAPROC_PREEMPTIBLE_WORKERS",
+      "platform": "dataproc",
+      "status": "supported",
+      "reason": "preemptible_worker_config runs secondary workers on preemptible/spot capacity.",
+      "source": "https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/preemptible-vms"
+    },
+    {
+      "id": "DATAPROC_SERVERLESS_BATCHES",
+      "platform": "dataproc",
+      "status": "supported",
+      "reason": "Dataproc Serverless runs Spark batches without a managed cluster.",
+      "source": "https://cloud.google.com/dataproc-serverless/docs/overview"
+    }
+  ]
+}

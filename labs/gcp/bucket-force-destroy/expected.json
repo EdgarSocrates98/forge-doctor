@@ -1,0 +1,6 @@
+{
+  "name": "bucket-force-destroy",
+  "description": "force_destroy bucket with versioning unset (GCP002)",
+  "expected_findings": ["GCP000", "GCP002"],
+  "forbidden_findings": ["GCP001", "GCP003"]
+}

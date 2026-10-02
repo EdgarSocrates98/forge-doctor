@@ -1924,6 +1924,53 @@ one, with no declared replication/migration link (`*replicat*`/
 `*mirror*`/`*failover*`/`geo_location` keys or bodies). **Fix:** deploy
 the equivalent service or declare the link.
 
+## Azure data platform (AZ###)
+
+Deterministic checks over `azurerm_*` Terraform resources (spec 233);
+facts feed the `object_storage`/`stream`/`compute_engine`/`catalog`/
+`orchestrator` abstractions.
+
+### AZ000 — Azure data-platform surface · pass/info
+Anchor census of the detected Azure estate feeding the AZ checks.
+
+### AZ001 — ADLS Gen2 filesystem on non-hierarchical account · warning
+A storage account hosts `azurerm_storage_data_lake_gen2_filesystem`
+resources but `is_hns_enabled` is false/unset — flat namespace is not
+ADLS Gen2 (no ACLs, no atomic renames). **Fix:** set
+`is_hns_enabled = true`.
+
+### AZ002 — Event Hub with minimum message retention · warning
+`message_retention_in_days` is 1 (or unset) with no
+`capture_description` — a day's outage loses events. **Fix:** raise
+retention or add capture.
+
+### AZ003 — Azure data estate without governance plane · info
+ADLS/Synapse/Fabric evidence exists but no `azurerm_purview_account` is
+declared — no classification/lineage plane. **Fix:** declare Purview or
+document the external catalog.
+
+## GCP data platform (GCP###)
+
+Deterministic checks over `google_*` Terraform resources (spec 233);
+facts fold into the same vendor-neutral abstractions.
+
+### GCP000 — GCP data-platform surface · pass/info
+Anchor census of the detected GCP estate feeding the GCP checks.
+
+### GCP001 — Pub/Sub subscription without dead-letter policy · warning
+No `dead_letter_policy` — undeliverable messages are dropped after the
+delivery-attempt default. **Fix:** add `dead_letter_policy` with a DLQ
+topic.
+
+### GCP002 — GCS bucket force_destroy with versioning off · warning
+`force_destroy=true` lets Terraform delete a non-empty bucket; without
+versioning there is no recovery path. **Fix:** `force_destroy=false`
+and/or `versioning { enabled = true }`.
+
+### GCP003 — Dataflow job cancelled (not drained) on delete · warning
+`on_delete=cancel` abandons in-flight data on teardown; `drain` finishes
+it. **Fix:** remove `on_delete=cancel` or set `drain`.
+
 ## Cross-platform migration (plan-scoped — MIGR###)
 
 MIGR findings are not project-scan checks; they're emitted by

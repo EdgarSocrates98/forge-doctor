@@ -1,0 +1,6 @@
+{
+  "name": "governed",
+  "description": "Governed Azure estate: HNS on, retention raised + capture, purview present",
+  "expected_findings": ["AZ000"],
+  "forbidden_findings": ["AZ001", "AZ002", "AZ003"]
+}

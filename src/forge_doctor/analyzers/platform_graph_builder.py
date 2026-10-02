@@ -76,7 +76,39 @@ _TF_TYPED: dict[str, tuple[K, str]] = {
     "kafka_topic": (K.STREAM, "kafka"),
     "aws_kinesis_firehose_delivery_stream": (K.STREAM, "firehose"),
     "aws_kinesisanalyticsv2_application": (K.COMPUTE_JOB, "flink"),
+    # Azure (spec 233)
+    "azurerm_storage_account": (K.STORAGE_LOCATION, "adls"),
+    "azurerm_storage_data_lake_gen2_filesystem": (K.STORAGE_LOCATION, "adls"),
+    "azurerm_eventhub_namespace": (K.STREAM, "eventhubs"),
+    "azurerm_eventhub": (K.STREAM, "eventhubs"),
+    "azurerm_synapse_workspace": (K.WAREHOUSE, "synapse"),
+    "azurerm_synapse_sql_pool": (K.WAREHOUSE_COMPUTE, "synapse"),
+    "azurerm_synapse_spark_pool": (K.COMPUTE_JOB, "synapse"),
+    "azurerm_data_factory": (K.WORKFLOW, "adf"),
+    "azurerm_data_factory_pipeline": (K.WORKFLOW, "adf"),
+    "azurerm_purview_account": (K.CATALOG, "purview"),
+    "azurerm_fabric_capacity": (K.COMPUTE_JOB, "fabric"),
+    "azurerm_cosmosdb_account": (K.DATABASE, "cosmosdb"),
+    "azurerm_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    "azurerm_linux_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    "azurerm_windows_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    # GCP (spec 233)
+    "google_storage_bucket": (K.STORAGE_LOCATION, "gcs"),
+    "google_pubsub_topic": (K.STREAM, "pubsub"),
+    "google_pubsub_subscription": (K.STREAM, "pubsub"),
+    "google_dataflow_job": (K.COMPUTE_JOB, "dataflow"),
+    "google_dataflow_flex_template_job": (K.COMPUTE_JOB, "dataflow"),
+    "google_dataproc_cluster": (K.COMPUTE_JOB, "dataproc"),
+    "google_composer_environment": (K.WORKFLOW, "composer"),
+    "google_dataplex_lake": (K.CATALOG, "dataplex"),
+    "google_dataplex_zone": (K.CATALOG, "dataplex"),
+    "google_cloudfunctions_function": (K.COMPUTE_JOB, "cloud_functions"),
+    "google_cloudfunctions2_function": (K.COMPUTE_JOB, "cloud_functions"),
 }
+
+# Terraform provider prefix -> cloud domain for infrastructure_resource
+# entities. Providers outside the three clouds keep "aws" (historical).
+_TF_CLOUD_DOMAINS = {"azurerm": "azure", "google": "gcp", "aws": "aws"}
 
 # Streaming source/sink class -> entity kind (bus/topic vs table vs blob).
 _ENDPOINT_KINDS: dict[str, K] = {
@@ -1191,9 +1223,15 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.terraform_model import terraform_model
 
     for res in terraform_model(ctx).resources:
+        rtype = res.labels[0] if res.labels else ""
+        # Infra entities are namespaced by the provider's cloud so a
+        # google_* resource never lands under the aws domain. Providers
+        # outside the three clouds keep the historic "aws" bucket (spec
+        # 233: cross-cloud attribution, unchanged for other vendors).
+        cloud = _TF_CLOUD_DOMAINS.get(rtype.split("_")[0], "aws")
         infra = _e(
             K.INFRASTRUCTURE_RESOURCE,
-            "aws",
+            cloud,
             res.address,
             res.file,
             res.line,
@@ -1215,6 +1253,7 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 or res.attrs.get("bucket")
                 or res.attrs.get("cluster_identifier")
                 or res.attrs.get("cluster_name")
+                or res.attrs.get("dataset_id")
                 or res.labels[-1]
             )
         )
@@ -1237,6 +1276,89 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         g.add_relationship(
             Relationship(src=infra.id, dst=typed.id, kind=R.DEFINES, evidence_kind=_CFG)
         )
+
+
+def _azure(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Azure structural edges (spec 233).
+
+    The ``_terraform`` adapter already emits the typed entities; this one
+    adds only edges whose endpoints are explicit in the Terraform model —
+    containment between parents and declared children, never invented
+    flow edges.
+    """
+    from forge_doctor.analyzers.azure_model import azure_model
+
+    model = azure_model(ctx)
+    if not model.has_evidence:
+        return
+
+    def _contains(parent: str, child: str, file: Path | None = None) -> None:
+        if g.entity(parent) and g.entity(child):
+            g.add_relationship(
+                Relationship(src=parent, dst=child, kind=R.CONTAINS, evidence_kind=_CFG)
+            )
+
+    for acc in model.adls_accounts:
+        for fs in acc.filesystems:
+            _contains(f"storage_location:adls:{acc.name}", f"storage_location:adls:{fs}")
+    for ns in model.eventhub_namespaces:
+        ns_id = f"stream:eventhubs:{ns.name}"
+        for hub in model.eventhubs:
+            # namespace may be a bare name or a ref like
+            # azurerm_eventhub_namespace.<label>.name
+            ref = hub.namespace
+            ref_label = ""
+            if ref.startswith("azurerm_eventhub_namespace."):
+                ref_label = ref.split(".")[1]
+            if (
+                ref == ns.name
+                or ref_label == ns.resource
+                or (ref == "" and len(model.eventhub_namespaces) == 1)
+            ):
+                _contains(ns_id, f"stream:eventhubs:{hub.name}")
+    for ws in model.synapse_workspaces:
+        ws_id = f"warehouse:synapse:{ws.name}"
+        for pool in ws.sql_pools:
+            _contains(ws_id, f"warehouse_compute:synapse:{pool}")
+        for pool in ws.spark_pools:
+            _contains(ws_id, f"compute_job:synapse:{pool}")
+    for factory in model.adf_factories:
+        for pipe in factory.pipelines:
+            _contains(f"workflow:adf:{factory.name}", f"workflow:adf:{pipe}")
+
+
+def _gcp(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """GCP structural edges (spec 233): lake CONTAINS zone, subscription
+    CONSUMES topic — endpoints resolvable from Terraform evidence only."""
+    from forge_doctor.analyzers.gcp_model import gcp_model
+
+    model = gcp_model(ctx)
+    if not model.has_evidence:
+        return
+    for lake in model.dataplex_lakes:
+        for zone in lake.zones:
+            lake_id = f"catalog:dataplex:{lake.name}"
+            zone_id = f"catalog:dataplex:{zone}"
+            if g.entity(lake_id) and g.entity(zone_id):
+                g.add_relationship(
+                    Relationship(src=lake_id, dst=zone_id, kind=R.CONTAINS, evidence_kind=_CFG)
+                )
+    for sub in model.pubsub_subscriptions:
+        # subscription.topic may be a ref (google_pubsub_topic.x.id) or a
+        # bare topic name — resolve the entity id from either form.
+        topic_name = sub.topic
+        if topic_name.startswith("google_pubsub_topic."):
+            label = topic_name.split(".")[1]
+            owner = next((t for t in model.pubsub_topics if t.resource == label), None)
+            topic_name = owner.name if owner else ""
+        topic_id = f"stream:pubsub:{topic_name}"
+        sub_id = f"stream:pubsub:{sub.name}"
+        if not g.entity(topic_id):
+            continue
+        if g.entity(sub_id):
+            g.add_relationship(
+                Relationship(src=sub_id, dst=topic_id, kind=R.CONSUMES, evidence_kind=_CFG)
+            )
 
 
 def _lakeformation(ctx: ProjectContext, g: DataPlatformGraph) -> None:
@@ -1538,6 +1660,8 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _iceberg,
         _parquet,
         _terraform,
+        _azure,
+        _gcp,
     ):
         adapter(ctx, graph)
     setattr(ctx, _CACHE_ATTR, graph)

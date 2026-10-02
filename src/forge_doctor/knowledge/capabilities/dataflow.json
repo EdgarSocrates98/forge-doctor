@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline",
+    "https://cloud.google.com/dataflow/docs/guides/stopping-a-pipeline"
+  ],
+  "domain": "dataflow",
+  "capabilities": [
+    {
+      "id": "DATAFLOW_STREAMING_ENGINE",
+      "platform": "dataflow",
+      "status": "supported",
+      "reason": "Streaming Engine moves shuffle and state off worker VMs for streaming jobs.",
+      "source": "https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline#streaming-engine"
+    },
+    {
+      "id": "DATAFLOW_DRAIN",
+      "platform": "dataflow",
+      "status": "supported",
+      "reason": "on_delete=drain finishes in-flight data before teardown; cancel abandons buffered work.",
+      "source": "https://cloud.google.com/dataflow/docs/guides/stopping-a-pipeline"
+    },
+    {
+      "id": "DATAFLOW_AUTOSCALING",
+      "platform": "dataflow",
+      "status": "supported",
+      "reason": "Streaming and batch jobs autoscale workers between min/max bounds.",
+      "source": "https://cloud.google.com/dataflow/docs/guides/deploying-a-pipeline#autoscaling"
+    }
+  ]
+}

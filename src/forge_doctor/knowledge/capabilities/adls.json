@@ -1,0 +1,43 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-namespace",
+    "https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-access-control"
+  ],
+  "domain": "adls",
+  "capabilities": [
+    {
+      "id": "ADLS_HIERARCHICAL_NAMESPACE",
+      "platform": "adls",
+      "status": "supported",
+      "reason": "is_hns_enabled=true gives the account directory semantics, atomic renames and POSIX ACLs; flat accounts are blob-only.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-namespace"
+    },
+    {
+      "id": "ADLS_POSIX_ACLS",
+      "platform": "adls",
+      "status": "supported",
+      "requires": [
+        "ADLS_HIERARCHICAL_NAMESPACE"
+      ],
+      "reason": "Access and default ACLs apply only on hierarchical-namespace accounts; without HNS there is nothing to attach ACLs to.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-access-control"
+    },
+    {
+      "id": "ADLS_ABFSS_DRIVER",
+      "platform": "adls",
+      "status": "supported",
+      "reason": "The abfss:// driver exposes ADLS Gen2 hierarchy to Hadoop/Spark clients over TLS.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-abfs-driver"
+    },
+    {
+      "id": "ADLS_SOFT_DELETE",
+      "platform": "adls",
+      "status": "supported",
+      "reason": "Blob/container soft delete restores deleted objects inside the retention window.",
+      "source": "https://learn.microsoft.com/azure/storage/blobs/soft-delete-blob-overview"
+    }
+  ]
+}

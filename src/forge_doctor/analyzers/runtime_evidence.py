@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from forge_doctor.core.runtime_evidence import (
     ExecutionError,
@@ -843,6 +843,321 @@ class RedshiftQueryLogAdapter:
         return model
 
 
+# --- Azure / GCP exports (spec 233; files only, never API calls) -----------------
+
+
+class DataflowJobMetricsAdapter:
+    """Dataflow job describe/metrics export (JSON).
+
+    Accepts ``gcloud dataflow jobs describe`` output or a Monitoring-style
+    document carrying a job id plus currentState.
+    """
+
+    name = "dataflow_metrics"
+
+    _STATES: ClassVar[dict[str, str]] = {
+        "JOB_STATE_FAILED": "failed",
+        "JOB_STATE_CANCELLED": "failed",
+        "JOB_STATE_DONE": "completed",
+        "JOB_STATE_RUNNING": "started",
+        "Running": "started",
+        "Failed": "failed",
+        "Succeeded": "completed",
+    }
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return (
+            '"dataflow"' in head
+            or ("currentstate" in head and '"type"' in head and "job_type_" in head)
+            or ("jobid" in head and "currentstate" in head)
+        ) and '"' in head
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        if not isinstance(data, dict):
+            return model
+        job_id = str(data.get("jobId") or data.get("id") or "")
+        job_name = str(data.get("name") or data.get("jobName") or "")
+        if job_id:
+            model.identifiers["execution_id"] = job_id
+        if job_name:
+            model.identifiers["job_name"] = job_name
+        state_raw = str(data.get("currentState") or data.get("state") or "")
+        model.executions.append(
+            RuntimeExecution(
+                id=job_id or job_name or "dataflow",
+                kind="job",
+                state=self._STATES.get(state_raw, "started" if data else ""),
+            )
+        )
+        metrics = data.get("metrics") or data.get("jobMetrics")
+        if isinstance(metrics, list):
+            for entry in metrics:
+                if not isinstance(entry, dict):
+                    continue
+                mname = str(entry.get("name") or entry.get("metric") or "")
+                scalar = entry.get("scalar")
+                if scalar is None and isinstance(entry.get("value"), dict):
+                    scalar = entry["value"].get("scalar")
+                val = _num(scalar if scalar is not None else entry.get("value"))
+                if mname and val is not None:
+                    model.metrics.append(ExecutionMetric(mname, val, "", execution_id=job_id))
+        if isinstance(data.get("metricTimeSeries"), dict):
+            for mname, points in data["metricTimeSeries"].items():
+                val = _num(points) if not isinstance(points, list) else None
+                if val is not None:
+                    model.metrics.append(ExecutionMetric(str(mname), val, "", execution_id=job_id))
+        if state_raw and self._STATES.get(state_raw) == "failed":
+            model.errors.append(
+                ExecutionError(
+                    code=state_raw,
+                    message=f"dataflow job {job_name or job_id} state {state_raw}",
+                    execution_id=job_id,
+                )
+            )
+        return model
+
+
+class PubSubBacklogAdapter:
+    """Pub/Sub subscription backlog/delivery export (JSON).
+
+    Rows may be a top-level list, or under ``subscriptions``/``metrics`` —
+    each row names a subscription and carries backlog counters.
+    """
+
+    name = "pubsub_backlog"
+
+    _LAG_KEYS = (
+        "oldest_unacked_message_age",
+        "oldestUnackedMessageAge",
+        "num_undelivered_messages",
+        "numUndeliveredMessages",
+        "backlog_bytes",
+        "backlogBytes",
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return "subscription" in head and (
+            "undelivered" in head or "unacked" in head or "backlog" in head
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        rows: list[dict[str, Any]] = []
+        data = _json_doc(text)
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("subscriptions", "metrics", "rows", "data"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+            if not rows and any(k in data for k in self._LAG_KEYS):
+                rows = [data]
+        for row in rows:
+            sub = str(
+                row.get("subscription") or row.get("subscription_id") or row.get("name") or ""
+            )
+            if sub:
+                model.identifiers.setdefault("subscription", sub)
+            for key in self._LAG_KEYS:
+                val = _num(row.get(key))
+                if val is not None:
+                    model.lag.append(ExecutionMetric(key.lower(), val, "", scope=sub))
+        return model
+
+
+class SynapseQueryAdapter:
+    """Synapse SQL DMV/query-history export (sys.dm_pdw_exec_requests shape)."""
+
+    name = "synapse_query"
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return (
+            ("request_id" in head or "session_id" in head)
+            and ("total_elapsed_time" in head or "command" in head)
+            and '"' in head
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        rows: list[dict[str, Any]] = []
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("rows", "requests", "queries", "results", "data"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            qid = str(low.get("request_id") or low.get("query_id") or "")
+            status = str(low.get("status") or "").lower()
+            state = (
+                "failed"
+                if status in ("failed", "cancelled", "canceled")
+                else "completed"
+                if status
+                else ""
+            )
+            elapsed = _num(low.get("total_elapsed_time") or low.get("elapsed_ms"))
+            if qid:
+                model.executions.append(
+                    RuntimeExecution(id=qid, kind="query", state=state, duration_ms=elapsed)
+                )
+                model.identifiers.setdefault("query_id", qid)
+            if elapsed is not None:
+                model.metrics.append(
+                    ExecutionMetric("total_elapsed_time", elapsed, "ms", scope=qid)
+                )
+            if state == "failed":
+                model.errors.append(
+                    ExecutionError(
+                        code="request_failed",
+                        message=str(low.get("command") or "")[:200],
+                        execution_id=qid,
+                    )
+                )
+        return model
+
+
+class EventHubMetricsAdapter:
+    """Event Hubs metrics export (JSON counters per hub or namespace)."""
+
+    name = "eventhubs_metrics"
+
+    _METRIC_KEYS = (
+        "incomingmessages",
+        "outgoingmessages",
+        "incomingbytes",
+        "outgoingbytes",
+        "throttledrequests",
+        "servererrors",
+        "quotasexceedederrors",
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return ("eventhub" in head or '"namespace"' in head) and any(
+            k in head for k in ("incomingmessages", "outgoingmessages", "throttled")
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        rows: list[dict[str, Any]] = []
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("metrics", "rows", "data", "value"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+            if not rows:
+                rows = [data]
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            scope = str(
+                low.get("eventhub")
+                or low.get("name")
+                or low.get("entityname")
+                or low.get("namespace")
+                or ""
+            )
+            if scope:
+                model.identifiers.setdefault("eventhub", scope)
+            incoming = _num(low.get("incomingmessages"))
+            outgoing = _num(low.get("outgoingmessages"))
+            if incoming is not None or outgoing is not None:
+                model.throughput.append(
+                    ExecutionThroughput(
+                        name=scope or "eventhub",
+                        input_rows=incoming,
+                        output_rows=outgoing,
+                    )
+                )
+            for key in self._METRIC_KEYS:
+                val = _num(low.get(key))
+                if val is not None:
+                    model.metrics.append(ExecutionMetric(key, val, "count", scope=scope))
+            errors = _num(low.get("servererrors"))
+            if errors:
+                model.errors.append(
+                    ExecutionError(
+                        code="server_errors",
+                        message=f"{scope or 'eventhub'}: {errors:g} server errors",
+                        count=int(errors),
+                    )
+                )
+        return model
+
+
+class FabricPipelineAdapter:
+    """Fabric pipeline run export (JSON run history)."""
+
+    name = "fabric_pipeline"
+
+    _STATES: ClassVar[dict[str, str]] = {
+        "succeeded": "completed",
+        "failed": "failed",
+        "cancelled": "failed",
+        "canceled": "failed",
+        "inprogress": "started",
+        "queued": "started",
+    }
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return ("pipelinename" in head or "pipelinerun" in head or "runid" in head) and (
+            "status" in head or "durationinms" in head
+        )
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        data = _json_doc(text)
+        rows: list[dict[str, Any]] = []
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("value", "runs", "rows", "data"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+            if not rows and data:
+                rows = [data]
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            run_id = str(low.get("runid") or low.get("id") or "")
+            pipe = str(low.get("pipelinename") or low.get("pipeline") or "")
+            status = str(low.get("status") or "").lower()
+            dur = _num(low.get("durationinms") or low.get("duration_ms"))
+            if pipe:
+                model.identifiers.setdefault("pipeline", pipe)
+            model.executions.append(
+                RuntimeExecution(
+                    id=run_id or pipe or "run",
+                    kind="pipeline",
+                    state=self._STATES.get(status, status or ""),
+                    duration_ms=dur,
+                )
+            )
+            if self._STATES.get(status) == "failed":
+                failure = low.get("failuremessage") or low.get("error") or ""
+                model.errors.append(
+                    ExecutionError(
+                        code="pipeline_failed",
+                        message=str(failure)[:200] or f"pipeline {pipe} failed",
+                        execution_id=run_id,
+                    )
+                )
+        return model
+
+
 ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
     SnowflakeHistoryAdapter(),
     BigQueryJobsAdapter(),
@@ -856,6 +1171,11 @@ ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
     LambdaReportAdapter(),
     GlueLogAdapter(),
     NeptuneExplainAdapter(),
+    DataflowJobMetricsAdapter(),
+    PubSubBacklogAdapter(),
+    SynapseQueryAdapter(),
+    EventHubMetricsAdapter(),
+    FabricPipelineAdapter(),
 )
 
 

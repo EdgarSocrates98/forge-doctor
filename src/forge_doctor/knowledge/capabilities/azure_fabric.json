@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://learn.microsoft.com/fabric/onelake/onelake-shortcuts",
+    "https://learn.microsoft.com/fabric/get-started/direct-lake-overview"
+  ],
+  "domain": "azure_fabric",
+  "capabilities": [
+    {
+      "id": "FABRIC_ONELAKE_SHORTCUTS",
+      "platform": "azure_fabric",
+      "status": "supported",
+      "reason": "OneLake shortcuts virtualize ADLS Gen2, S3 and Dataverse data without copying.",
+      "source": "https://learn.microsoft.com/fabric/onelake/onelake-shortcuts"
+    },
+    {
+      "id": "FABRIC_DIRECT_LAKE",
+      "platform": "azure_fabric",
+      "status": "supported",
+      "reason": "Direct Lake reads Delta tables in OneLake without import or refresh cycles.",
+      "source": "https://learn.microsoft.com/fabric/get-started/direct-lake-overview"
+    },
+    {
+      "id": "FABRIC_CAPACITY_THROTTLING",
+      "platform": "azure_fabric",
+      "status": "conditional",
+      "reason": "Capacities smooth, burst then throttle under sustained over-consumption; capacity planning, not autoscaling, governs throughput.",
+      "source": "https://learn.microsoft.com/fabric/enterprise/throttling"
+    }
+  ]
+}

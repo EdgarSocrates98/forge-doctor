@@ -1,0 +1,6 @@
+{
+  "name": "hub-short-retention",
+  "description": "Event Hub at default 1-day retention with no capture (AZ002)",
+  "expected_findings": ["AZ000", "AZ002"],
+  "forbidden_findings": ["AZ001"]
+}

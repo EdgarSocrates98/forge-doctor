@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-02",
+  "sources": [
+    "https://learn.microsoft.com/azure/event-hubs/event-hubs-for-kafka-ecosystem-overview",
+    "https://learn.microsoft.com/azure/event-hubs/event-hubs-capture-overview"
+  ],
+  "domain": "eventhubs",
+  "capabilities": [
+    {
+      "id": "EVENTHUBS_KAFKA_ENDPOINT",
+      "platform": "eventhubs",
+      "status": "supported",
+      "reason": "Event Hubs exposes an Apache Kafka protocol endpoint so Kafka producers/consumers connect unmodified.",
+      "source": "https://learn.microsoft.com/azure/event-hubs/event-hubs-for-kafka-ecosystem-overview"
+    },
+    {
+      "id": "EVENTHUBS_CAPTURE",
+      "platform": "eventhubs",
+      "status": "supported",
+      "reason": "capture_description lands Avro batches to ADLS Gen2/Storage on a size-or-time window.",
+      "source": "https://learn.microsoft.com/azure/event-hubs/event-hubs-capture-overview"
+    },
+    {
+      "id": "EVENTHUBS_LONG_RETENTION",
+      "platform": "eventhubs",
+      "status": "conditional",
+      "reason": "Standard tier retains events up to 7 days; retention to 90 days requires Premium or Dedicated.",
+      "source": "https://learn.microsoft.com/azure/event-hubs/event-hubs-quotas"
+    }
+  ]
+}

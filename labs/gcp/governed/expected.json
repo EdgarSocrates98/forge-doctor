@@ -1,0 +1,6 @@
+{
+  "name": "governed",
+  "description": "Healthy GCP estate: DLQ on sub, versioned bucket, dataplex lake",
+  "expected_findings": ["GCP000"],
+  "forbidden_findings": ["GCP001", "GCP002", "GCP003"]
+}
