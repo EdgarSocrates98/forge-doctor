@@ -19,6 +19,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     parquet,
     platform,
     plugins,
+    rootcause,
     runtime,
     scan,
     stepfunctions,

@@ -309,6 +309,18 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   explain/profile) behind ordered first-match dispatch. Identity joins
   use demonstrable keys only (ARN/job/query/execution id). CLI:
   `runtime inspect|diagnose <artifact>` and `streaming progress <file>`.
+- **Finding promotion + root-cause clustering** — `core/diagnosis.py`
+  correlates scan findings with runtime evidence. `FindingPromotion`
+  keeps `base_fingerprint` correlation (originals never mutate) and a
+  deterministic `promotion_id`; levels CONFIRMED (requires exact
+  identity join), STRONGLY_SUPPORTED (targeted rule, domain-only), and
+  POSSIBLE (shared-domain errors — corroboration, never confirmation).
+  `FindingCluster` evaluates deterministic causal chains — micro-batch →
+  commit amplification → small files → consumer overhead, and
+  join/shuffle key → skew → spill → long stage — emitting root causes,
+  symptoms, related findings, affected entities, evidence, and causal
+  edges. CLI: `forge-doctor root-cause . --runtime artifact.json`
+  (`--json` supported).
 
 ### Added (0.7.0)
 

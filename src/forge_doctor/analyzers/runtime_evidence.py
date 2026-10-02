@@ -107,12 +107,17 @@ class SparkEventLogAdapter:
             elif kind == "SparkListenerStageCompleted":
                 info = ev.get("Stage Info") or {}
                 sid = str(info.get("Stage ID", ""))
+                submitted = _num(info.get("Submission Time"))
+                completed = _num(info.get("Completion Time"))
                 stage = RuntimeExecution(
                     id=f"stage-{sid}",
                     kind="stage",
                     state="completed"
                     if str(info.get("Completion Reason", "")) == "" or "Failure Reason" not in info
                     else "failed",
+                    duration_ms=(completed - submitted)
+                    if submitted is not None and completed is not None
+                    else None,
                 )
                 stages[sid] = stage
                 for acc in info.get("Accumulables", []) or []:
@@ -150,6 +155,9 @@ class SparkEventLogAdapter:
         model.executions.extend(sorted(stages.values(), key=lambda e: e.id))
         # Skew signal: max/median task duration per stage.
         for sid, durations in sorted(task_durations.items()):
+            model.metrics.append(
+                ExecutionMetric("task_count", float(len(durations)), "tasks", scope=f"stage-{sid}")
+            )
             if len(durations) < 4:
                 continue
             durations.sort()

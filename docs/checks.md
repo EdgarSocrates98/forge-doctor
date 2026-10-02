@@ -883,6 +883,26 @@ and extracted errors against the known-error signature packs.
 Artifacts join platform-graph entities only through demonstrable
 identifiers (ARN, job name, query id, execution id) — never fuzzy.
 
+## Root cause
+
+`forge-doctor root-cause . [--runtime artifact.json ...]` correlates scan
+findings with runtime evidence:
+
+- **Promotions** — a `FindingPromotion` lifts a finding when runtime facts
+  are consistent with it (e.g. `repartition(1)` + a stage that ran one
+  task; streaming backlog when processed rate < input rate; retries
+  observed for a retry+non-idempotent finding). Levels: CONFIRMED (exact
+  identity join required), STRONGLY_SUPPORTED (targeted rule, domain
+  only), POSSIBLE (shared-domain errors). The original finding and its
+  fingerprint are never modified — `base_fingerprint` + deterministic
+  `promotion_id` preserve correlation.
+- **Causal clusters** — deterministic chains with evidenced nodes:
+  `RC_STREAM_COMMITS` (micro-batch → commit amplification → small files
+  → consumer planning/scan overhead) and `RC_SPARK_SKEW` (join/shuffle
+  key → skew → spill → long stage). CONFIRMED needs every node evidenced
+  with runtime facts; fewer nodes degrade to STRONGLY_SUPPORTED/POSSIBLE.
+  A single evidenced node never forms a cluster.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning
