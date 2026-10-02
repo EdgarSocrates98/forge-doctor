@@ -992,6 +992,34 @@ def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 )
 
 
+def _trino(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Trino catalogs + three-part SQL refs (spec 218).
+
+    Each catalog file becomes a ``catalog:trino:<name>`` entity carrying
+    the connector type; three-part SQL references whose first part names
+    a declared catalog become ``table:trino:<catalog.schema.table>``
+    entities with ``catalog CONTAINS table`` edges. Refs to unknown
+    catalogs are skipped (TRINO005 reports them as findings instead of
+    fabricating entities).
+    """
+    from forge_doctor.analyzers.trino_model import trino_model
+
+    model = trino_model(ctx)
+    if not model.has_evidence:
+        return
+    cat_ids: dict[str, str] = {}
+    for c in model.catalogs:
+        cat_ids[c.name.lower()] = g.add_entity(
+            _e(K.CATALOG, "trino", c.name, c.file, connector=c.connector)
+        ).id
+    for r in model.refs:
+        src = cat_ids.get(r.catalog.lower())
+        if src is None:
+            continue
+        tid = g.add_entity(_e(K.TABLE, "trino", r.name, r.file, r.line)).id
+        g.add_relationship(Relationship(src=src, dst=tid, kind=R.CONTAINS, evidence_kind=_STA))
+
+
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model
 
@@ -1385,6 +1413,7 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _warehouse,
         _dbt,
         _contracts,
+        _trino,
         _iceberg,
         _parquet,
         _terraform,

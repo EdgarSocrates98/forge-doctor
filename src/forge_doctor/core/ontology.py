@@ -169,6 +169,7 @@ _PRODUCER_DOMAIN_DEFS: dict[str, str] = {
     "sqs": "Amazon SQS model.",
     "stepfunctions": "AWS Step Functions model.",
     "terraform": "Terraform IaC model.",
+    "trino": "Trino federated-SQL model (catalogs, coordinator config, refs).",
     "warehouse": "Vendor-neutral warehouse model (compute, namespaces, tables, views).",
     "workspace": "Workspace/repo aggregation model.",
 }

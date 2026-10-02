@@ -1,0 +1,6 @@
+{
+  "name": "plain-props",
+  "description": "Adversarial: generic .properties + two-part SQL must not attribute to Trino",
+  "expected_findings": [],
+  "forbidden_findings": ["TRINO001", "TRINO002", "TRINO003", "TRINO004", "TRINO005"]
+}

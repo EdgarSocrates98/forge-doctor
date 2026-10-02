@@ -331,6 +331,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with blast radius to consumers. Blast radius now also traverses
   `READS_FROM`/`WRITES_TO` edges (dbt lineage participates in impact).
   Labs `labs/datacontract/{drifted-prod,no-schema,not-a-contract}`.
+- **Trino adapter** (spec 218, roadmap-4 wave 3) —
+  `analyzers/trino_model.py` builds a `TrinoProjectModel` from
+  `etc/catalog/*.properties` (`connector.name=` is the attribution
+  marker), `config.properties` (coordinator/worker flags, memory
+  limits, spill keys, `resource-groups.config-file`), `node.properties`,
+  `jvm.config`, authored SQL `catalog.schema.table` three-part refs,
+  and optional observed cluster exports (`trino/` or
+  `.forge-doctor/evidence/` JSON with coordinator/nodeVersion signal).
+  `.properties` parsing is a deterministic `key=value` + comments
+  subset — no JVM. Checks `TRINO001`–`TRINO005`: hive catalog without
+  metastore, coordinator without spill-to-disk while writes exist,
+  test connectors (`tpch`/`jmx`/`system`…) in a deployment with data
+  catalogs, multi-catalog deployment without resource groups, and
+  three-part SQL referencing an undeclared catalog (MEDIUM confidence —
+  other vendors share the syntax). Capability pack `trino.json` adds
+  per-connector surfaces (reads/writes/pushdown/transactions) gated on
+  the `connector` attribute plus spill/resource-group/event-listener
+  facts. Graph: `catalog:trino:*` entities `CONTAINS` referenced
+  `table:trino:*`. New command `forge-doctor trino inspect`, labs
+  `labs/trino/{prod-cluster,plain-props}`. Presto semantics deferred
+  per spec.
 
 ### Fixed
 

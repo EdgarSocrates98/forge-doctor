@@ -37,6 +37,7 @@ from forge_doctor.checks import (
     streaming,
     streaming_bus,
     terraform,
+    trino,
     warehouse,
 )
 from forge_doctor.plugins.protocol import Check
@@ -75,6 +76,7 @@ BUILTIN_MODULES = (
     snowflake,
     bigquery,
     warehouse,
+    trino,
 )
 
 

@@ -1661,3 +1661,47 @@ In `diff --semantic`: a governed relation's field was removed or its
 type narrowed/changed between refs (`field.*` attr diff). Surfaced as a
 "Breaking contract changes" section + `contract_changes` rows in JSON,
 and bumps risk to HIGH with blast radius to consuming models.
+
+## Trino (TrinoProjectModel — federated-SQL adapter)
+
+Evidence is config-centric: `etc/catalog/*.properties` (one file per
+catalog, `connector.name=` is the attribution marker), `config.properties`
+(coordinator/worker flags, memory limits, spill keys,
+`resource-groups.config-file`), `node.properties`, `jvm.config`, plus
+authored SQL using `catalog.schema.table` three-part names and optional
+observed cluster exports (JSON under `trino/` or `.forge-doctor/evidence/`
+with `coordinator`/`nodeVersion`/`environment` fields). `.properties`
+parsing is a deterministic `key=value` + comments subset — no JVM. Plain
+`.properties` files and three-part SQL alone never attribute to Trino.
+Presto (distinct coordinator semantics) is deferred to its own spec.
+
+### TRINO000 — Trino surface · pass/info
+Anchor census: catalogs by connector, node role, three-part refs,
+observed rows.
+
+### TRINO001 — Hive catalog without metastore · warning
+A `connector.name=hive` catalog file declares no `hive.metastore.*`
+config — the catalog cannot resolve table metadata.
+**Fix:** add `hive.metastore.uri` or `hive.metastore=glue`.
+
+### TRINO002 — Coordinator without spill-to-disk · warning
+`coordinator=true` with no spill keys while authored SQL writes exist —
+ETL-style queries can OOM instead of degrading to disk.
+**Fix:** set `spill-enabled` + `spiller-spill-path`.
+
+### TRINO003 — Test connector catalog in deployment · warning
+`tpch`/`jmx`/`system`/`blackhole`-style connector in a deployment that
+also has real data catalogs — benchmark weight leaking into prod.
+**Fix:** remove the test catalog or gate it to dev clusters.
+
+### TRINO004 — Multi-catalog deployment without resource groups · warning
+Two or more catalogs on one coordinator and no `resource-groups` config —
+no admission control between workloads.
+**Fix:** add `resource-groups.json` + `resource-groups.config-file`.
+
+### TRINO005 — Three-part SQL ref to unknown catalog · warning (medium confidence)
+`catalog.schema.table` in authored SQL whose catalog prefix has no
+declared catalog file — a typo or missing catalog fails at run time.
+Confidence is MEDIUM: in a mixed-vendor repo a three-part name may
+legitimately belong to another engine.
+**Fix:** create the catalog properties file or fix the reference.

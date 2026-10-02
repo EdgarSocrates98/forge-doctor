@@ -1,0 +1,6 @@
+{
+  "name": "prod-cluster",
+  "description": "Trino prod deployment: hive w/o metastore, no spill on coordinator running writes, tpch in prod, no resource groups, unknown catalog ref",
+  "expected_findings": ["TRINO001", "TRINO002", "TRINO003", "TRINO004", "TRINO005"],
+  "forbidden_findings": []
+}
