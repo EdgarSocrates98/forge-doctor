@@ -719,6 +719,98 @@ Global table with no visible region pinning in code or providers.
 `forge-doctor dynamodb inspect|access-patterns|indexes|streams|
 global-tables|capacity` summarize the model without a scan.
 
+## Neptune (NeptuneProjectModel — IaC + client code + query shapes)
+
+Separates Amazon Neptune Database (Gremlin/openCypher on property graph,
+SPARQL on RDF) from Neptune Analytics (a distinct service with built-in
+algorithms). Clusters/instances/subnet+parameter groups/global clusters
+come from `aws_neptune_*` Terraform and `AWS::Neptune*` CloudFormation;
+endpoints (`*.neptune.amazonaws.com:8182`, `DriverRemoteConnection`),
+boto3 `neptune`/`neptunedata`/`neptune-graph` bindings, and
+`start_loader_job` call sites come from code. Query shapes reuse the
+Graph Intelligence extractors — nothing executes.
+
+### NEP001 — Neptune workload detected · info
+Anchor: product, clusters, instances, endpoints, bulk loads, languages.
+
+### NEP010 — Query language incompatible with graph paradigm · warning
+Registry-derived: openCypher/Gremlin vs RDF-loaded data, SPARQL vs
+property-graph data.
+
+### NEP020 — Traversal without selective start · warning
+`g.V()`/`MATCH` with no bound start predicate.
+
+### NEP021 — Unbounded variable-length traversal · warning
+`[*]` / `repeat()` without `times()`/`until`/`LIMIT` bound.
+
+### NEP022 — Cartesian graph pattern · warning
+Disconnected `MATCH` patterns with no joining relationship.
+
+### NEP023 — Large unbounded result projection · info
+`RETURN *` / `SELECT *` with no `LIMIT`.
+
+### NEP024 — Property filter applied post-traversal · warning
+First filter lands after hop expansion — late-filtering risk.
+
+### NEP030 — Row-by-row ingestion pattern · warning
+Repeated write-per-item calls with no bulk-loader evidence.
+
+### NEP031 — Bulk-loader candidate · info
+Write-heavy workload where the S3 bulk loader is absent.
+
+### NEP032 — Bulk-load IAM/S3 relationship incomplete · warning/info
+`start_loader_job` without `iamRoleArn`, or a role whose S3 access is
+not visible in the project.
+
+### NEP033 — Malformed graph input risk · info
+A query-language file/string that produced no parsed traversal.
+
+### NEP040 — Read-heavy workload, no replica evidence · info
+Only when read/write asymmetry is observable; otherwise silent.
+
+### NEP041 — Weak backup/PITR posture · info/warning
+No `backup_retention_period`, or `skip_final_snapshot=true`.
+
+### NEP042 — Public-access assumption · warning
+`publicly_accessible = true` on a cluster instance.
+
+### NEP043 — IAM-auth configuration mismatch · info
+Cluster `iam_database_authentication_enabled` vs client SigV4 evidence.
+
+### NEP044 — Security-group topology risk · info
+No attached SGs, or no SG opens the Neptune port.
+
+### NEP045 — Cluster/instance configuration mismatch · warning/info
+`db.serverless` required on serverless clusters; clusters without
+instances.
+
+### NEPGT001 — Write expectation in a secondary region · warning
+Writes aimed at a non-primary region of a global database.
+
+### NEPGT002 — Multi-region active-active write assumption · info
+Write traffic spanning multiple endpoint regions.
+
+### NEPGT003 — Cross-region recovery topology incomplete · info
+Global cluster with no secondary cluster evidence.
+
+### NEPA001 — Manual algorithm with Analytics available · info
+Hand-rolled graph algorithm while Neptune Analytics is configured.
+
+### NEPA002 — Algorithm call incompatible with detected product · info
+Algorithm-style usage with no Analytics evidence.
+
+### NEPCD001 — Stream-fed Neptune mutation lacks idempotency · warning
+DynamoDB stream consumer (no idempotency signal) plus graph writes —
+replayed records may double-apply mutations.
+
+`forge-doctor neptune inspect|schema|queries|ingest|explain|compatibility`
+summarize the model; `neptune explain|analyze-explain <file>` reads an
+exported explain/profile artifact offline (STATIC / OBSERVED_METADATA /
+RUNTIME classification, large-intermediate / broad-start / late-filter
+flags). `forge-doctor data-model inspect` reports the access-style
+breakdown (key lookups vs bounded queries vs scans vs multi-hop
+traversals) as facts only — no platform recommendation.
+
 ## Policy
 
 ### POLICY001 — Expired suppression · warning

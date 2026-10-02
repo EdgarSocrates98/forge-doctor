@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "single-writer",
+      "summary": "Neptune Global Database has one primary write region; all secondary regions are read-only.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html"
+    },
+    {
+      "id": "secondary-topology",
+      "summary": "Secondary regions host read replicas; write traffic to a secondary endpoint fails - cross-region recovery needs a promoted secondary.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html"
+    }
+  ]
+}

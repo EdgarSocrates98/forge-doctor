@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/iam-auth.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/backup-restore.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "iam-auth",
+      "summary": "Clusters can require IAM database authentication; clients must then SigV4-sign requests.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/iam-auth.html"
+    },
+    {
+      "id": "backups",
+      "summary": "backup_retention_period controls the automated backup window; skip_final_snapshot=true drops the last snapshot on delete.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/backup-restore.html"
+    },
+    {
+      "id": "streams",
+      "summary": "Neptune Streams (graph change log) exist on Database; polling cadence affects consumers.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/streams.html"
+    }
+  ]
+}

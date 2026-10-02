@@ -259,6 +259,31 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   transactions, limits, modeling, streams, global-tables; schema 2 +
   sources). CLI: `forge-doctor dynamodb inspect|access-patterns|
   indexes|streams|global-tables|capacity`.
+- **Neptune Intelligence** (`analyzers/neptune_model.py`,
+  `neptune_queries.py`, `neptune_explain.py`) — `NeptuneProjectModel`
+  separates Neptune Database from Neptune Analytics; clusters, instances,
+  subnet/parameter groups, global clusters from Terraform +
+  CloudFormation; endpoints, `neptunedata`/`neptune-graph` bindings,
+  `start_loader_job` calls, IAM-auth hints from code. Query shapes reuse
+  the Graph Intelligence extractors (no parsers duplicated). New
+  `neptune` category: NEP001 anchor, NEP010 language↔paradigm
+  incompatibility via the capability registry (DERIVED + source),
+  NEP020-024 traversal checks per language, NEP030-033 ingestion checks,
+  NEP040-045 infra/topology checks, NEPGT001-003 global-database checks,
+  NEPA001-002 analytics checks, NEPCD001 stream-fed mutation
+  idempotency. `neptune explain <file>` classifies exported
+  explain/profile artifacts STATIC/OBSERVED_METADATA/RUNTIME and flags
+  large intermediates, broad starts, late filters — offline only.
+  `knowledge/neptune/` packs (products, engines, ingestion, features,
+  query-languages, bulk-loader, global-database, explain, analytics,
+  compatibility; schema 2 + sources). CLI: `forge-doctor neptune
+  inspect|schema|queries|ingest|explain|analyze-explain|compatibility`;
+  `forge-doctor data-model inspect` reports the access-style breakdown
+  as facts only. Platform graph gained DynamoDB adapters (table
+  PRODUCES stream, stream TRIGGERS lambda, code READS/WRITES table) and
+  Neptune adapters (`graph:neptune:<cluster>`, loader READS S3 / WRITES
+  graph, lambda WRITES via handler-module join) — `blast-radius` spans
+  Terraform → DynamoDB → stream → Lambda → Neptune.
 
 ### Added (0.7.0)
 

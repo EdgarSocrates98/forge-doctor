@@ -364,6 +364,183 @@ def _graph_intel(ctx: ProjectContext, g: DataPlatformGraph) -> None:
             )
 
 
+def _lambda_index(ctx: ProjectContext) -> tuple[dict[str, str], dict[str, str]]:
+    """Lambda canonical names + handler-module stems for joins.
+
+    Returns (label -> display name, module stem -> lambda name)."""
+    from forge_doctor.analyzers.terraform_model import terraform_model
+
+    by_label: dict[str, str] = {}
+    by_module: dict[str, str] = {}
+    for res in terraform_model(ctx).resources:
+        if not res.labels or res.labels[0] != "aws_lambda_function":
+            continue
+        name = str(res.attrs.get("function_name") or res.labels[-1])
+        by_label[res.labels[-1]] = name
+        handler = str(res.attrs.get("handler") or "")
+        stem = handler.split(".", 1)[0]
+        if stem:
+            by_module.setdefault(stem, name)
+    return by_label, by_module
+
+
+def _dynamodb(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """DynamoDB adapter: tables, streams->lambdas, code access edges."""
+    from forge_doctor.analyzers.dynamodb_model import dynamodb_model
+    from forge_doctor.analyzers.terraform_model import terraform_model
+
+    model = dynamodb_model(ctx)
+    for t in model.tables:
+        g.add_entity(_e(K.TABLE, "dynamodb", t.name, t.file, t.line, source=t.source))
+    for s in model.streams:
+        if not s.table:
+            continue
+        stream = _e(K.STREAM, "dynamodb", s.table, s.file, s.line, view=s.view_type)
+        g.add_entity(stream)
+        g.add_relationship(
+            Relationship(
+                src=f"table:dynamodb:{s.table}",
+                dst=stream.id,
+                kind=R.PRODUCES,
+                evidence_kind=_CFG,
+            )
+        )
+    tf_label_to_table: dict[str, str] = {}
+    for res in terraform_model(ctx).resources:
+        if res.labels and res.labels[0] == "aws_dynamodb_table":
+            tf_label_to_table[res.labels[-1]] = str(res.attrs.get("name") or res.labels[-1])
+    lambda_names, _ = _lambda_index(ctx)
+    for res in terraform_model(ctx).resources:
+        if not res.labels or res.labels[0] != "aws_lambda_event_source_mapping":
+            continue
+        arn = str(res.attrs.get("event_source_arn") or "")
+        table = next(
+            (name for label, name in tf_label_to_table.items() if label in arn),
+            None,
+        )
+        if table is None:
+            continue
+        fn = str(res.attrs.get("function_name") or res.attrs.get("function_arn") or "")
+        fn_name = next((name for label, name in lambda_names.items() if label in fn), fn or "")
+        if not fn_name:
+            continue
+        lam = _e(K.COMPUTE_JOB, "lambda", fn_name, res.file, res.line)
+        g.add_entity(lam)
+        stream = _e(K.STREAM, "dynamodb", table)
+        g.add_entity(stream)
+        g.add_relationship(
+            Relationship(src=stream.id, dst=lam.id, kind=R.TRIGGERS, evidence_kind=_CFG)
+        )
+    for a in model.accesses:
+        if not a.table:
+            continue
+        t_ent = _e(K.TABLE, "dynamodb", a.table)
+        g.add_entity(t_ent)
+        q = _e(
+            K.QUERY,
+            "dynamodb",
+            f"{a.file.as_posix()}:{a.line}",
+            a.file,
+            a.line,
+            op=a.op,
+        )
+        g.add_entity(q)
+        kind = (
+            R.WRITES
+            if a.op.startswith(("put", "update", "delete", "batch_write", "transact_write"))
+            else R.READS
+        )
+        g.add_relationship(Relationship(src=q.id, dst=t_ent.id, kind=kind, evidence_kind=_STA))
+
+
+def _neptune(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Neptune adapter: cluster graphs, loader jobs, code writes."""
+    from forge_doctor.analyzers.neptune_model import neptune_model
+    from forge_doctor.analyzers.neptune_queries import neptune_queries
+
+    model = neptune_model(ctx)
+    cluster_ids: list[str] = []
+    for c in model.clusters:
+        ent = _e(K.GRAPH, "neptune", c.name, c.file, c.line, product="database")
+        g.add_entity(ent)
+        cluster_ids.append(ent.id)
+    for e in model.endpoints:
+        g.add_entity(
+            _e(
+                K.INFRASTRUCTURE_RESOURCE,
+                "neptune",
+                e.value,
+                e.file,
+                e.line,
+                type="endpoint",
+            )
+        )
+
+    # File -> cluster resolution: a query joins the cluster whose name
+    # appears in an endpoint the same file references; a single cluster
+    # absorbs everything. Otherwise the join stays unresolved (no edge).
+    file_cluster: dict[Path, str] = {}
+    for e in model.endpoints:
+        for c in model.clusters:
+            if c.name and c.name in e.value:
+                file_cluster.setdefault(e.file, f"graph:neptune:{c.name}")
+
+    _labels, lambda_by_module = _lambda_index(ctx)
+    for q in neptune_queries(ctx).queries:
+        target = file_cluster.get(q.file)
+        if target is None:
+            if len(cluster_ids) != 1:
+                continue  # multi-cluster ambiguity stays unresolved
+            target = cluster_ids[0]
+        qent = _e(
+            K.QUERY,
+            "neptune",
+            f"{q.file.as_posix()}:{q.line}",
+            q.file,
+            q.line,
+            language=q.language,
+        )
+        g.add_entity(qent)
+        g.add_relationship(
+            Relationship(
+                src=qent.id,
+                dst=target,
+                kind=R.WRITES if q.writes else R.READS,
+                evidence_kind=_STA,
+            )
+        )
+        if q.writes:
+            lam = lambda_by_module.get(q.file.stem)
+            if lam:
+                le = _e(K.COMPUTE_JOB, "lambda", lam)
+                g.add_entity(le)
+                g.add_relationship(
+                    Relationship(src=le.id, dst=target, kind=R.WRITES, evidence_kind=_DER)
+                )
+    for load in model.bulk_loads:
+        job = _e(
+            K.TASK,
+            "neptune_loader",
+            f"{load.file.as_posix()}:{load.line}",
+            load.file,
+            load.line,
+            origin=load.origin,
+        )
+        g.add_entity(job)
+        if load.source_s3:
+            bucket = load.source_s3.removeprefix("s3://").split("/", 1)[0]
+            s3 = _e(K.STORAGE_LOCATION, "s3", bucket)
+            g.add_entity(s3)
+            g.add_relationship(
+                Relationship(src=job.id, dst=s3.id, kind=R.READS, evidence_kind=_STA)
+            )
+        target = cluster_ids[0] if cluster_ids else None
+        if target:
+            g.add_relationship(
+                Relationship(src=job.id, dst=target, kind=R.WRITES, evidence_kind=_STA)
+            )
+
+
 def _sql(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.sql_ast import analyze_sql
 
@@ -463,6 +640,7 @@ def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 res.attrs.get("name")
                 or res.attrs.get("function_name")
                 or res.attrs.get("bucket")
+                or res.attrs.get("cluster_identifier")
                 or res.labels[-1]
             )
         )
@@ -485,6 +663,8 @@ def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
         _stepfunctions,
         _streaming,
         _graph_intel,
+        _dynamodb,
+        _neptune,
         _sql,
         _iceberg,
         _parquet,

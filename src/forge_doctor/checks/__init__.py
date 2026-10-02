@@ -18,6 +18,7 @@ from forge_doctor.checks import (
     iac,
     iceberg,
     lakeformation,
+    neptune,
     parquet,
     python_env,
     repository,
@@ -49,6 +50,7 @@ BUILTIN_MODULES = (
     lakeformation,
     graph,
     dynamodb,
+    neptune,
 )
 
 

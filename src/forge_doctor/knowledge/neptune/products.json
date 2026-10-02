@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "database-vs-analytics",
+      "summary": "Amazon Neptune Database (managed graph store, Gremlin/openCypher/SPARQL) and Neptune Analytics (in-memory analytics engine with built-in algorithms) are separate products with separate endpoints and APIs.",
+      "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html"
+    },
+    {
+      "id": "product-endpoints",
+      "summary": "Database endpoints live on port 8182 under <cluster>.<region>.neptune.amazonaws.com; Analytics graphs are created via the neptune-graph control plane and queried over HTTPS.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-gremlin-console.html"
+    }
+  ]
+}

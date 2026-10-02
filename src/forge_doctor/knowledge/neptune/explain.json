@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-explain.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-profile.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "evidence-planes",
+      "summary": "explain output without execution counters is plan metadata (STATIC/OBSERVED); profile and dynamic explain carry runtime counters (RUNTIME).",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-explain.html"
+    },
+    {
+      "id": "offline-only",
+      "summary": "Exported explain artifacts are analyzed offline; Forge Doctor never connects to a Neptune endpoint.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-profile.html"
+    }
+  ]
+}

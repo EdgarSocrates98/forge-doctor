@@ -407,7 +407,11 @@ def parse_sparql(text: str, file: Path, line: int) -> GraphTraversal:
             raw=text[:200],
         )
     predicates = tuple(dict.fromkeys(_PREDICATE_RE.findall(text)))
-    var_len = bool(re.search(r"[*+](?![\w)])", text))
+    # Property-path operators live inside the WHERE body - ``SELECT *``
+    # and regexes in FILTERs must not count.
+    body_m = re.search(r"\bWHERE\s*\{(.*)", text, re.I | re.S)
+    body = body_m.group(1) if body_m else text
+    var_len = bool(re.search(r"[*+](?![\w)])", body))
     proj_size: int | None = None
     proj_star = False
     sel = re.search(r"\bSELECT\s+(.*?)\bWHERE\b", text, re.I | re.S)

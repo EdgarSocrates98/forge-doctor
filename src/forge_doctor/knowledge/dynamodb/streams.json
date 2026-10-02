@@ -25,4 +25,9 @@
       "source": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html"
     },
     {
-      "id": "global-table-replica
+      "id": "global-table-replica-events",
+      "summary": "Global-table streams emit one event per region per logical write - consumers replicated per region see the same logical change multiple times unless they dedupe.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.html"
+    }
+  ]
+}

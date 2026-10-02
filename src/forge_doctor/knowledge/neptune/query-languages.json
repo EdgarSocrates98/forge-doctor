@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-explain.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "gremlin-pg",
+      "summary": "Gremlin traverses property graphs only; it cannot read RDF-loaded data.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/feature-reference-gremlin.html"
+    },
+    {
+      "id": "opencypher-pg",
+      "summary": "openCypher queries property graphs only; it cannot read RDF-loaded data.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html"
+    },
+    {
+      "id": "sparql-rdf",
+      "summary": "SPARQL 1.1 queries RDF quads only; it cannot read property-graph data.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-sparql-queries.html"
+    },
+    {
+      "id": "explain-profile",
+      "summary": "explain reports the execution plan; profile reports actual counters. openCypher has static/dynamic/details explain variants.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/gremlin-explain.html"
+    }
+  ]
+}

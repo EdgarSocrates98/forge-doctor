@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "loader-vs-writes",
+      "summary": "The bulk loader is the optimized ingestion path for large datasets from S3; per-item Gremlin/openCypher writes suit interactive mutations, not bulk ingest.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    },
+    {
+      "id": "loader-formats",
+      "summary": "Bulk loader accepts CSV and OPENCYPHER JSON for property graph, and ntriples/nquads/nquads-quads/turtle/rdfxml for RDF.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    }
+  ]
+}

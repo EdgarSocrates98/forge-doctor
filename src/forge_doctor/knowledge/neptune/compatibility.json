@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-opencypher-overview-getting-started.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "pg-langs",
+      "summary": "Gremlin and openCypher address the same property-graph data; a property-graph workload may mix both.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "id": "rdf-isolation",
+      "summary": "RDF and property-graph data are stored separately; a cluster can hold both but languages never cross paradigms.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    }
+  ]
+}

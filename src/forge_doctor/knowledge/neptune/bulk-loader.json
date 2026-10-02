@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "iam-role-required",
+      "summary": "start_loader_job needs iamRoleArn for a role Neptune can assume with S3 read access on the source bucket.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    },
+    {
+      "id": "semantics",
+      "summary": "failOnError, parallelism, and updateSingleCardinalityProperties change load semantics; dependencies chain loads.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    },
+    {
+      "id": "kms-s3",
+      "summary": "Encrypted S3 sources need KMS permissions on the load role in addition to s3:GetObject.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/bulk-load.html"
+    }
+  ]
+}

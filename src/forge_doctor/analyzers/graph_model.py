@@ -256,8 +256,15 @@ def _site_traversals(ctx: ProjectContext) -> list[GraphTraversal]:
                     line_text = lines[line - 1]
             trav = parse_gremlin_chain(head.dotted, args_by_step, relative, line, raw=line_text)
             # Honesty guard: a lone ``x.V()`` is only a traversal when the
-            # root is a known traversal alias or real steps follow.
+            # root is a known traversal alias or real steps follow - and
+            # a bare argumentless V()/E() carries no traversal evidence
+            # even on the canonical ``g`` root.
             root = trav.start.split(".", 1)[0]
+            single_noop = trav.steps in {("V",), ("E",)} and not any(
+                args_by_step.get(trav.steps[0]) or ()
+            )
+            if single_noop:
+                continue
             if root not in {"g", "gt", "t", "__"} and not (
                 len(trav.steps) > 1 and any(s in _TRAVERSAL_VOCAB for s in trav.steps[1:])
             ):

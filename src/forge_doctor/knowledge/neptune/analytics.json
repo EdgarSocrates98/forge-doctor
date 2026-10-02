@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html",
+    "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/algorithms.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "algorithm-catalog",
+      "summary": "Neptune Analytics provides built-in algorithms: pathfinding (BFS/shortest path), centrality (pagerank/degree/closeness), similarity, community detection, and graph summaries.",
+      "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/algorithms.html"
+    },
+    {
+      "id": "service-boundary",
+      "summary": "Analytics runs algorithms over a graph snapshot; it is not a transactional store - mutations belong to Database.",
+      "source": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/what-is-neptune-analytics.html"
+    }
+  ]
+}

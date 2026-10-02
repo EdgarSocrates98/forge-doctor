@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.01",
+  "verified_at": "2026-10-01",
+  "sources": [
+    "https://docs.aws.amazon.com/neptune/latest/userguide/engine-releases.html",
+    "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-serverless.html"
+  ],
+  "domain": "neptune",
+  "practices": [
+    {
+      "id": "engine-versioning",
+      "summary": "Neptune Database clusters pin engine_version; serverless requires engine 1.2.0.1+ and db.serverless instance class.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/engine-releases.html"
+    },
+    {
+      "id": "instance-classes",
+      "summary": "Cluster instances use db.* classes; on serverless clusters the only valid class is db.serverless.",
+      "source": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-serverless.html"
+    }
+  ]
+}
