@@ -75,21 +75,48 @@ FORMATS = ("text", "json", "jsonl", "html", "sarif", "agent")
 MACHINE_FORMATS = ("json", "jsonl", "sarif", "agent")
 WATCH_INTERVAL = 1.0
 
+# Help panels shared by scan + category commands. Anything without a
+# panel lands in the default Options group.
+_SCOPE = "Scope & filters"
+_GATES = "Gates & baselines"
+_OUT = "Output"
+_HIST = "History & evidence"
+_RUN = "Runtime"
+
 PathArg = Annotated[Path, typer.Argument(help="Project directory to scan.")]
-CheckOpt = Annotated[list[str], typer.Option("--check", "-c", help="Limit scan to a category.")]
-IgnoreOpt = Annotated[list[str], typer.Option("--ignore", "-i", help="Suppress a check id.")]
-FormatOpt = Annotated[str, typer.Option("--format", "-f", help="text|json|html|sarif|agent")]
-QuietOpt = Annotated[bool, typer.Option("--quiet", "-q", help="Only problems.")]
-FailOnOpt = Annotated[
-    str, typer.Option("--fail-on", help="Lowest severity that fails: error|warning.")
+CheckOpt = Annotated[
+    list[str],
+    typer.Option("--check", "-c", help="Limit scan to a category.", rich_help_panel=_SCOPE),
 ]
-VerboseOpt = Annotated[bool, typer.Option("--verbose", "-v", help="Internal detail.")]
+IgnoreOpt = Annotated[
+    list[str],
+    typer.Option("--ignore", "-i", help="Suppress a check id.", rich_help_panel=_SCOPE),
+]
+FormatOpt = Annotated[
+    str,
+    typer.Option("--format", "-f", help="text|json|html|sarif|agent", rich_help_panel=_OUT),
+]
+QuietOpt = Annotated[
+    bool, typer.Option("--quiet", "-q", help="Only problems.", rich_help_panel=_OUT)
+]
+FailOnOpt = Annotated[
+    str,
+    typer.Option(
+        "--fail-on",
+        help="Lowest severity that fails: error|warning.",
+        rich_help_panel=_GATES,
+    ),
+]
+VerboseOpt = Annotated[
+    bool, typer.Option("--verbose", "-v", help="Internal detail.", rich_help_panel=_RUN)
+]
 BaselineOpt = Annotated[
     Path | None,
     typer.Option(
         "--baseline",
         help="Compare against a baseline file or a named baseline "
         "in .forge-doctor/baselines/<name>.json.",
+        rich_help_panel=_GATES,
     ),
 ]
 SaveBaselineOpt = Annotated[
@@ -98,58 +125,99 @@ SaveBaselineOpt = Annotated[
         "--save-baseline",
         help="Write results to a baseline file or a named baseline "
         "in .forge-doctor/baselines/<name>.json.",
+        rich_help_panel=_GATES,
     ),
 ]
-OutputOpt = Annotated[Path | None, typer.Option("--output", "-o", help="Write output to a file.")]
-WatchOpt = Annotated[bool, typer.Option("--watch", "-w", help="Re-scan whenever files change.")]
-NoColorOpt = Annotated[bool, typer.Option("--no-color", help="Disable ANSI colors.")]
-NewOnlyOpt = Annotated[
-    bool, typer.Option("--new-only", help="Show only findings new vs --baseline.")
+OutputOpt = Annotated[
+    Path | None,
+    typer.Option("--output", "-o", help="Write output to a file.", rich_help_panel=_OUT),
 ]
-NoPluginsOpt = Annotated[bool, typer.Option("--no-plugins", help="Skip external plugin loading.")]
+WatchOpt = Annotated[
+    bool,
+    typer.Option("--watch", "-w", help="Re-scan whenever files change.", rich_help_panel=_RUN),
+]
+NoColorOpt = Annotated[
+    bool, typer.Option("--no-color", help="Disable ANSI colors.", rich_help_panel=_OUT)
+]
+NewOnlyOpt = Annotated[
+    bool,
+    typer.Option(
+        "--new-only", help="Show only findings new vs --baseline.", rich_help_panel=_GATES
+    ),
+]
+NoPluginsOpt = Annotated[
+    bool,
+    typer.Option("--no-plugins", help="Skip external plugin loading.", rich_help_panel=_RUN),
+]
 FilesOpt = Annotated[
     list[str],
-    typer.Option("--files", "-F", help="Report findings for these files only."),
+    typer.Option(
+        "--files", "-F", help="Report findings for these files only.", rich_help_panel=_SCOPE
+    ),
 ]
 ProfileOpt = Annotated[
-    str, typer.Option("--profile", help=f"Severity policy: {'|'.join(PROFILES)}.")
+    str,
+    typer.Option(
+        "--profile",
+        help=f"Severity policy: {'|'.join(PROFILES)}.",
+        rich_help_panel=_SCOPE,
+    ),
 ]
 EmitOpt = Annotated[
     list[str],
     typer.Option(
         "--emit",
         help="Extra output: FMT or FMT:PATH (repeatable). One may target stdout.",
+        rich_help_panel=_OUT,
     ),
 ]
 ShowRootOpt = Annotated[
     bool,
-    typer.Option("--show-root", help="Include the absolute project root in JSON output."),
+    typer.Option(
+        "--show-root",
+        help="Include the absolute project root in JSON output.",
+        rich_help_panel=_OUT,
+    ),
 ]
 CacheOpt = Annotated[
     bool | None,
     typer.Option(
         "--cache/--no-cache",
         help="Reuse per-file analysis facts (user cache dir; off by default in CI).",
+        rich_help_panel=_RUN,
     ),
 ]
 StatsOpt = Annotated[
     bool,
-    typer.Option("--stats", help="Per-check timings + cache hit rate to stderr."),
+    typer.Option(
+        "--stats",
+        help="Per-check timings + cache hit rate to stderr.",
+        rich_help_panel=_RUN,
+    ),
 ]
 EvidenceOutOpt = Annotated[
     Path | None,
     typer.Option(
         "--evidence-out",
         help="Write a dated audit bundle (report + suppressions + policy packs).",
+        rich_help_panel=_HIST,
     ),
 ]
 RecordOpt = Annotated[
     bool,
-    typer.Option("--record", help="Append a history snapshot to .forge-doctor/history/."),
+    typer.Option(
+        "--record",
+        help="Append a history snapshot to .forge-doctor/history/.",
+        rich_help_panel=_HIST,
+    ),
 ]
 KeepOpt = Annotated[
     int | None,
-    typer.Option("--keep", help="With --record: retain only the newest N snapshots."),
+    typer.Option(
+        "--keep",
+        help="With --record: retain only the newest N snapshots.",
+        rich_help_panel=_HIST,
+    ),
 ]
 
 

@@ -15,7 +15,12 @@ from forge_doctor import __version__
 app = typer.Typer(
     name="forge-doctor",
     help="Deterministic diagnostics for data engineering projects.",
-    no_args_is_help=False,
+    epilog=(
+        "Start here: forge-doctor scan .  |  "
+        "forge-doctor checks  |  forge-doctor explain <CHECK-ID>\n\n"
+        "Docs & issues: https://github.com/EdgarSocrates98/forge-doctor"
+    ),
+    no_args_is_help=True,
     add_completion=True,
     context_settings={"help_option_names": ["-h", "--help"]},
 )

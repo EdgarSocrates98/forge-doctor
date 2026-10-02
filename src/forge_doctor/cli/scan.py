@@ -42,7 +42,16 @@ from forge_doctor.core.models import Severity
 from forge_doctor.output.summary import INTERNAL_ERROR_EXIT
 
 
-@app.command()
+@app.command(
+    epilog=(
+        "Examples:\n\n"
+        "  forge-doctor scan . --quiet                     # only problems\n\n"
+        "  forge-doctor scan . -f json -o report.json      # machine-readable\n\n"
+        "  forge-doctor scan . --baseline main --new-only  # gate on new findings\n\n"
+        "  forge-doctor scan . --record --keep 30          # snapshot for 'history'\n\n"
+        "  forge-doctor scan . --emit sarif:out.sarif --emit html:out.html"
+    )
+)
 def scan(
     path: PathArg = Path("."),
     check: CheckOpt = [],

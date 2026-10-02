@@ -11,7 +11,13 @@ Code Scanning, LLM agents) sit downstream.
 ## Layers
 
 ```
-cli/ (Typer package: app/common/scan/diff/workspace/compatibility/plugins/misc)
+cli/ (Typer: scan + findings commands; domain groups — iceberg/emr/
+     databricks/athena/kafka/...; estate groups — workspace/fleet/history;
+     gates — lab/golden/bench/policy/plugins; integrations — mcp/lsp)
+    |
+    v
+core/service.py   ScanService: the one pipeline (plugins, profile, policy,
+                  suppressions, baseline, cache) shared by CLI, MCP, LSP
     |
     v
 core/runner.py  ----> plugins/discovery.py (external checks, SDK v2 identity)
@@ -20,8 +26,8 @@ core/runner.py  ----> plugins/discovery.py (external checks, SDK v2 identity)
 checks/*        one file per category; each Check.run(ctx) -> list[CheckResult]
     |
     v
-analyzers/*     semantic index (one ast.parse per file), spark_ast/glue_ast,
-                hcl_lite, pyproject parsing, traversal
+analyzers/*     semantic index (one ast.parse per file), domain project
+                models + platform_graph_builder (canonical entity graph)
     |
     v
 core/cache.py   user-cache dir (never the repo) — sha256-keyed per-file
@@ -34,6 +40,36 @@ core/context.py ProjectContext: root, file inventory, pyproject, git, env
 output/*        console.py (Rich) / json_renderer.py / html_renderer.py /
                 sarif_renderer.py / agent_renderer.py / summary.py
 ```
+
+The platform-intelligence layer sits beside the check pipeline (it reads
+`ProjectContext`, never the check runner):
+
+- `core/platform_graph.py` — canonical `DataPlatformGraph`: typed entities
+  (`compute_job`, `table`, `stream`, `workflow`…) + `reads/writes/produces/
+  invokes` relationships; built by `analyzers/platform_graph_builder.py`.
+- `core/capabilities.py` — versioned capability registry over the
+  `knowledge/capabilities/` packs; tri-state-plus answers (`supported` /
+  `conditional` / `unsupported` / `unknown` — never fabricated).
+- `core/semantic_diff.py` + `core/change_intel.py` — entity diff + blast
+  radius + risk for `diff --semantic`; capability transitions and
+  version-move migration requirements from the `compatibility` packs.
+- `core/migration.py` + `core/whatif.py` — deterministic migration plans
+  and hypothetical-change evaluation.
+- `core/workspace.py` + `core/fleet.py` — multi-repo `WorkspaceModel`
+  (shared `merge_repos`), cross-repo `DEFINES/IMPLEMENTS/INVOKES` links,
+  manifest-driven estate queries.
+- `core/history.py` — `scan --record` snapshots under
+  `.forge-doctor/history/`; `history`/`diff`/`trend` never re-scan.
+- `core/contract.py` + `core/architecture*.py` — platform contract files
+  and drift detection.
+- `core/lab.py` / `core/golden.py` / `core/bench.py` — scenario suites,
+  snapshot regression, performance budgets.
+- `core/policy_pack.py` — organization policy packs (`extends`,
+  `require_approval`), evidence bundles, named baselines.
+- `core/remediation.py` + `core/rootcause.py` — deterministic fix plans
+  and causal clustering over promoted findings.
+- `core/runtime_evidence.py` — offline runtime artifacts as evidence
+  (no target-code execution, no cloud calls).
 
 Side modules (not in the check pipeline):
 
@@ -101,7 +137,7 @@ class CheckResult:
     check_id: str  # stable: REP001, PY003, SPARK001 ...
     title: str
     severity: Severity
-    category: str  # repository|python|dependencies|git|spark|aws|docker|glue|ci|internal
+    category: str  # repository|python|spark|aws|iac|iceberg|streaming|... (see checks.md)
     message: str
     file: Path | None
     line: int | None

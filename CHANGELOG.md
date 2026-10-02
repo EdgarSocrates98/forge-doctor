@@ -102,6 +102,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `history trend` shows per-category counts over the series + a debt
   trajectory. History commands never re-scan; snapshots are only
   written on `--record`.
+- **CLI UX** — top-level `--help` groups the 60+ commands into panels
+  (Scan & findings / Platform intelligence / Estate & change / Quality
+  gates / Setup & integrations); scan options grouped into Scope &
+  filters / Output / Gates & baselines / Runtime / History & evidence
+  with a runnable `Examples:` epilog; bare `forge-doctor` prints help;
+  groups with a bare-invoke default advertise it ("Bare: …"); category
+  section headers render proper names (AWS, CI, IaC, DynamoDB…).
 - **Change intelligence** — `diff --semantic` now reports capability
   transitions (capability registry evaluated against each ref's
   observed per-domain versions, e.g. `LAKEFORMATION_FGAC: conditional

@@ -15,6 +15,38 @@ def test_help():
     assert "scan" in result.output
 
 
+def test_help_panels_group_commands():
+    """Top-level help groups commands into named panels, and groups with a
+    bare-invoke callback advertise it."""
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    for panel in (
+        "Scan & findings",
+        "Platform intelligence",
+        "Estate & change",
+        "Quality gates",
+        "Setup & integrations",
+    ):
+        assert panel in result.output
+    assert "Bare:" in result.output  # invoke_without_command groups
+
+
+def test_bare_invocation_shows_help():
+    """Bare `forge-doctor` prints the full help instead of a bare
+    'Missing command' error; exit stays non-zero (it is a usage error)."""
+    result = runner.invoke(app, [])
+    assert result.exit_code in (0, 2)
+    assert "Commands" in result.output or "Scan & findings" in result.output
+
+
+def test_scan_help_option_panels():
+    result = runner.invoke(app, ["scan", "--help"])
+    assert result.exit_code == 0
+    assert "Scope & filters" in result.output
+    assert "Gates & baselines" in result.output
+    assert "Examples:" in result.output
+
+
 def test_version_flag():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0

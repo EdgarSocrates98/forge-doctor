@@ -49,6 +49,52 @@ def _icons() -> dict[Severity, str]:
     return _UNICODE_ICONS if _unicode_output() else _ASCII_ICONS
 
 
+_CATEGORY_LABELS = {
+    "aws": "AWS",
+    "ci": "CI",
+    "iac": "IaC",
+    "glue": "Glue",
+    "sql": "SQL",
+    "airflow": "Airflow",
+    "controlm": "Control-M",
+    "dynamodb": "DynamoDB",
+    "iceberg": "Iceberg",
+    "kafka": "Kafka",
+    "kinesis": "Kinesis",
+    "flink": "Flink",
+    "lakeformation": "Lake Formation",
+    "neptune": "Neptune",
+    "parquet": "Parquet",
+    "spark": "Spark",
+    "stepfunctions": "Step Functions",
+    "terraform": "Terraform",
+    "emr": "EMR",
+    "databricks": "Databricks",
+    "athena": "Athena",
+    "serverless": "Serverless",
+    "repository": "Repository",
+    "dependencies": "Dependencies",
+    "python": "Python",
+    "docker": "Docker",
+    "git": "Git",
+    "streaming": "Streaming",
+    "streaming-bus": "Streaming Bus",
+    "architecture": "Architecture",
+    "platform": "Platform",
+    "platforms": "Platforms",
+    "policy": "Policy",
+    "graph": "Graph",
+    "data-model": "Data Model",
+    "schema": "Schema",
+    "runtime": "Runtime",
+}
+
+
+def _category_label(category: str) -> str:
+    """Human-facing section header for a check category."""
+    return _CATEGORY_LABELS.get(category, category.replace("-", " ").title())
+
+
 class ConsoleRenderer:
     def __init__(self, console: Console | None = None, quiet: bool = False) -> None:
         self._console = console or Console()
@@ -79,7 +125,7 @@ class ConsoleRenderer:
             group = by_category[category]
             if self._quiet and all(r.severity in (Severity.PASS, Severity.INFO) for r in group):
                 continue
-            header = f"[bold underline]{category.capitalize()}[/bold underline]"
+            header = f"[bold underline]{_category_label(category)}[/bold underline]"
             counts = Counter(r.severity for r in group)
             badges = ", ".join(
                 f"{n} {label}"

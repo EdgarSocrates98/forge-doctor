@@ -416,8 +416,12 @@ ignore = ["AWS002"]
 ## Architecture
 
 ```
-cli/ (Typer) → runner → checks → semantic index/analyzers (ast/toml/fs)
+cli/ (Typer) → ScanService → runner → checks → semantic index/analyzers
      → cache → renderers (Rich/JSON/JSONL/HTML/SARIF/agent)
+
+beside it: platform graph → capabilities / semantic diff + change intel /
+migration / what-if / workspace / fleet / history / contracts / lab /
+golden / bench / policy packs
 ```
 
 Checks are small classes implementing a `Check` protocol
