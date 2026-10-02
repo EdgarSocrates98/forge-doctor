@@ -243,5 +243,12 @@
     "fingerprint": "780c693c1c6ae352",
     "line": 1,
     "severity": "info"
+  },
+  {
+    "check_id": "WARE001",
+    "file": null,
+    "fingerprint": "80f702deeee5cf7d",
+    "line": null,
+    "severity": "info"
   }
 ]

@@ -35,6 +35,13 @@
     "severity": "info"
   },
   {
+    "check_id": "CLOUD000",
+    "file": null,
+    "fingerprint": "4fbeb9c45ff4893c",
+    "line": null,
+    "severity": "info"
+  },
+  {
     "check_id": "DOCKER001",
     "file": null,
     "fingerprint": "bf2a460222517ce8",
@@ -228,6 +235,20 @@
     "file": "main.tf",
     "fingerprint": "45ff448a5023c2c7",
     "line": 1,
+    "severity": "info"
+  },
+  {
+    "check_id": "WARE001",
+    "file": null,
+    "fingerprint": "fd0328290440249e",
+    "line": null,
+    "severity": "info"
+  },
+  {
+    "check_id": "WARE010",
+    "file": "jobs.py",
+    "fingerprint": "7dfec73944d24fe9",
+    "line": 8,
     "severity": "info"
   }
 ]

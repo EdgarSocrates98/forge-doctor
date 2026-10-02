@@ -35,6 +35,13 @@
     "severity": "info"
   },
   {
+    "check_id": "CLOUD000",
+    "file": null,
+    "fingerprint": "545becf45bd2e6de",
+    "line": null,
+    "severity": "info"
+  },
+  {
     "check_id": "DOCKER001",
     "file": null,
     "fingerprint": "bf2a460222517ce8",
