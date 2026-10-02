@@ -670,8 +670,99 @@ class SnowflakeHistoryAdapter:
         return model
 
 
+# --- BigQuery job history exports ----------------------------------------------
+
+
+class BigQueryJobsAdapter:
+    """BigQuery INFORMATION_SCHEMA.JOBS_BY_* export rows.
+
+    Recognizes JSON arrays (or objects with ``rows``/``data``/``jobs``) or
+    CSV with ``job_id``/``total_bytes_processed``-style headers —
+    deterministic, offline.
+    """
+
+    name = "bigquery_jobs"
+
+    _FIELDS = re.compile(
+        r'"(job_id|total_bytes_processed|total_slot_ms|statement_type|'
+        r'creation_time|project_id)"',
+        re.IGNORECASE,
+    )
+
+    def matches(self, path: Path, text: str) -> bool:
+        head = text[:4000].lower()
+        return (
+            "job_id" in head
+            and (
+                "total_bytes_processed" in head
+                or "total_slot_ms" in head
+                or "statement_type" in head
+            )
+        ) or bool(self._FIELDS.search(text[:4000]))
+
+    def parse(self, path: Path, text: str) -> RuntimeEvidenceModel:
+        model = RuntimeEvidenceModel(source=self.name, artifact=path)
+        rows: list[dict[str, Any]] = []
+        data = _json_doc(text)
+        if isinstance(data, list):
+            rows = [r for r in data if isinstance(r, dict)]
+        elif isinstance(data, dict):
+            for key in ("rows", "data", "results", "jobs"):
+                if isinstance(data.get(key), list):
+                    rows = [r for r in data[key] if isinstance(r, dict)]
+                    break
+        if not rows:
+            import csv
+            import io
+
+            try:
+                reader = csv.DictReader(io.StringIO(text))
+                rows = [dict(r) for r in reader if r]
+            except csv.Error:
+                rows = []
+        for row in rows:
+            low = {str(k).lower(): v for k, v in row.items()}
+            jid = str(low.get("job_id") or low.get("jobid") or "")
+            scope = str(low.get("project_id") or low.get("project") or "")
+            duration = _num(low.get("duration_ms") or low.get("total_ms"))
+            if duration is None:
+                # creation_time -> end_time delta if both present (ms epoch)
+                start = _num(low.get("start_time") or low.get("creation_time_ms"))
+                end = _num(low.get("end_time"))
+                if start is not None and end is not None and end >= start:
+                    duration = end - start
+            state = str(low.get("state") or "completed").lower()
+            if jid:
+                model.executions.append(
+                    RuntimeExecution(id=jid, kind="query", state=state, duration_ms=duration)
+                )
+            processed = _num(low.get("total_bytes_processed") or low.get("bytes_processed"))
+            if processed is not None:
+                model.metrics.append(
+                    ExecutionMetric("bytes_processed", processed, "bytes", scope=jid or scope)
+                )
+            billed = _num(low.get("total_bytes_billed"))
+            if billed is not None:
+                model.metrics.append(
+                    ExecutionMetric("bytes_billed", billed, "bytes", scope=jid or scope)
+                )
+            slot_ms = _num(low.get("total_slot_ms") or low.get("slot_ms"))
+            if slot_ms is not None:
+                model.metrics.append(ExecutionMetric("slot_ms", slot_ms, "ms", scope=jid or scope))
+            err = low.get("error_result") or low.get("error")
+            err_text = str(err) if err else ""
+            if err_text and err_text.lower() not in {"0", "none", "null", "{}"}:
+                model.errors.append(
+                    ExecutionError(code="job_error", message=err_text[:500], execution_id=jid)
+                )
+        if rows:
+            model.identifiers["rows"] = str(len(rows))
+        return model
+
+
 ADAPTERS: tuple[RuntimeEvidenceAdapter, ...] = (
     SnowflakeHistoryAdapter(),
+    BigQueryJobsAdapter(),
     SparkEventLogAdapter(),
     AthenaStatsAdapter(),
     StepFunctionsHistoryAdapter(),

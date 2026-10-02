@@ -399,6 +399,88 @@ def _from_snowflake(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
 
 
 PLATFORM_SNOWFLAKE = "snowflake"
+PLATFORM_BIGQUERY = "bigquery"
+
+
+def _from_bigquery(model: WarehouseProjectModel, ctx: ProjectContext) -> None:
+    """Merge bigquery-model facts into the shared warehouse model.
+
+    Terraform ``google_bigquery_*`` resources already land via
+    ``_from_terraform``; vendor rows dedupe on (concept, name).
+    """
+    from forge_doctor.analyzers.bigquery_model import bigquery_model
+
+    bq = bigquery_model(ctx)
+    if not bq.has_evidence:
+        return
+    known_ns = {n.name for n in model.namespaces}
+    known_tables = {t.name for t in model.tables}
+    known_views = {v.name for v in model.views}
+    if bq.datasets or bq.tables or bq.views:
+        model.platforms = tuple(sorted(set(model.platforms) | {PLATFORM_BIGQUERY}))
+    for ds in bq.datasets:
+        if ds.name not in known_ns:
+            model.namespaces.append(
+                WarehouseNamespace(ds.name, PLATFORM_BIGQUERY, "schema", ds.file, ds.line, ds.attrs)
+            )
+    for t in bq.tables:
+        if t.name not in known_tables:
+            model.tables.append(
+                WarehouseTable(
+                    t.name,
+                    PLATFORM_BIGQUERY,
+                    t.kind == "external_table",
+                    t.file,
+                    t.line,
+                    t.attrs,
+                )
+            )
+    for v in bq.views:
+        if v.name not in known_views:
+            read = v.attr("tables_read")
+            model.views.append(
+                WarehouseView(
+                    v.name,
+                    PLATFORM_BIGQUERY,
+                    v.kind == "materialized_view",
+                    tuple(r for r in read.split(",") if r),
+                    v.file,
+                    v.line,
+                    v.attrs,
+                )
+            )
+    # Slots/reservations are workload-management rows in the shared shape.
+    for obj in bq.objects:
+        if obj.kind in {"reservation", "capacity", "assignment", "bi_reservation"}:
+            model.workload_management.append(
+                {
+                    "kind": obj.kind,
+                    "name": obj.name,
+                    "platform": PLATFORM_BIGQUERY,
+                    "file": obj.file.as_posix() if obj.file else "",
+                    "line": obj.line,
+                }
+            )
+    # Authored queries join the shared query surface (BQ002 checks live
+    # on the vendor model; the shared model carries the census).
+    for q in bq.queries:
+        model.queries.append(
+            WarehouseQuery(
+                f"{q.file.as_posix()}:{q.line or 0}",
+                PLATFORM_BIGQUERY,
+                q.tables_read,
+                q.tables_written,
+                q.file,
+                q.line,
+            )
+        )
+    # Observed exports carry real stats — profile the matching tables.
+    for row in bq.observed_tables():
+        name = row.get("table_name", "name")
+        if name and name not in known_tables:
+            model.tables.append(
+                WarehouseTable(name, PLATFORM_BIGQUERY, False, row.file, None, row.fields)
+            )
 
 
 def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
@@ -410,5 +492,6 @@ def warehouse_model(ctx: ProjectContext) -> WarehouseProjectModel:
     _from_terraform(model, ctx)
     _from_sql(model, ctx)
     _from_snowflake(model, ctx)
+    _from_bigquery(model, ctx)
     setattr(ctx, _CACHE_ATTR, model)
     return model

@@ -1,0 +1,75 @@
+{
+  "schema_version": 2,
+  "pack_version": "2026.10.03",
+  "verified_at": "2026-10-03",
+  "sources": [
+    "https://cloud.google.com/bigquery/docs/partitioned-tables",
+    "https://cloud.google.com/bigquery/docs/clustered-tables",
+    "https://cloud.google.com/bigquery/docs/bi-engine-intro",
+    "https://cloud.google.com/bigquery/docs/reservations-intro",
+    "https://cloud.google.com/bigquery/docs/time-travel",
+    "https://cloud.google.com/bigquery/docs/biglake-intro",
+    "https://cloud.google.com/bigquery/quotas"
+  ],
+  "domain": "capabilities",
+  "capabilities": [
+    {
+      "id": "PARTITIONING",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "Time-unit, ingestion-time, and integer-range partitioning are core table features.",
+      "source": "https://cloud.google.com/bigquery/docs/partitioned-tables"
+    },
+    {
+      "id": "CLUSTERING",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "Clustered tables (up to 4 columns) with automatic reclustering are native.",
+      "source": "https://cloud.google.com/bigquery/docs/clustered-tables"
+    },
+    {
+      "id": "BI_ENGINE",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "BI Engine is a managed in-memory analysis layer for BigQuery.",
+      "source": "https://cloud.google.com/bigquery/docs/bi-engine-intro"
+    },
+    {
+      "id": "SLOTS_RESERVATIONS",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "Capacity-based slot reservations/commitments coexist with on-demand billing.",
+      "source": "https://cloud.google.com/bigquery/docs/reservations-intro"
+    },
+    {
+      "id": "TIME_TRAVEL",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "Time travel covers the trailing 7 days (2-day default at dataset level).",
+      "source": "https://cloud.google.com/bigquery/docs/time-travel"
+    },
+    {
+      "id": "BIGLAKE_EXTERNAL",
+      "platform": "bigquery",
+      "status": "supported",
+      "reason": "BigLake tables query external object storage with governance.",
+      "source": "https://cloud.google.com/bigquery/docs/biglake-intro"
+    },
+    {
+      "id": "DML_MUTATIONS",
+      "platform": "bigquery",
+      "status": "conditional",
+      "reason": "DML is supported but carries quotas (e.g. per-table mutation limits).",
+      "conditions": [
+        {
+          "attribute": "workload",
+          "op": "in",
+          "value": "oltp,high_churn",
+          "status_on_fail": "supported",
+          "reason": "batch/analytics workloads sit inside DML quota"
+        }
+      ],
+      "source": "https://cloud.google.com/bigquery/quotas"
+    }
+  ]
+}

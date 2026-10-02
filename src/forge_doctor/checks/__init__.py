@@ -8,6 +8,7 @@ from forge_doctor.checks import (
     airflow,
     architecture,
     aws,
+    bigquery,
     ci,
     controlm,
     dependencies,
@@ -66,6 +67,7 @@ BUILTIN_MODULES = (
     policy_pack,
     serverless,
     snowflake,
+    bigquery,
     warehouse,
 )
 

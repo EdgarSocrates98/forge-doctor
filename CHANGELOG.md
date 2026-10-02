@@ -259,6 +259,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (time travel, zero-copy clone, Snowpipe, streams/tasks, clustering,
   result caching, multi-cluster warehouses), and labs
   `labs/snowflake/no-auto-suspend` + adversarial `generic-sql`.
+- **BigQuery adapter** (spec 214, roadmap-4 wave 1c) —
+  `analyzers/bigquery_model.py` populates a vendor detail model from
+  BigQuery DDL (`CREATE SCHEMA|TABLE|VIEW|MATERIALIZED VIEW|EXTERNAL
+  TABLE|RESERVATION` with `PARTITION BY`/`CLUSTER BY`/`OPTIONS(...)`),
+  Terraform `google_bigquery_*`/`google_biglake_*` resources (nested
+  `time_partitioning`/`clustering`/`access.view` blocks mined from the
+  resource body), and observed `INFORMATION_SCHEMA` exports (tables,
+  partitions, jobs-by-project — claimed only with a positive BigQuery
+  field signal in shared evidence dirs). `CLUSTER BY` alone is not a
+  marker (Snowflake shares it). Checks `BQ001`–`BQ005`: unpartitioned
+  large tables, partition-filter-less queries (authored=warning,
+  observed jobs=error), `SELECT *` cost risk, public datasets /
+  undocumented authorized views, and materialized views over mutable
+  bases without `max_staleness`. `BigQueryJobsAdapter` ingests
+  `INFORMATION_SCHEMA.JOBS` exports as runtime evidence (bytes
+  processed/billed, slot-ms). New command `forge-doctor bigquery
+  inspect`, capability pack `bigquery.json` (partitioning, clustering,
+  BI Engine, slots vs on-demand, time travel, BigLake, DML quotas),
+  labs `labs/bigquery/unpartitioned` + adversarial `plain-sql`.
 
 ### Fixed
 

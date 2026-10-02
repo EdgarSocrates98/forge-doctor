@@ -803,6 +803,44 @@ def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                             )
                         )
 
+    # BigQuery vendor objects the shared model doesn't carry
+    # (reservation/capacity/connection/routine/job/access grants).
+    from forge_doctor.analyzers.bigquery_model import bigquery_model
+
+    bq = bigquery_model(ctx)
+    if bq.has_evidence:
+        _BQ_KINDS = {
+            "reservation": K.WAREHOUSE_COMPUTE,
+            "capacity": K.WAREHOUSE_COMPUTE,
+            "assignment": K.WAREHOUSE_COMPUTE,
+            "bi_reservation": K.WAREHOUSE_COMPUTE,
+            "connection": K.INFRASTRUCTURE_RESOURCE,
+            "routine": K.COMPUTE_JOB,
+            "job": K.QUERY,
+            "transfer": K.TASK,
+            "dataset_access": K.PRINCIPAL,
+            "data_exchange": K.CATALOG,
+            "listing": K.CATALOG,
+            "biglake_catalog": K.CATALOG,
+            "biglake_database": K.DATABASE,
+        }
+        for bq_obj in bq.objects:
+            ent_kind = _BQ_KINDS.get(bq_obj.kind)
+            if ent_kind is None:
+                continue
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"bigquery/{bq_obj.kind}:{bq_obj.name}",
+                bq_obj.file,
+                bq_obj.line,
+                platform="bigquery",
+            )
+            g.add_entity(e)
+            contains(wh("bigquery"), e.id, _STA if bq_obj.source == "sql" else _CFG)
+        # materialized views already land via model.views -> READS_FROM;
+        # dataset access grants view a dataset CONTAINment.
+
 
 def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     from forge_doctor.analyzers.iceberg_model import iceberg_model

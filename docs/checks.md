@@ -1489,3 +1489,49 @@ or a declared stage with no `storage_integration`/`credentials`.
 A view/materialized view/procedure selects `*` — silent breakage when
 the base gains columns.
 **Fix:** name the column list explicitly in the DDL.
+
+## BigQuery (BigQueryProjectModel — vendor adapter on the warehouse core)
+
+Evidence: BigQuery DDL shapes in `.sql` (`CREATE SCHEMA|TABLE|VIEW|
+MATERIALIZED VIEW|EXTERNAL TABLE|RESERVATION` with `PARTITION BY`,
+`CLUSTER BY`, `OPTIONS(...)`), Terraform `google_bigquery_*` /
+`google_biglake_*` resources (datasets, tables, reservations, capacity,
+dataset access/authorized views, connections), and observed
+`INFORMATION_SCHEMA` exports (tables, partitions, jobs-by-project) under
+`bigquery/` or `.forge-doctor/evidence/` (claimed only with a positive
+BigQuery field signal — generic shared-dir rows stay unclaimed). A
+`.sql` file counts as BigQuery only when it carries a vendor-exclusive
+marker — `CLUSTER BY` alone is shared with Snowflake and does not
+attribute. Non-BigQuery SQL never trips these rules.
+
+### BQ000 — BigQuery surface · pass/info
+Anchor census: datasets, tables, views, vendor objects, queries,
+observed rows.
+
+### BQ001 — Large table without partitioning · warning
+Observed table ≥1 GB with no partitioning evidence — every query is a
+full scan billed per byte.
+**Fix:** `PARTITION BY` on the dominant filter column (usually the
+event date).
+
+### BQ002 — Partitioned table queried without partition filter · warning/error
+A query reads a partitioned table with no filter on the partition
+column or `_PARTITIONTIME`/`_PARTITIONDATE`. Authored SQL warns; an
+observed job doing it is an error (it already bills).
+**Fix:** add a `WHERE` on the partition column.
+
+### BQ003 — SELECT * on columnar-billed engine · warning
+`SELECT *` reads every column of every scanned partition — BigQuery
+bills by bytes processed.
+**Fix:** name the columns the query actually needs.
+
+### BQ004 — Public/external dataset or undocumented authorized view · error/warning
+`allUsers`/`allAuthorizedUsers` access grants are public surfaces
+(error); a `dataset_access` authorized view without a `description`
+is an unreviewed sharing path (warning).
+**Fix:** remove public grants; document authorized views.
+
+### BQ005 — Materialized view over mutable base without staleness policy · warning
+The base table receives writes (authored DML or observed jobs) and the
+view declares no `max_staleness` — it silently serves stale data.
+**Fix:** `OPTIONS(max_staleness = INTERVAL ...)`.

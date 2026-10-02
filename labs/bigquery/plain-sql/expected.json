@@ -1,0 +1,6 @@
+{
+  "name": "plain-sql",
+  "description": "Adversarial: non-BigQuery SQL must not attribute to BigQuery or trip BQ checks",
+  "expected_findings": [],
+  "forbidden_findings": ["BQ001", "BQ002", "BQ003", "BQ004", "BQ005"]
+}

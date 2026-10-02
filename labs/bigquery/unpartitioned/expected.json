@@ -1,0 +1,6 @@
+{
+  "name": "unpartitioned",
+  "description": "BigQuery dataset + tables; one large unpartitioned table, a partitionless-filtered SELECT * query",
+  "expected_findings": ["BQ001", "BQ002", "BQ003"],
+  "forbidden_findings": ["BQ004", "BQ005", "SNOW001"]
+}

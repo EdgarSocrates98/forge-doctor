@@ -70,6 +70,7 @@ MODULE_DOMAINS: dict[str, frozenset[str]] = {
     "airflow": frozenset({PYTHON, PACKAGING}),
     "architecture": frozenset({CONTRACT}),
     "aws": frozenset({ENV, HOST}),
+    "bigquery": frozenset({SQL, TERRAFORM, CONFIG, FILES}),
     "ci": frozenset({CI, FILES}),
     "controlm": frozenset({CONFIG, CODE, FILES}),
     "dependencies": frozenset({PACKAGING, HOST}),

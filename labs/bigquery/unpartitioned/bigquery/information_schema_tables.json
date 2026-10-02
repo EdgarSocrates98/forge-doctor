@@ -1,0 +1,11 @@
+[
+  {
+    "table_catalog": "my-proj",
+    "table_schema": "analytics",
+    "table_name": "archive",
+    "table_type": "BASE TABLE",
+    "size_bytes": "5000000000",
+    "row_count": "50000000",
+    "creation_time": "2026-01-01T00:00:00Z"
+  }
+]
