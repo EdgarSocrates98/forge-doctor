@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "performance",
+  "sources": [
+    "https://docs.snowflake.com/en/user-guide/warehouse-management",
+    "https://spark.apache.org/docs/latest/monitoring.html",
+    "https://trino.io/docs/current/admin/properties.html"
+  ],
+  "description": "Regression-detection defaults. Contract, named baselines and config override; these only fire when no tighter source exists.",
+  "thresholds": {
+    "median_factor": {
+      "value": 1.5,
+      "rationale": "current median >1.5x baseline median is a material shift, not noise"
+    },
+    "mad_k": {
+      "value": 3.5,
+      "rationale": "|current - median| > 3.5 robust deviations is a breach"
+    },
+    "volatility_ratio": {
+      "value": 0.5,
+      "rationale": "MAD above half the median means the series itself is unstable"
+    },
+    "improve_factor": {
+      "value": 0.7,
+      "rationale": "current < 0.7x baseline median is a measurable improvement"
+    },
+    "min_baseline_samples": {
+      "value": 3.0,
+      "rationale": "fewer than 3 baseline runs cannot bound a distribution"
+    },
+    "persistent_tail": {
+      "value": 3.0,
+      "rationale": "3+ consecutive breaches marks a persistent regression"
+    }
+  }
+}

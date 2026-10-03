@@ -2144,3 +2144,28 @@ Replication declared with no failover mechanism evidence.
 Duplicates possible downstream; no dedup evidence.
 ### REL010 — Backup without restore evidence · info
 Backup declared, restore/pitr unevidenced — recoverability unproven.
+
+## Regression Intelligence (runtime-scoped — PERFREG###)
+
+Baseline-aware regression detection over recorded execution history.
+Severity is WARNING only for PERSISTENT episodes — single-run breaches
+report as INFO candidates (one slow run never pages anyone).
+
+### PERFREG001 — Duration regression · warning
+Latest-window duration median breached the baseline (p95/median-factor/MAD rule) persistently.
+### PERFREG002 — Queue regression · warning
+Queue-time share rose persistently vs baseline.
+### PERFREG003 — Scan regression · warning
+Scan volume grew persistently vs baseline.
+### PERFREG004 — Shuffle regression · warning
+Exchange/shuffle bytes grew persistently vs baseline.
+### PERFREG005 — Spill regression · warning
+Spill volume grew persistently vs baseline.
+### PERFREG006 — Memory regression · warning
+Peak memory grew persistently vs baseline.
+### PERFREG007 — Freshness regression · warning
+Freshness lag grew persistently vs baseline.
+### PERFREG008 — Throughput regression · warning
+Rows/second fell persistently vs baseline (lower-is-better direction).
+### PERFREG009 — Volatility increase · info
+Baseline dispersion (MAD/median) exceeds the declared ratio — the series itself is unstable.

@@ -589,6 +589,7 @@ class RegressionClass(Enum):
     IMPROVED = "improved"
     REGRESSED = "regressed"
     STABLE = "stable"
+    VOLATILE = "volatile"
     INSUFFICIENT_DATA = "insufficient_data"
 
 

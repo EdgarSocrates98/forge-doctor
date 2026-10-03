@@ -581,6 +581,82 @@ def runtime_trend(
     console.print()
 
 
+@runtime_app.command(name="regressions")
+def runtime_regressions(
+    artifact: Annotated[
+        Path | None,
+        typer.Argument(help="Artifact to analyze (or recorded history when omitted)."),
+    ] = None,
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Baseline-aware regression detection (PERFREG001-009).
+
+    Compares each series' latest window against its own historical
+    baseline — a single slow run reports as a candidate (INFO), only
+    persistent breaches warn.
+    """
+    from forge_doctor.core.execution_history import SubjectKind, build_series
+    from forge_doctor.core.regression import (
+        RegressionPolicy,
+        detect_regressions,
+        perfreg_findings,
+    )
+
+    if artifact is not None:
+        from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+        _, executions = ingest_executions(artifact, adapter=adapter)
+        series = build_series(executions, SubjectKind.FINGERPRINT)
+    else:
+        from forge_doctor.core.execution_history import iter_samples
+
+        series = build_series_from_samples(list(iter_samples(root)))
+    pol = RegressionPolicy.defaults()
+    signals = detect_regressions(series, pol)
+    findings = perfreg_findings(series, pol)
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "signals": [
+                        {
+                            "subject": s.subject,
+                            "dimension": s.dimension.value,
+                            "class": s.klass.value,
+                            "current": s.current,
+                            "baseline": s.baseline_value,
+                            "basis": s.basis,
+                            "confidence": s.confidence.value,
+                        }
+                        for s in signals
+                    ],
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Regressions[/bold]  series={len(series)}")
+    for s in signals:
+        console.print(
+            f"  {s.subject} {s.dimension.value}: {s.klass.value} "
+            f"(current={s.current} baseline={s.baseline_value} "
+            f"conf={s.confidence.value})"
+        )
+        console.print(f"    {s.basis}")
+    for f in findings:
+        console.print(f"  [{f.severity.value}]{f.check_id}[/{f.severity.value}] {f.message}")
+    if not signals and not findings:
+        console.print("  insufficient data or no regression")
+    console.print()
+
+
 @runtime_app.callback(invoke_without_command=True)
 def _runtime_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:
