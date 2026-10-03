@@ -382,6 +382,205 @@ def runtime_diagnose(
     console.print()
 
 
+@runtime_app.command(name="history")
+def runtime_history(
+    artifact: Annotated[
+        Path | None,
+        typer.Argument(help="Artifact to record into execution history."),
+    ] = None,
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    kind: Annotated[str, typer.Option("--kind", help="production|experiment")] = "production",
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Record an artifact batch and/or list recorded history series.
+
+    With ``artifact``, the normalized executions are appended as one
+    compact JSONL snapshot under ``.forge-doctor/execution-history/``
+    (metrics + fingerprints only — never raw logs or SQL).  Without an
+    artifact, the stored series are listed.
+    """
+    from forge_doctor.core.execution_history import (
+        iter_samples,
+        record_executions,
+    )
+
+    recorded = ""
+    if artifact is not None:
+        from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+        source, executions = ingest_executions(artifact, adapter=adapter)
+        if not executions:
+            _stderr.print(f"[red]no executions extracted[/red] - source={source}, nothing recorded")
+            raise typer.Exit(2)
+        path = record_executions(root, executions, kind=kind)
+        recorded = f"{source}->{path.name} ({len(executions)} samples)"
+    samples = list(iter_samples(root, kind=None if kind == "all" else kind))
+    series = build_series_from_samples(samples)
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "recorded": recorded,
+                    "series": [s.to_dict() for s in series.values()],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Execution History[/bold]  root={root}")
+    if recorded:
+        console.print(f"  recorded: {recorded}")
+    for sid, s in sorted(series.items()):
+        span = f"{s.first_seen}..{s.last_seen}" if s.first_seen else "no timestamps"
+        console.print(f"  {sid} samples={s.sample_count} engine={s.engine} [{span}]")
+    if not series:
+        console.print("  no recorded history - pass an artifact to record")
+    console.print()
+
+
+def build_series_from_samples(samples: list[Any]) -> dict[str, Any]:
+    """Reaggregate stored samples back into fingerprint series."""
+    from forge_doctor.core.execution_history import (
+        ExecutionSeries,
+        SubjectKind,
+    )
+
+    grouped: dict[str, list[Any]] = {}
+    for s in samples:
+        key = s.fingerprint or s.execution_id
+        if not key:
+            continue
+        grouped.setdefault(key, []).append(s)
+    out: dict[str, ExecutionSeries] = {}
+    for sid, rows in grouped.items():
+        ordered = sorted(rows, key=lambda s: (s.timestamp is None, s.timestamp or 0))
+        out[sid] = ExecutionSeries(
+            series_id=f"{SubjectKind.FINGERPRINT.value}:{sid}",
+            subject_kind=SubjectKind.FINGERPRINT,
+            subject_id=sid,
+            engine=rows[0].engine,
+            fingerprint=sid,
+            samples=tuple(ordered),
+            evidence_sources=tuple(sorted({e for s in rows for e in s.evidence})),
+        )
+    return out
+
+
+@runtime_app.command(name="baseline")
+def runtime_baseline(
+    artifact: Annotated[
+        Path | None,
+        typer.Argument(help="Artifact to baseline directly (no recording)."),
+    ] = None,
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    last: Annotated[int, typer.Option("--last", help="Baseline over last N executions.")] = 0,
+    days: Annotated[int, typer.Option("--days", help="Baseline over last N days.")] = 0,
+    metric: Annotated[str | None, typer.Option("--metric", help="Show one metric only.")] = None,
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Robust baselines (median/p95/MAD) per fingerprint or recorded series."""
+    from forge_doctor.core.execution_history import (
+        BaselineWindow,
+        BaselineWindowKind,
+        SubjectKind,
+        baseline_for,
+        build_series,
+    )
+
+    if artifact is not None:
+        from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+        _, executions = ingest_executions(artifact, adapter=adapter)
+        series = build_series(executions, SubjectKind.FINGERPRINT)
+    else:
+        from forge_doctor.core.execution_history import iter_samples
+
+        series = build_series_from_samples(list(iter_samples(root)))
+    kind = (
+        BaselineWindowKind.LAST_N
+        if last
+        else (BaselineWindowKind.LAST_DAYS if days else BaselineWindowKind.LAST_N)
+    )
+    window = BaselineWindow(kind=kind, n=last or days)
+    rows = [baseline_for(s, window) for s in series.values()]
+    if metric:
+        rows = [b for b in rows if metric in b.metrics]
+    if as_json:
+        typer.echo(json.dumps({"baselines": [b.to_dict() for b in rows]}, indent=2))
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Baselines[/bold]  window={rows[0].window if rows else '-'}")
+    for b in rows:
+        dur = b.metrics.get("duration_ms")
+        p95 = f"{dur.p95:.0f}ms" if dur and dur.p95 is not None else "-"
+        med = f"{dur.median:.0f}ms" if dur and dur.median is not None else "-"
+        console.print(
+            f"  {b.subject_id} samples={b.sample_count} median={med} "
+            f"p95={p95} confidence={b.confidence}"
+        )
+    console.print()
+
+
+@runtime_app.command(name="trend")
+def runtime_trend(
+    artifact: Annotated[
+        Path | None,
+        typer.Argument(help="Artifact to trend directly (no recording)."),
+    ] = None,
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    metric: Annotated[str, typer.Option("--metric", help="Metric to trend.")] = "duration_ms",
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Per-series trend direction for one metric (rising/falling/stable)."""
+    from forge_doctor.core.execution_history import (
+        SubjectKind,
+        build_series,
+    )
+    from forge_doctor.core.trends import trend_direction
+
+    if artifact is not None:
+        from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+        _, executions = ingest_executions(artifact, adapter=adapter)
+        series = build_series(executions, SubjectKind.FINGERPRINT)
+    else:
+        from forge_doctor.core.execution_history import iter_samples
+
+        series = build_series_from_samples(list(iter_samples(root)))
+    rows = []
+    for sid in sorted(series):
+        ts = series[sid].metric_series(metric)
+        rows.append(
+            {
+                "series": sid,
+                "metric": metric,
+                "samples": ts.count,
+                "trend": trend_direction(ts).value,
+            }
+        )
+    if as_json:
+        typer.echo(json.dumps({"trends": rows}, indent=2))
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Trend[/bold]  metric={metric}")
+    for r in rows:
+        console.print(f"  {r['series']} samples={r['samples']} -> {r['trend']}")
+    console.print()
+
+
 @runtime_app.callback(invoke_without_command=True)
 def _runtime_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:

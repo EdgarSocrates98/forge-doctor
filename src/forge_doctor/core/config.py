@@ -73,6 +73,7 @@ class ForgeDoctorConfig:
     policy: Policy = field(default_factory=Policy)
     policy_packs: tuple[str, ...] = ()
     suppressions: tuple[Suppression, ...] = ()
+    history_retention: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def from_pyproject(cls, pyproject: dict[str, Any]) -> ForgeDoctorConfig:
@@ -107,7 +108,24 @@ class ForgeDoctorConfig:
             policy=_parse_policy(section.get("policy")),
             policy_packs=_str_list(section.get("policy_packs")),
             suppressions=_parse_suppressions(section.get("suppressions")),
+            history_retention=_parse_history(section.get("history")),
         )
+
+
+def _parse_history(value: Any) -> dict[str, int]:
+    """``[tool.forge-doctor.history]`` retention knobs (spec 241 §40)."""
+    if not isinstance(value, dict):
+        return {}
+    out: dict[str, int] = {}
+    for key in ("keep_days", "keep_samples", "compact_after"):
+        raw = value.get(key)
+        if raw is None or isinstance(raw, bool):
+            continue
+        try:
+            out[key] = int(raw)
+        except (TypeError, ValueError):
+            continue
+    return out
 
 
 def _parse_policy(value: Any) -> Policy:
