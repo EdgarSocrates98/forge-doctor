@@ -54,6 +54,13 @@ class GroundTruth:
     # Detected ids that are known-benign in this scenario (repo-generic
     # warnings like REP001). Extras not covered here count as FP candidates.
     allowed_findings: tuple[str, ...] = ()
+    # Spec-240 behavioral categories — evaluated over runtime/ artifacts
+    # (execution exports) plus declared graph evidence. All optional.
+    expected_signals: tuple[str, ...] = ()  # SignalFamily values
+    forbidden_signals: tuple[str, ...] = ()
+    expected_cost_drivers: tuple[str, ...] = ()  # CostDriverKind values
+    expected_sla_status: tuple[str, ...] = ()  # "<scope>.<metric>=met|violated|unverifiable"
+    expected_optimization_candidates: tuple[str, ...] = ()  # family values
 
 
 @dataclass(frozen=True)
@@ -89,6 +96,10 @@ class ScenarioReport:
     graph_edges: CategoryResult = field(default_factory=CategoryResult)
     capabilities: CategoryResult = field(default_factory=CategoryResult)
     root_causes: CategoryResult = field(default_factory=CategoryResult)
+    signals: CategoryResult = field(default_factory=CategoryResult)
+    cost_drivers: CategoryResult = field(default_factory=CategoryResult)
+    sla_status: CategoryResult = field(default_factory=CategoryResult)
+    opportunities: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -99,6 +110,10 @@ class ScenarioReport:
             and self.graph_edges.ok
             and self.capabilities.ok
             and self.root_causes.ok
+            and self.signals.ok
+            and self.cost_drivers.ok
+            and self.sla_status.ok
+            and self.opportunities.ok
             and not self.errors
         )
 
@@ -109,6 +124,10 @@ class ScenarioReport:
             ("graph_edges", self.graph_edges),
             ("capabilities", self.capabilities),
             ("root_causes", self.root_causes),
+            ("signals", self.signals),
+            ("cost_drivers", self.cost_drivers),
+            ("sla_status", self.sla_status),
+            ("opportunities", self.opportunities),
         )
 
 
@@ -158,6 +177,11 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_capabilities=_lst("expected_capabilities"),
         expected_root_causes=_lst("expected_root_causes"),
         allowed_findings=_lst("allowed_findings"),
+        expected_signals=_lst("expected_signals"),
+        forbidden_signals=_lst("forbidden_signals"),
+        expected_cost_drivers=_lst("expected_cost_drivers"),
+        expected_sla_status=_lst("expected_sla_status"),
+        expected_optimization_candidates=_lst("expected_optimization_candidates"),
     )
 
 
@@ -334,7 +358,150 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
             if not any(cid.startswith(e) for cid in cluster_ids)
         ]
 
+    # Spec-240 behavioral categories — need execution evidence from
+    # scenario/runtime/ artifacts. No artifact -> category stays empty.
+    if (
+        truth.expected_signals
+        or truth.forbidden_signals
+        or truth.expected_cost_drivers
+        or truth.expected_sla_status
+        or truth.expected_optimization_candidates
+    ):
+        _behavioral_categories(ctx, scenario, truth, report)
+
     return report
+
+
+def _execution_models(scenario: Path) -> list[Any]:
+    """Ingest ``runtime/`` artifacts as normalized QueryExecutions."""
+    runtime_dir = scenario / RUNTIME_DIR
+    if not runtime_dir.is_dir():
+        return []
+    from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+    out: list[Any] = []
+    for artifact in sorted(runtime_dir.rglob("*")):
+        if artifact.is_file():
+            try:
+                _, exs = ingest_executions(artifact)
+            except (OSError, ValueError):
+                continue
+            out.extend(exs)
+    return out
+
+
+def _behavioral_categories(
+    ctx: Any, scenario: Path, truth: GroundTruth, report: ScenarioReport
+) -> None:
+    """Signals / cost drivers / SLA status / opportunities vs truth."""
+    from forge_doctor.core.cost_drivers import extract_drivers
+    from forge_doctor.core.optimize_v2 import opportunities
+    from forge_doctor.core.performance import (
+        PerfPolicy,
+        extract_signals,
+        perf_findings,
+    )
+    from forge_doctor.core.physical_design import extract_designs
+    from forge_doctor.core.reliability import (
+        extract_objectives,
+        extract_reliability,
+        freshness_paths,
+    )
+
+    executions = _execution_models(scenario)
+    report.stats["executions"] = len(executions)
+    signals = extract_signals(executions)
+    findings = perf_findings(executions, signals, PerfPolicy.defaults())
+
+    scat = report.signals
+    actual_fams = sorted({s.family.value for s in signals})
+    scat.actual = actual_fams
+    for e in truth.expected_signals:
+        scat.expected.append(e)
+        if e not in actual_fams:
+            scat.missed.append(e)
+    for e in truth.forbidden_signals:
+        if e in actual_fams:
+            scat.forbidden_hit.append(e)
+
+    graph = None
+    if (
+        truth.expected_cost_drivers
+        or truth.expected_sla_status
+        or truth.expected_optimization_candidates
+    ):
+        from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+
+        graph = build_platform_graph(ctx)
+
+    if truth.expected_cost_drivers:
+        drivers = extract_drivers(executions, graph)
+        ccat = report.cost_drivers
+        actual = sorted({d.kind.value for d in drivers})
+        ccat.actual = actual
+        for e in truth.expected_cost_drivers:
+            ccat.expected.append(e)
+            if e not in actual:
+                ccat.missed.append(e)
+
+    if truth.expected_sla_status:
+        objectives = extract_objectives(graph)
+        fps = freshness_paths(graph, executions)
+        actual_status = _sla_status(objectives, fps, executions)
+        lcat = report.sla_status
+        lcat.actual = sorted(f"{k}={v}" for k, v in actual_status.items())
+        for entry in truth.expected_sla_status:
+            lcat.expected.append(entry)
+            key, _, want = entry.rpartition("=")
+            if actual_status.get(key.strip()) != want.strip().lower():
+                lcat.missed.append(
+                    f"{entry} (got {actual_status.get(key.strip(), 'unverifiable')})"
+                )
+
+    if truth.expected_optimization_candidates:
+        ocat = report.opportunities
+        opps = opportunities(
+            signals=signals,
+            perf=findings,
+            models=extract_reliability(graph),
+            objectives=extract_objectives(graph),
+            designs=extract_designs(graph),
+            graph=graph,
+        )
+        actual_fams = sorted({o.family.value for o in opps})
+        ocat.actual = actual_fams
+        for e in truth.expected_optimization_candidates:
+            ocat.expected.append(e)
+            if e not in actual_fams:
+                ocat.missed.append(e)
+
+
+def _sla_status(objectives: list[Any], fps: list[Any], executions: list[Any]) -> dict[str, str]:
+    """``<scope>.<metric>`` -> met|violated|unverifiable from evidence."""
+    from forge_doctor.core.reliability import ObjectiveMetric
+
+    status: dict[str, str] = {}
+    for obj in objectives:
+        key = f"{obj.scope}.{obj.metric.value}"
+        if obj.metric is ObjectiveMetric.FRESHNESS:
+            fp = next((p for p in fps if p.subject == obj.scope), None)
+            if fp is None or not fp.complete or fp.total_lag is None:
+                status[key] = "unverifiable"
+            else:
+                status[key] = "violated" if fp.total_lag > obj.target else "met"
+        elif obj.metric is ObjectiveMetric.LATENCY:
+            observed = [
+                e.duration_ms
+                for e in executions
+                if e.duration_ms is not None and obj.scope in (e.execution_id, *e.inputs)
+            ]
+            if not observed:
+                status[key] = "unverifiable"
+            else:
+                status[key] = "violated" if max(observed) > obj.target else "met"
+        else:
+            status[key] = "unverifiable"
+    return status
 
 
 DEFAULTS_FILE = "_defaults.json"
@@ -356,6 +523,11 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         allowed_findings=tuple(
             sorted(set(defaults.allowed_findings) | set(truth.allowed_findings))
         ),
+        expected_signals=truth.expected_signals,
+        forbidden_signals=truth.forbidden_signals,
+        expected_cost_drivers=truth.expected_cost_drivers,
+        expected_sla_status=truth.expected_sla_status,
+        expected_optimization_candidates=truth.expected_optimization_candidates,
     )
 
 

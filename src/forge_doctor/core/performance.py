@@ -297,6 +297,59 @@ def extract_signals(executions: list[QueryExecution]) -> list[PerformanceSignal]
                             evidence=_ev(ex, f"stage:{st.id}"),
                         )
                     )
+        for st in ex.stages:
+            for j in st.joins:
+                # join amplification: output far exceeds the larger input
+                if j.output_rows is not None and (j.left_rows or j.right_rows):
+                    biggest_in = max(j.left_rows or 0.0, j.right_rows or 0.0)
+                    if biggest_in > 0:
+                        ratio = round(j.output_rows / biggest_in, 6)
+                        signals.append(
+                            PerformanceSignal(
+                                SignalFamily.JOIN_AMPLIFICATION,
+                                f"{ex.execution_id}:{st.id}",
+                                ex.engine,
+                                observed=(
+                                    f"join output_rows={j.output_rows} vs max input={biggest_in}"
+                                ),
+                                derived=f"join_amplification={ratio}x",
+                                value=ratio,
+                                confidence=_conf(ex),
+                                evidence=_ev(ex, f"stage:{st.id}"),
+                            )
+                        )
+                # skew recorded on a join comes from real task distributions
+                if j.skew is not None:
+                    signals.append(
+                        PerformanceSignal(
+                            SignalFamily.HIGH_SKEW,
+                            f"{ex.execution_id}:{st.id}",
+                            ex.engine,
+                            observed=f"join task skew ratio={j.skew}",
+                            derived=f"skew={j.skew}x (task distribution)",
+                            value=j.skew,
+                            confidence=_conf(ex),
+                            evidence=_ev(ex, f"stage:{st.id}"),
+                        )
+                    )
+            for scan in st.scans:
+                # small-file amplification only when a file count was exported
+                if scan.files_scanned and scan.bytes_scanned:
+                    avg = scan.bytes_scanned / scan.files_scanned
+                    signals.append(
+                        PerformanceSignal(
+                            SignalFamily.SMALL_FILE_AMPLIFICATION,
+                            f"{ex.execution_id}:{st.id}",
+                            ex.engine,
+                            observed=(
+                                f"{scan.files_scanned:.0f} files / {scan.bytes_scanned:.0f} bytes"
+                            ),
+                            derived=f"avg_file_bytes={avg:.0f}",
+                            value=avg,
+                            confidence=_conf(ex),
+                            evidence=_ev(ex, f"stage:{st.id}"),
+                        )
+                    )
         mat_stages = [s for s in ex.stages if s.kind is StageKind.MATERIALIZE]
         if mat_stages:
             signals.append(

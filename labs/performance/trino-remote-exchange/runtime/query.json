@@ -1,0 +1,1 @@
+[{"queryId": "20260101_1", "query": "select * from a join b", "queryStats": {"elapsedTime": "45s", "queuedTime": "5s", "rawInputDataSize": "1GB", "processedInputDataSize": "1GB", "processedInputRows": 5000000, "outputDataSize": "100MB"}, "outputStageInfos": [{"stageId": "s0", "type": "exchange", "stageStats": {"shuffleDataSize": "6GB", "rawInputDataSize": "1GB"}}]}]

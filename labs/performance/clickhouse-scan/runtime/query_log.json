@@ -1,0 +1,1 @@
+[{"query_id": "ch-1", "query": "select id from t where x=1", "read_rows": 1000000000, "read_bytes": 8000000000, "written_rows": 1000, "query_duration_ms": 40000, "type": "QueryFinish"}]

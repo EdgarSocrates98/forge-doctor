@@ -1,0 +1,11 @@
+{"Event": "SparkListenerApplicationStart", "App Name": "x", "App ID": "app-2"}
+{"Event": "SparkListenerJobStart", "Job ID": 0, "Stage IDs": [0]}
+{"Event": "SparkListenerStageCompleted", "Stage Info": {"Stage ID": 0, "Number of Tasks": 8, "Submission Time": 0, "Completion Time": 4000, "Accumulables": []}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 0}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 1}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 2}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 3}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 4}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 5}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 6}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 7}, "Task Metrics": {"Executor Run Time": 500, "Input Metrics": {"Bytes Read": 1000000}, "Shuffle Write Metrics": {"Bytes Written": 9000000}}}

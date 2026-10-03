@@ -1,0 +1,12 @@
+{
+  "name": "bigquery-scan",
+  "description": "BigQuery JOBS export: high processed vs billed bytes -> scan amplification + slot usage",
+  "expected_signals": [
+    "scan_amplification"
+  ],
+  "expected_cost_drivers": [
+    "scan_volume",
+    "slot_usage",
+    "compute_duration"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "partition-candidate",
+  "description": "High scan amplification -> partition_pruning opportunity",
+  "expected_signals": [
+    "scan_amplification"
+  ],
+  "expected_optimization_candidates": [
+    "partition_pruning"
+  ]
+}

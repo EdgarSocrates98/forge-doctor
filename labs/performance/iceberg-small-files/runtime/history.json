@@ -1,0 +1,1 @@
+[{"query_id": "q-1", "query_text": "select * from events", "execution_time": 800, "bytes_scanned": 400000000, "partitions_scanned": 90, "partitions_total": 100}]

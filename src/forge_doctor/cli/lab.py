@@ -199,16 +199,48 @@ def lab_report(labs: _LabsOpt = Path("labs"), as_json: _JsonOpt = False) -> None
 @lab_app.command(name="experiment")
 def lab_experiment(
     scenario: Annotated[str, typer.Argument(help="Scenario name or fixture directory.")],
-    hypothesis: Annotated[str, typer.Option("--hypothesis", help="Named transform to apply.")],
+    hypothesis: Annotated[
+        str | None, typer.Option("--hypothesis", help="Named transform to apply.")
+    ] = None,
     labs: _LabsOpt = Path("labs"),
+    before: Annotated[
+        Path | None,
+        typer.Option("--before", help="Baseline artifact bundle dir."),
+    ] = None,
+    after: Annotated[
+        Path | None,
+        typer.Option("--after", help="Changed artifact bundle dir."),
+    ] = None,
+    expect: Annotated[
+        list[str] | None,
+        typer.Option("--expect", help="Expected effect, e.g. 'scan_bytes:decrease:0.5'."),
+    ] = None,
+    protect: Annotated[
+        list[str] | None,
+        typer.Option("--protect", help="Protected constraint, e.g. 'freshness_seconds:<=:60'."),
+    ] = None,
     as_json: _JsonOpt = False,
 ) -> None:
     """Apply a named hypothesis to a scenario copy and compare findings.
+
+    With --before/--after, compares two exported artifact bundles on
+    declared metrics instead (ExperimentPlan v2: verdicts SUPPORTED /
+    NOT_SUPPORTED / INCONCLUSIVE / CONSTRAINT_VIOLATED).
 
     Never mutates the fixture: the scenario is copied to a temp dir,
     transformed, rescanned hermetically, and reported as
     improved | regressed | neutral with reasons.
     """
+    if (before is not None) != (after is not None):
+        _stderr.print("[red]--before and --after must be given together[/red]")
+        raise typer.Exit(2)
+    if before is not None and after is not None:
+        _bundle_experiment(scenario, before, after, expect or [], protect or [], as_json)
+        return
+    if hypothesis is None:
+        _stderr.print("[red]--hypothesis is required without --before/--after[/red]")
+        raise typer.Exit(2)
+
     from forge_doctor.core.experiments import HYPOTHESES, run_experiment
 
     path = Path(scenario)
@@ -245,3 +277,47 @@ def lab_experiment(
         console.print(f"  [red]introduced[/red] {row['check_id']} {row.get('file') or ''}")
     known = ", ".join(sorted(HYPOTHESES))
     console.print(f"  [dim]hypotheses: {known}[/dim]")
+
+
+def _bundle_experiment(
+    name: str,
+    before: Path,
+    after: Path,
+    expect: list[str],
+    protect: list[str],
+    as_json: bool,
+) -> None:
+    """Compare two evidence bundles against declared expectations."""
+    from forge_doctor.core.experiments_v2 import (
+        ExperimentPlanV2,
+        compare_bundles,
+    )
+
+    plan = ExperimentPlanV2(
+        hypothesis=name,
+        expected_effects=tuple(expect),
+        protected_constraints=tuple(protect),
+    )
+    report = compare_bundles(plan, before, after)
+    if as_json:
+        typer.echo(json.dumps(report.to_dict(), indent=2))
+        return
+    console = Console()
+    color = {
+        "supported": "green",
+        "constraint_violated": "red",
+        "not_supported": "red",
+    }.get(report.verdict.value, "yellow")
+    console.print()
+    console.print(
+        f"[bold]Experiment[/bold]  {name} -> [{color}]{report.verdict.value.upper()}[/{color}]"
+    )
+    for c in report.comparisons:
+        mark = "ok" if c.direction_ok else ("n/a" if c.direction_ok is None else "MISS")
+        tag = "green" if c.direction_ok else "dim"
+        console.print(f"  [{tag}]{c.metric}[/{tag}] before={c.before} after={c.after} {mark}")
+    for r in report.constraint_results:
+        console.print(f"  constraint {r['spec']}: {r['status']} observed={r.get('observed')}")
+    for reason in report.reasons:
+        console.print(f"  [dim]{reason}[/dim]")
+    console.print()

@@ -1,0 +1,7 @@
+{
+  "name": "spark-job",
+  "description": "Spark eventlog: shuffle write >> input -> data exchange amplification",
+  "expected_signals": [
+    "data_exchange_amplification"
+  ]
+}

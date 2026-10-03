@@ -1,0 +1,11 @@
+{
+  "name": "trino-remote-exchange",
+  "description": "Trino query JSON: shuffle data far exceeds raw input",
+  "expected_signals": [
+    "data_exchange_amplification"
+  ],
+  "expected_cost_drivers": [
+    "compute_duration",
+    "shuffle_volume"
+  ]
+}

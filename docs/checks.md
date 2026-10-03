@@ -1235,15 +1235,32 @@ declared `expected.json` ground truth:
   "forbidden_findings": ["DELTA001"],
   "expected_graph_edges": ["writes|compute_job:glue:etl->dataset:parquet:out"],
   "expected_capabilities": ["iceberg:ICEBERG_MERGE_WRITE;format_version=2=supported"],
-  "expected_root_causes": ["RC_STREAM_COMMITS"]
+  "expected_root_causes": ["RC_STREAM_COMMITS"],
+  "expected_signals": ["scan_amplification"],
+  "forbidden_signals": ["queue_pressure"],
+  "expected_cost_drivers": ["scan_volume"],
+  "expected_sla_status": ["events.freshness=violated"],
+  "expected_optimization_candidates": ["partition_pruning"]
 }
 ```
 
 `forge-doctor lab run` executes the full engine per scenario and compares
 against truth — missed expectations and forbidden hits fail; detected
 but undeclared findings are reported as `extra` for FP analysis.
-Optional `runtime/` artifact dirs feed root-cause clustering.
-`lab list` / `lab report` / `--json` supported; exit code 1 on failure.
+Optional `runtime/` artifact dirs feed root-cause clustering, execution
+adapters (Spark eventlog, Snowflake/BigQuery/Redshift/Trino/ClickHouse
+exports) for signal and cost-driver ground truth, and the SLA /
+optimization-candidate categories. `lab list` / `lab report` / `--json`
+supported; exit code 1 on failure.
+
+`forge-doctor lab experiment` has two modes. With `--hypothesis`, a
+named transform is applied to a scenario copy and findings are diffed.
+With `--before`/`--after`, two exported artifact bundles are compared on
+measured metrics; `--expect metric:op:value` declares expected effects
+and `--protect metric:op:value` declares protected constraints. Verdicts:
+SUPPORTED, NOT_SUPPORTED, INCONCLUSIVE, CONSTRAINT_VIOLATED (protected
+constraints override benefits; unmeasured metrics are reported, never
+invented).
 
 `forge-doctor lab metrics` rolls the comparisons into quality numbers
 per domain plus a TOTAL row:

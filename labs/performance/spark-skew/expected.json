@@ -1,0 +1,13 @@
+{
+  "name": "spark-skew",
+  "description": "Spark eventlog: one hot task on a ShuffledHashJoin stage (4+ task distribution)",
+  "expected_signals": [
+    "high_skew"
+  ],
+  "expected_cost_drivers": [
+    "executor_time"
+  ],
+  "forbidden_signals": [
+    "queue_pressure"
+  ]
+}

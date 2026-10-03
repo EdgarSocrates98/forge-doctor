@@ -1,0 +1,11 @@
+{
+  "name": "snowflake-queueing",
+  "description": "Snowflake QUERY_HISTORY: queued_overload_time dominates elapsed",
+  "expected_signals": [
+    "queue_pressure"
+  ],
+  "expected_cost_drivers": [
+    "warehouse_uptime",
+    "scan_volume"
+  ]
+}

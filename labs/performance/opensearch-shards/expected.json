@@ -1,0 +1,7 @@
+{
+  "name": "opensearch-shards",
+  "description": "Index template with 4 replicas -> REPLICATION cost driver (no runtime artifact needed)",
+  "expected_cost_drivers": [
+    "replication"
+  ]
+}

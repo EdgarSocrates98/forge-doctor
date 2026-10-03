@@ -211,7 +211,12 @@ class ReliabilityFinding:
 _ATTR_MAP: dict[str, tuple[str, ...]] = {
     "retries": ("retries", "retry", "max_retries", "retry_policy"),
     "idempotency": ("idempotent", "idempotency", "idempotency_key"),
-    "checkpointing": ("checkpoint", "checkpointing", "checkpoint_location"),
+    "checkpointing": (
+        "checkpoint",
+        "checkpointing",
+        "checkpoint_location",
+        "checkpoint_dynamic",
+    ),
     "deduplication": ("dedup", "deduplication", "dedup_key"),
     "timeout": ("timeout", "timeout_seconds", "query_timeout"),
     "dlq": ("dlq", "dead_letter", "dead_letter_queue", "error_topic"),

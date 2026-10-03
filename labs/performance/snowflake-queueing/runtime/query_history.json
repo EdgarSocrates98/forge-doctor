@@ -1,0 +1,1 @@
+[{"query_id": "01ab", "query_text": "select * from t", "execution_time": 30000, "queued_overload_time": 25000, "bytes_scanned": 500000000, "partitions_scanned": 95, "partitions_total": 100}]

@@ -1,0 +1,8 @@
+{
+  "name": "bigquery-high-scan",
+  "description": "Repeated >10GiB scans on one subject -> COST002 + scan_volume/slot_usage drivers",
+  "expected_cost_drivers": [
+    "scan_volume",
+    "slot_usage"
+  ]
+}

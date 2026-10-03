@@ -1,0 +1,7 @@
+{
+  "name": "iceberg-small-files",
+  "description": "Iceberg table fixture; the exported artifact carries no per-file counts, so small_file_amplification must NOT fire - evidence absence, not a clean bill.",
+  "forbidden_signals": [
+    "small_file_amplification"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "clickhouse-scan",
+  "description": "ClickHouse query_log: 1e9 rows read, 1e3 returned -> row-proxy scan amplification",
+  "expected_signals": [
+    "scan_amplification"
+  ],
+  "expected_cost_drivers": [
+    "scan_volume",
+    "compute_duration"
+  ]
+}

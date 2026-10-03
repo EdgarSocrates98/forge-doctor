@@ -1,0 +1,8 @@
+{"Event": "SparkListenerApplicationStart", "App Name": "skew-app", "App ID": "app-1"}
+{"Event": "SparkListenerSQLExecutionStart", "Execution ID": 1, "Description": "select * from a join b on a.k = b.k"}
+{"Event": "SparkListenerJobStart", "Job ID": 0, "Stage IDs": [0], "Properties": {"spark.sql.execution.id": "1"}}
+{"Event": "SparkListenerStageCompleted", "Stage Info": {"Stage ID": 0, "Number of Tasks": 4, "Submission Time": 1000, "Completion Time": 9000, "Details": "ShuffledHashJoin", "Accumulables": []}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 0}, "Task Metrics": {"Executor Run Time": 100, "Shuffle Read Metrics": {"Total Bytes Read": 2000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 1}, "Task Metrics": {"Executor Run Time": 110, "Shuffle Read Metrics": {"Total Bytes Read": 2000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 2}, "Task Metrics": {"Executor Run Time": 90, "Shuffle Read Metrics": {"Total Bytes Read": 2000000}}}
+{"Event": "SparkListenerTaskEnd", "Task Info": {"Stage ID": 0, "Task ID": 3}, "Task Metrics": {"Executor Run Time": 4000, "Shuffle Read Metrics": {"Total Bytes Read": 2000000}}}

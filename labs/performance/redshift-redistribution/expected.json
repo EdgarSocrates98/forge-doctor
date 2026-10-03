@@ -1,0 +1,12 @@
+{
+  "name": "redshift-redistribution",
+  "description": "Redshift STL export: spill + WLM queue pressure",
+  "expected_signals": [
+    "spill_pressure",
+    "queue_pressure"
+  ],
+  "expected_cost_drivers": [
+    "rpu_usage",
+    "spill_io"
+  ]
+}

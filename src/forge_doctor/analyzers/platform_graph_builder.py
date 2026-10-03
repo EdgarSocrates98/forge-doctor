@@ -181,7 +181,15 @@ def _airflow(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         )
     task_ids: dict[str, str] = {}  # var or task_id -> canonical task id
     for task in model.tasks:
-        t = _e(K.TASK, "airflow", task.task_id, task.file, task.line, operator=task.operator)
+        t = _e(
+            K.TASK,
+            "airflow",
+            task.task_id,
+            task.file,
+            task.line,
+            operator=task.operator,
+            **({"retries": task.retries} if task.retries else {}),
+        )
         g.add_entity(t)
         for alias in {task.var, task.task_id}:
             if alias:
@@ -189,7 +197,14 @@ def _airflow(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         if task.dag:
             for dag in model.dags:
                 if task.dag in {dag.var, dag.dag_id}:
-                    g.add_entity(_e(K.WORKFLOW, "airflow", dag.dag_id or dag.var))
+                    g.add_entity(
+                        _e(
+                            K.WORKFLOW,
+                            "airflow",
+                            dag.dag_id or dag.var,
+                            retries=dag.default_retries,
+                        )
+                    )
                     g.add_relationship(
                         Relationship(
                             src=f"workflow:airflow:{dag.dag_id or dag.var}",
@@ -362,7 +377,22 @@ def _streaming(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     for q in streaming_model(ctx).queries:
         sid = f"{q.file.as_posix()}:{q.line}:{q.name}"
         stream = _e(
-            K.STREAM, "spark_ss", sid, q.file, q.line, engine=q.engine, trigger=q.trigger_kind
+            K.STREAM,
+            "spark_ss",
+            sid,
+            q.file,
+            q.line,
+            engine=q.engine,
+            trigger=q.trigger_kind,
+            **(
+                {"checkpoint": q.checkpoint}
+                if q.checkpoint
+                else (
+                    {"checkpoint_dynamic": "true"}
+                    if q.checkpoint_dynamic
+                    else {"checkpoint": "none"}
+                )
+            ),
         )
         g.add_entity(stream)
         if q.source:
@@ -1556,6 +1586,9 @@ def _serverless(ctx: ProjectContext, g: DataPlatformGraph) -> None:
                 fn.line,
                 runtime=fn.runtime,
                 producer=fn.source,
+                # The lambda model already knows whether a DLQ is configured;
+                # mark it so REL007 can distinguish absent from unevidenced.
+                dlq="true" if fn.dlq else "none",
             )
         )
     _DEST_KINDS = {
