@@ -9,6 +9,6 @@ verification:
 ---
 
 # Acceptance Criteria
-- `forge-doctor workspace` keeps discovery (group, invoke_without_command)
+- `forge-doctor-data workspace` keeps discovery (group, invoke_without_command)
 - `workspace scan` runs scan per nested project, aggregates w/ project column; --format json|sarif|text; --profile applies per project
 - `workspace diff base...head` per-subproject finding diff (project-prefixed)

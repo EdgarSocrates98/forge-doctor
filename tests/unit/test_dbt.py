@@ -7,11 +7,11 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.dbt_model import dbt_model
-from forge_doctor.checks.dbt import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.analyzers.dbt_model import dbt_model
+from forge_doctor_data.checks.dbt import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 runner = CliRunner()
 
@@ -205,7 +205,7 @@ def test_profiles_key_names_only(tmp_path: Path) -> None:
 
 def test_graph_lineage(tmp_path: Path) -> None:
     """ref/source edges land in the platform graph."""
-    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
 
     _project(tmp_path)
     g = build_platform_graph(_ctx(tmp_path))

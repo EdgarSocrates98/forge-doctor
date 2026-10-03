@@ -1,4 +1,4 @@
-"""Unit tests for safe-fix intelligence (core/fixes.py + `forge-doctor fix`)."""
+"""Unit tests for safe-fix intelligence (core/fixes.py + `forge-doctor-data fix`)."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.checks.git_checks import CHECKS as GIT_CHECKS
-from forge_doctor.checks.python_env import CHECKS as PY_CHECKS
-from forge_doctor.checks.repository import CHECKS as REP_CHECKS
-from forge_doctor.checks.terraform import CHECKS as TF_CHECKS
-from forge_doctor.cli import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.fixes import (
+from forge_doctor_data.checks.git_checks import CHECKS as GIT_CHECKS
+from forge_doctor_data.checks.python_env import CHECKS as PY_CHECKS
+from forge_doctor_data.checks.repository import CHECKS as REP_CHECKS
+from forge_doctor_data.checks.terraform import CHECKS as TF_CHECKS
+from forge_doctor_data.cli import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.fixes import (
     MANUAL,
     REVIEW,
     SAFE,
@@ -23,7 +23,7 @@ from forge_doctor.core.fixes import (
     plan_fixes,
     register_transform,
 )
-from forge_doctor.core.models import CheckResult, Severity
+from forge_doctor_data.core.models import CheckResult, Severity
 
 runner = CliRunner()
 

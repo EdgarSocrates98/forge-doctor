@@ -19,7 +19,7 @@ query shape that produced it.
 # Acceptance Criteria
 - `StreamingQueryFingerprint` (source, stateful ops, output mode, state
   schema evidence, watermarks, sink, partitioning) serializable to JSON;
-  `forge-doctor streaming checkpoint-compat old.json new.json` diffs two
+  `forge-doctor-data streaming checkpoint-compat old.json new.json` diffs two
   fingerprints and reports compatibility findings (STREAM016 WARNING
   when stateful shape changed under the same checkpoint).
 - `WatermarkModel` facts on the query record: column, delay threshold,

@@ -24,7 +24,7 @@ venv/
 .coverage
 coverage.xml
 htmlcov/
-.forge-doctor/
+.forge-doctor-data/
 .venv-smoke/
 
 # Editors / OS

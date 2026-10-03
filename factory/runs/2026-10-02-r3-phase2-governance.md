@@ -7,11 +7,11 @@
   into the child; child rule wins on id collision; unresolved refs and
   cycles emit `POLICY010` errors. `require_approval: true` on a pack
   makes unapproved suppressions emit `POLICY011`.
-- `forge-doctor policy report [--format json]` — packs (extends/
+- `forge-doctor-data policy report [--format json]` — packs (extends/
   approval flags), violations by rule, suppression status counts and
   the unapproved list; exit 1 on violations/errors.
 - Per-branch baselines: `--baseline main` / `--save-baseline main`
-  resolve to `.forge-doctor/baselines/<name>.json` when the arg is a
+  resolve to `.forge-doctor-data/baselines/<name>.json` when the arg is a
   bare name (no dir part, no `.json` suffix, no existing file).
   `save_baseline` now creates parent dirs.
 - `scan --evidence-out <dir>` writes `evidence-<UTC ts>/` with

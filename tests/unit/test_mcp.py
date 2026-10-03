@@ -1,6 +1,6 @@
 import json
 
-from forge_doctor.integrations.mcp_server import handle
+from forge_doctor_data.integrations.mcp_server import handle
 
 
 def _call(method: str, params: dict | None = None, req_id: int = 1) -> dict:
@@ -11,7 +11,7 @@ def _call(method: str, params: dict | None = None, req_id: int = 1) -> dict:
 
 def test_initialize():
     out = _call("initialize")
-    assert out["result"]["serverInfo"]["name"] == "forge-doctor"
+    assert out["result"]["serverInfo"]["name"] == "forge-doctor-data"
     assert "capabilities" in out["result"]
 
 
@@ -27,7 +27,7 @@ def test_initialize_negotiates_protocol():
 
 def test_server_discover_alias():
     out = _call("server/discover", {"protocolVersion": "2024-11-05"})
-    assert out["result"]["serverInfo"]["name"] == "forge-doctor"
+    assert out["result"]["serverInfo"]["name"] == "forge-doctor-data"
 
 
 def test_root_sandbox_rejects_escape(tmp_path):
@@ -71,7 +71,7 @@ def test_scan_project_applies_suppressions(tmp_path):
     """ScanService policy runs inside the MCP scan path."""
     (tmp_path / "pyproject.toml").write_text(
         "[project]\nname='x'\n\n"
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "REP002"\nreason = "docs live elsewhere"\nowner = "team"\n'
     )
     out = _call(
@@ -126,10 +126,10 @@ def test_tools_call_diagnose():
 def test_resources_list_and_read():
     resources = _call("resources/list")["result"]["resources"]
     uris = {r["uri"] for r in resources}
-    assert any(u.startswith("forge-doctor://rules/") for u in uris)
-    assert any(u.startswith("forge-doctor://knowledge/") for u in uris)
+    assert any(u.startswith("forge-doctor-data://rules/") for u in uris)
+    assert any(u.startswith("forge-doctor-data://knowledge/") for u in uris)
 
-    rule_uri = next(u for u in uris if u == "forge-doctor://rules/SPARK001")
+    rule_uri = next(u for u in uris if u == "forge-doctor-data://rules/SPARK001")
     out = _call("resources/read", {"uri": rule_uri})
     contents = out["result"]["contents"]
     assert contents[0]["mimeType"] == "application/json"
@@ -138,7 +138,7 @@ def test_resources_list_and_read():
 
 
 def test_resources_read_bad_uri():
-    out = _call("resources/read", {"uri": "forge-doctor://bogus/x"})
+    out = _call("resources/read", {"uri": "forge-doctor-data://bogus/x"})
     assert "error" in out
 
 

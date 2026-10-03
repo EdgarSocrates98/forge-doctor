@@ -12,7 +12,7 @@ verification:
 
 # Context
 Final stage of `prompt_evo_control-m.md`. Two pieces:
-1. `forge-doctor controlm migrate --from X --to Y` crossing jobs/plugins/
+1. `forge-doctor-data controlm migrate --from X --to Y` crossing jobs/plugins/
    API usage against `knowledge/controlm/compatibility.json`.
 2. Project-graph integration — link Control-M jobs to the artifacts they
    trigger (`ctm` run commands referencing scripts → job files → Glue/Spark/

@@ -1,8 +1,8 @@
-"""forge_doctor.sdk - the stable plugin-author surface (R3 phase 1)."""
+"""forge_doctor_data.sdk - the stable plugin-author surface (R3 phase 1)."""
 
 from __future__ import annotations
 
-import forge_doctor.sdk as sdk
+import forge_doctor_data.sdk as sdk
 
 
 def test_sdk_surface_is_pinned() -> None:
@@ -29,14 +29,14 @@ def test_sdk_names_are_real() -> None:
 
 
 def test_sdk_versions_match_engine() -> None:
-    from forge_doctor.plugins.protocol import (
+    from forge_doctor_data.plugins.protocol import (
         CURRENT_API_VERSION,
         SUPPORTED_API_VERSIONS,
     )
 
     assert sdk.CURRENT_API_VERSION == CURRENT_API_VERSION
     assert sdk.SUPPORTED_API_VERSIONS == SUPPORTED_API_VERSIONS
-    assert sdk.ENTRY_POINT_GROUP == "forge_doctor.checks"
+    assert sdk.ENTRY_POINT_GROUP == "forge_doctor_data.checks"
 
 
 def test_sdk_checkbase_produces_results(tmp_path) -> None:

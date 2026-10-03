@@ -9,8 +9,8 @@ verification:
 ---
 
 # Acceptance Criteria
-- .forge-doctor/cache/ stores per-file sha256 -> analyzer buckets; unchanged files reuse findings
+- .forge-doctor-data/cache/ stores per-file sha256 -> analyzer buckets; unchanged files reuse findings
 - invalidated on content change; dependents not needed for v1 (per-file granularity)
-- scan --cache/--no-cache flag; `forge-doctor cache` shows stats / cache clean
+- scan --cache/--no-cache flag; `forge-doctor-data cache` shows stats / cache clean
 - watch uses watchfiles when installed ([watch] extra), else current snapshot polling
-- .forge-doctor/ added to scaffold gitignore + default traversal excludes
+- .forge-doctor-data/ added to scaffold gitignore + default traversal excludes

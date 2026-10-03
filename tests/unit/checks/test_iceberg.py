@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.checks.iceberg import (
+from forge_doctor_data.checks.iceberg import (
     CHECKS,
     ConflictingCatalogConfig,
     FeatureFormatFloor,
@@ -23,8 +23,8 @@ from forge_doctor.checks.iceberg import (
     RuntimeCompatibility,
     SmallFilePattern,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -205,7 +205,7 @@ def test_all_checks_run(tmp_path: Path) -> None:
 def _cli(args: list[str]):
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     return CliRunner().invoke(app, args)
 

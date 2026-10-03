@@ -1,16 +1,16 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.models import (
+from forge_doctor_data.core.models import (
     CheckResult,
     Confidence,
     ScanReport,
     Severity,
     default_fingerprint,
 )
-from forge_doctor.output.agent_renderer import render_agent
-from forge_doctor.output.json_renderer import render_json
-from forge_doctor.output.sarif_renderer import render_sarif
+from forge_doctor_data.output.agent_renderer import render_agent
+from forge_doctor_data.output.json_renderer import render_json
+from forge_doctor_data.output.sarif_renderer import render_sarif
 
 
 def _result(**kwargs: object) -> CheckResult:
@@ -81,13 +81,13 @@ def test_sarif_shape():
     sarif = json.loads(render_sarif(report))
     assert sarif["version"] == "2.1.0"
     run = sarif["runs"][0]
-    assert run["tool"]["driver"]["name"] == "forge-doctor"
+    assert run["tool"]["driver"]["name"] == "forge-doctor-data"
     # PASS results are not emitted.
     assert len(run["results"]) == 1
     entry = run["results"][0]
     assert entry["ruleId"] == "X001"
     assert entry["level"] == "warning"
-    assert entry["partialFingerprints"]["forge-doctor/fingerprint"]
+    assert entry["partialFingerprints"]["forge-doctor-data/fingerprint"]
     loc = entry["locations"][0]["physicalLocation"]
     assert loc["artifactLocation"]["uri"] == "a.py"
     assert loc["region"]["startLine"] == 3
@@ -104,7 +104,7 @@ def test_agent_bundle_is_compact():
         ],
     )
     payload = json.loads(render_agent(report))
-    assert payload["tool"] == "forge-doctor"
+    assert payload["tool"] == "forge-doctor-data"
     assert len(payload["findings"]) == 2  # PASS excluded
     first = payload["findings"][0]
     assert first == {
@@ -125,9 +125,9 @@ def test_default_fingerprint_helper():
 
 def test_source_field_serialized_only_when_set():
     builtin = _result()
-    plugin = _result(source="forge-doctor-example")
+    plugin = _result(source="forge-doctor-data-example")
     payload = json.loads(
         render_json(ScanReport(version="0.2.0", project=Path("/x"), results=[builtin, plugin]))
     )
     assert "source" not in payload["results"][0]
-    assert payload["results"][1]["source"] == "forge-doctor-example"
+    assert payload["results"][1]["source"] == "forge-doctor-data-example"

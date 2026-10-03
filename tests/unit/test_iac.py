@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.hcl_lite import (
+from forge_doctor_data.analyzers.hcl_lite import (
     parse_cloudformation,
     parse_terraform,
     project_iac,

@@ -9,10 +9,10 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.crossmigration import plan_platform_migration
-from forge_doctor.core.migration_v2 import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.crossmigration import plan_platform_migration
+from forge_doctor_data.core.migration_v2 import (
     Lossiness,
     MappingKind,
     ReadinessStatus,
@@ -22,9 +22,9 @@ from forge_doctor.core.migration_v2 import (
     map_service,
     platform_kind_for,
 )
-from forge_doctor.core.platform_ontology import PlatformKind
-from forge_doctor.core.schema_compat import Compatibility, map_type
-from forge_doctor.core.sql_portability import (
+from forge_doctor_data.core.platform_ontology import PlatformKind
+from forge_doctor_data.core.schema_compat import Compatibility, map_type
+from forge_doctor_data.core.sql_portability import (
     analyze_sql_portability,
     dialect_capabilities,
     known_dialects,

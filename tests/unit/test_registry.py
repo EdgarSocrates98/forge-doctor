@@ -1,7 +1,7 @@
 import pytest
 
-from forge_doctor.core.registry import CheckRegistry
-from forge_doctor.plugins.protocol import CheckBase
+from forge_doctor_data.core.registry import CheckRegistry
+from forge_doctor_data.plugins.protocol import CheckBase
 
 
 class _Check(CheckBase):

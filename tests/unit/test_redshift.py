@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.redshift_model import redshift_model
-from forge_doctor.analyzers.sql_ast import SQLGLOT_AVAILABLE
-from forge_doctor.checks.redshift import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.analyzers.redshift_model import redshift_model
+from forge_doctor_data.analyzers.sql_ast import SQLGLOT_AVAILABLE
+from forge_doctor_data.checks.redshift import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 runner = CliRunner()
 needs_sqlglot = pytest.mark.skipif(not SQLGLOT_AVAILABLE, reason="sqlglot not installed")
@@ -201,7 +201,7 @@ def test_rs005_no_compute_quiet(tmp_path: Path) -> None:
 
 
 def test_shared_evidence_dir_claim_discipline(tmp_path: Path) -> None:
-    e = tmp_path / ".forge-doctor" / "evidence"
+    e = tmp_path / ".forge-doctor-data" / "evidence"
     e.mkdir(parents=True)
     (e / "rows.json").write_text(
         json.dumps([{"name": "x", "kind": "TABLE", "notes": "generic"}]), encoding="utf-8"
@@ -219,7 +219,7 @@ def test_observed_exports_and_unparsed(tmp_path: Path) -> None:
 
 
 def test_stl_query_runtime_adapter(tmp_path: Path) -> None:
-    from forge_doctor.analyzers.runtime_evidence import ingest_artifact
+    from forge_doctor_data.analyzers.runtime_evidence import ingest_artifact
 
     f = tmp_path / "stl_query.json"
     f.write_text(
@@ -243,7 +243,7 @@ def test_stl_query_runtime_adapter(tmp_path: Path) -> None:
 
 
 def test_capability_pack_registers() -> None:
-    from forge_doctor.core.capabilities import CapabilityRegistry
+    from forge_doctor_data.core.capabilities import CapabilityRegistry
 
     reg = CapabilityRegistry()
     assert "redshift" in reg.platforms()
@@ -259,7 +259,7 @@ def test_cli_inspect(tmp_path: Path) -> None:
 
 
 def test_warehouse_model_merges_redshift(tmp_path: Path) -> None:
-    from forge_doctor.analyzers.warehouse_model import warehouse_model
+    from forge_doctor_data.analyzers.warehouse_model import warehouse_model
 
     (tmp_path / "main.tf").write_text(_TF_PRIVATE, encoding="utf-8")
     model = warehouse_model(_ctx(tmp_path))
@@ -268,7 +268,7 @@ def test_warehouse_model_merges_redshift(tmp_path: Path) -> None:
 
 
 def test_warehouse_graph_entities(tmp_path: Path) -> None:
-    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
 
     (tmp_path / "main.tf").write_text(_TF_PRIVATE, encoding="utf-8")
     g = build_platform_graph(_ctx(tmp_path))

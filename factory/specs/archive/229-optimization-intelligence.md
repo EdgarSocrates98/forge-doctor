@@ -33,7 +33,7 @@ estimate — never apply.
   entity qualifies — e.g., unpartitioned dataset with observed write
   amplification finding), a static cost-proxy estimate, and confidence
   (`low|medium|high` derived from evidence planes present).
-- `forge-doctor optimize <path>` — ranked candidate list with the same
+- `forge-doctor-data optimize <path>` — ranked candidate list with the same
   citation discipline as `advise`; `--format json` stable shape.
   Rows are deduplicated per (entity, optimization) pair.
 - Validation handoff: each candidate prints the exact `lab experiment

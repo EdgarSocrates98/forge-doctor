@@ -1,15 +1,15 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.baseline import (
+from forge_doctor_data.core.baseline import (
     BASELINE_FORMAT,
     apply_baseline,
     load_baseline,
     result_key,
     save_baseline,
 )
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
-from forge_doctor.output.summary import exit_code
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.output.summary import exit_code
 
 
 def _result(
@@ -44,7 +44,7 @@ def test_save_load_roundtrip(tmp_path: Path):
 def test_load_missing_or_corrupt_raises(tmp_path: Path):
     import pytest
 
-    from forge_doctor.core.baseline import BaselineError
+    from forge_doctor_data.core.baseline import BaselineError
 
     with pytest.raises(BaselineError, match="not found"):
         load_baseline(tmp_path / "nope.json")
@@ -62,7 +62,7 @@ def test_wrong_fingerprint_version_fails_loud(tmp_path: Path):
     """A v1 baseline must error, not silently mark everything NEW."""
     import pytest
 
-    from forge_doctor.core.baseline import BaselineError
+    from forge_doctor_data.core.baseline import BaselineError
 
     legacy = tmp_path / "old.json"
     legacy.write_text(
@@ -123,11 +123,11 @@ def test_fail_on_warning_with_baseline(tmp_path: Path):
 
 
 def test_named_baseline_resolution(tmp_path: Path):
-    """--baseline <name> resolves to .forge-doctor/baselines/<name>.json."""
-    from forge_doctor.core.service import _resolve_baseline
+    """--baseline <name> resolves to .forge-doctor-data/baselines/<name>.json."""
+    from forge_doctor_data.core.service import _resolve_baseline
 
     assert _resolve_baseline(tmp_path, Path("main")) == (
-        tmp_path / ".forge-doctor" / "baselines" / "main.json"
+        tmp_path / ".forge-doctor-data" / "baselines" / "main.json"
     )
     # Explicit paths pass through unchanged.
     assert _resolve_baseline(tmp_path, Path("snap/x.json")) == Path("snap/x.json")
@@ -138,5 +138,8 @@ def test_named_baseline_resolution(tmp_path: Path):
 
 
 def test_save_baseline_creates_parents(tmp_path: Path):
-    save_baseline(_report(_result("X001")), tmp_path / ".forge-doctor" / "baselines" / "main.json")
-    assert (tmp_path / ".forge-doctor" / "baselines" / "main.json").is_file()
+    save_baseline(
+        _report(_result("X001")),
+        tmp_path / ".forge-doctor-data" / "baselines" / "main.json",
+    )
+    assert (tmp_path / ".forge-doctor-data" / "baselines" / "main.json").is_file()

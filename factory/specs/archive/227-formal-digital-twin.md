@@ -34,11 +34,11 @@ basis for decision and optimization intelligence (228/229).
     graph-linked findings reference existing entities;
   - entity attr completeness report — entities missing `name`/
     `file`/`line` counted per domain (informational, not failure).
-- `forge-doctor twin inspect <path>` — twin summary (entity/rel counts
+- `forge-doctor-data twin inspect <path>` — twin summary (entity/rel counts
   by kind/domain/plane) + invariant report; `--format json` stable
   shape. Exit non-zero only on hard invariant violations (dangling
   edges, malformed ids), not on informational gaps.
-- `forge-doctor twin export <path>` — the twin snapshot artifact
+- `forge-doctor-data twin export <path>` — the twin snapshot artifact
   (entities + relationships + invariant report header) for downstream
   tools; deterministic serialization.
 - Tests: each invariant detects a planted violation and passes on the

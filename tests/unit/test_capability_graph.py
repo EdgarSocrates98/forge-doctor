@@ -7,14 +7,14 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.capabilities import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.capabilities import (
     CapabilityContext,
     CapabilityRegistry,
     CapabilityStatus,
 )
-from forge_doctor.core.capability_graph import capability_subgraph
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.capability_graph import capability_subgraph
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,

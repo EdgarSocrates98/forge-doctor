@@ -13,7 +13,7 @@ shared adversarial lab proving plain JSON/SQL never attributes.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/analytical_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/analytical_model.py` — **new**:
   `AnalyticalEngineModel` (`EngineTable`/`PinotSchema`/`ObservedRow`),
   ClickHouse scanner (sql-index `create` statements + engine-family
   allowlist + ORDER BY/PARTITION BY/SETTINGS regex extraction),
@@ -22,22 +22,22 @@ shared adversarial lab proving plain JSON/SQL never attributes.
   retention/index props), Druid scanner (`ingestionSpec`/`spec` +
   `dataSchema`), observed-export scanner (dir- or signal-attributed),
   keeper-file discovery (filename or XML content), `has_dedupe_plan`.
-- `src/forge_doctor/checks/analytical.py` — **new**: CH000 census,
+- `src/forge_doctor_data/checks/analytical.py` — **new**: CH000 census,
   CH001 MergeTree w/o ORDER BY, CH002 Replicated* w/o keeper config,
   CH003 Distributed w/o local shard, CH004 Kafka w/o dedupe plan;
   PIN000 census, PIN001 realtime w/o retention, PIN002 filtered
   high-card dim w/o inverted index (MEDIUM), PIN003 group-by-heavy
   observed queries w/o star-tree (MEDIUM); DRU000 census, DRU001 no
   partitionsSpec, DRU002 rollup=false on ≥3 metrics+dims.
-- `src/forge_doctor/cli/analytical.py` — **new**: `analytical inspect`
+- `src/forge_doctor_data/cli/analytical.py` — **new**: `analytical inspect`
   renders per-engine tables/schemas, keeper files, observed, unparsed.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` —
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` —
   `_analytical` adapter: `table:<engine>:*` entities (kind +
   engine/type attrs), `schema:pinot:*` entities.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py` (`SQL | CONFIG | FILES`),
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` (`SQL | CONFIG | FILES`),
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md`
   (`clickhouse`, `druid`, `pinot` producer domains) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/clickhouse/unkeyed/` (CH001–004), `labs/pinot/rt-gap/`
@@ -97,7 +97,7 @@ shared adversarial lab proving plain JSON/SQL never attributes.
   PIN001–PIN003; `druid/unpartitioned` fires DRU001–DRU002;
   `analytical/plain-json` (package.json + `ENGINE=InnoDB`/`MyISAM`)
   silent — no CH/PIN/DRU findings.
-- `forge-doctor analytical inspect labs/pinot/rt-gap` renders tables,
+- `forge-doctor-data analytical inspect labs/pinot/rt-gap` renders tables,
   schema dims/metrics, observed rows.
 - ruff format/check + mypy clean on touched files.
 

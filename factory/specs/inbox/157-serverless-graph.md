@@ -18,6 +18,6 @@ EventBridge -> SFN -> Lambda -> Athena -> S3/Iceberg edges.
 - `AwsServerlessGraph`: edges from SFN resource ARNs to lambda functions/
   athena queries; lambda env/trigger wiring; failure-path list per machine
   (retry x attempts -> catch -> notifier chain).
-- `forge-doctor aws-serverless inspect|graph` - the reviewer's shape.
+- `forge-doctor-data aws-serverless inspect|graph` - the reviewer's shape.
 - SFNIAM-style check: SFN role lacks invoke permission on a referenced
   Lambda (IaC evidence-gated).

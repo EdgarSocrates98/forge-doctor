@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.parquet import (
+from forge_doctor_data.checks.parquet import (
     CHECKS,
     ExcessiveFileCount,
     MixedCodecs,
@@ -14,8 +14,8 @@ from forge_doctor.checks.parquet import (
     SmallFileDataset,
     UncompressedWrite,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str | bytes]) -> ProjectContext:
@@ -102,7 +102,7 @@ def test_small_file_dataset_ok(tmp_path: Path) -> None:
 
 def test_excessive_file_count(tmp_path: Path, monkeypatch) -> None:
     # 10k real files is too slow for a unit test - override the built model.
-    import forge_doctor.checks.parquet as check_mod
+    import forge_doctor_data.checks.parquet as check_mod
 
     ctx = make_context(tmp_path, {"one.parquet": b"x"})
     model = check_mod._model(ctx)
@@ -137,7 +137,7 @@ def test_all_checks_run(tmp_path: Path) -> None:
 def test_cli_inspect(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     make_context(tmp_path, {"job.py": JOB, "d.parquet": b"x" * 100})
     result = CliRunner().invoke(app, ["parquet", "inspect", str(tmp_path)])
@@ -148,7 +148,7 @@ def test_cli_inspect(tmp_path: Path) -> None:
 def test_cli_inspect_empty(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     result = CliRunner().invoke(app, ["parquet", "inspect", str(tmp_path)])
     assert result.exit_code == 0

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.contract import (
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.contract import (
     detect_drift,
     find_contract,
     load_contract,
 )
-from forge_doctor.core.runtime_evidence import RuntimeEvidenceModel, RuntimeExecution
+from forge_doctor_data.core.runtime_evidence import RuntimeEvidenceModel, RuntimeExecution
 
 
 def _ctx(root: Path) -> ProjectContext:

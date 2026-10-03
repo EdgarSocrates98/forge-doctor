@@ -25,13 +25,13 @@ Program Q, wave 1. Temporal series per subject over normalized
     `ExecutionBaseline`: per-metric median/p50/p90/p95/p99/min/max/MAD/
     trend + evidence-based confidence ladder.
   - Snapshot storage: versioned JSONL under
-    `.forge-doctor/execution-history/`, `forge-doctor/execution-
+    `.forge-doctor-data/execution-history/`, `forge-doctor-data/execution-
     history@1` + tool_version; `record_executions` streams writes,
     `read_snapshot`/`iter_samples` stream reads (constant memory).
   - `HistoryRetention` (keep_days / keep_samples / compact_after) +
     `prune_history` + `compact_history` (daily aggregate medians —
     baselines survive, raw detail drops). Config parsed from
-    `[tool.forge-doctor.history]`.
+    `[tool.forge-doctor-data.history]`.
   - `observed_fact_series` — OBSERVED twin facts join execution series
     on explicit entity identity (§1.8).
   - Experiment isolation: `kind="experiment"` writes `exp-*.jsonl`;
@@ -75,8 +75,8 @@ build 97.8s, baselines 18.0s — linear, streaming (O(1) memory).
 
 ## Files
 
-- `src/forge_doctor/core/trends.py` (new)
-- `src/forge_doctor/core/execution_history.py` (new)
-- `src/forge_doctor/core/config.py`
-- `src/forge_doctor/cli/runtime.py`
+- `src/forge_doctor_data/core/trends.py` (new)
+- `src/forge_doctor_data/core/execution_history.py` (new)
+- `src/forge_doctor_data/core/config.py`
+- `src/forge_doctor_data/cli/runtime.py`
 - `tests/unit/test_execution_history.py` (new)

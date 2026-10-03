@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.glue_ast import GlueAnalyzer
-from forge_doctor.checks.glue import (
+from forge_doctor_data.analyzers.glue_ast import GlueAnalyzer
+from forge_doctor_data.checks.glue import (
     CHECKS,
     DynamicFrameMixing,
     EolGlueRuntime,
@@ -13,8 +13,8 @@ from forge_doctor.checks.glue import (
     JobParameters,
     analyze_project,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 JOB = """\
 import sys

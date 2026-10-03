@@ -17,10 +17,10 @@ Assets rename, auth manager, deferrable defaults) + provider compatibility.
 # Acceptance Criteria
 - `knowledge/airflow/{versions,migration,providers,deprecations}.json`
   (schema_version 2 + sources, conservative floors).
-- `forge-doctor airflow migrate --from 2.x --to 3.x` — mirrors
+- `forge-doctor-data airflow migrate --from 2.x --to 3.x` — mirrors
   `glue migrate` shape: deprecated import paths (AIR133), Dataset→Asset
   API changes, removed config keys, provider floors.
-- `forge-doctor airflow providers` — imported vs declared provider map,
+- `forge-doctor-data airflow providers` — imported vs declared provider map,
   version-compat hints (AIR131 unused provider dep complements 122's
   AIR130).
 

@@ -8,18 +8,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.flink_model import flink_model
-from forge_doctor.analyzers.kafka_model import kafka_model
-from forge_doctor.analyzers.kinesis_model import kinesis_model
-from forge_doctor.analyzers.streaming_runtime import diagnose_progress
-from forge_doctor.checks.streaming_bus import (
+from forge_doctor_data.analyzers.flink_model import flink_model
+from forge_doctor_data.analyzers.kafka_model import kafka_model
+from forge_doctor_data.analyzers.kinesis_model import kinesis_model
+from forge_doctor_data.analyzers.streaming_runtime import diagnose_progress
+from forge_doctor_data.checks.streaming_bus import (
     KafkaNoConsumerGroup,
     KafkaNoSchemaRegistry,
     KinesisFanOut,
     StreamingDelivery,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.delivery import derive_delivery
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.delivery import derive_delivery
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

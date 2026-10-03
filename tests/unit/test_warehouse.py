@@ -6,10 +6,10 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.analyzers.warehouse_model import warehouse_model
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.analyzers.warehouse_model import warehouse_model
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
 
 runner = CliRunner()
 
@@ -98,7 +98,7 @@ def test_view_contains_and_reads_from(tmp_path: Path) -> None:
 def test_checks_on_warehouse_fixture(tmp_path: Path) -> None:
     (tmp_path / "main.tf").write_text(_TF, encoding="utf-8")
     ctx = _ctx(tmp_path)
-    from forge_doctor.checks.warehouse import CHECKS
+    from forge_doctor_data.checks.warehouse import CHECKS
 
     findings = {f.check_id for c in CHECKS for f in c.run(ctx)}
     assert {"WARE001", "WARE030"} <= findings
@@ -111,7 +111,7 @@ def test_ware010_fires_on_tables(tmp_path: Path) -> None:
         'resource "snowflake_table" "t" { name = "T" }\n', encoding="utf-8"
     )
     ctx = _ctx(tmp_path)
-    from forge_doctor.checks.warehouse import UnprofiledTable
+    from forge_doctor_data.checks.warehouse import UnprofiledTable
 
     rows = UnprofiledTable().run(ctx)
     assert len(rows) == 1 and "T" in rows[0].message
@@ -119,12 +119,12 @@ def test_ware010_fires_on_tables(tmp_path: Path) -> None:
 
 def test_ware020_dangling_view(tmp_path: Path) -> None:
     """A view reading a base the model doesn't know flags WARE020."""
-    from forge_doctor.checks.warehouse import DanglingView
+    from forge_doctor_data.checks.warehouse import DanglingView
 
     ctx = _ctx(tmp_path)
     model = warehouse_model(ctx)
     # plant a SQL-derived view row directly — model is the contract
-    from forge_doctor.analyzers.warehouse_model import WarehouseView
+    from forge_doctor_data.analyzers.warehouse_model import WarehouseView
 
     model.views.append(WarehouseView("V", "snowflake", False, ("MISSING_TABLE",), Path("v.sql"), 3))
     rows = DanglingView().run(ctx)
@@ -132,7 +132,7 @@ def test_ware020_dangling_view(tmp_path: Path) -> None:
 
 
 def test_ontology_accepts_warehouse_terms(tmp_path: Path) -> None:
-    from forge_doctor.core.ontology import validate_graph
+    from forge_doctor_data.core.ontology import validate_graph
 
     (tmp_path / "main.tf").write_text(_TF, encoding="utf-8")
     violations = validate_graph(build_platform_graph(_ctx(tmp_path)))
@@ -140,7 +140,7 @@ def test_ontology_accepts_warehouse_terms(tmp_path: Path) -> None:
 
 
 def test_warehouse_capability_family() -> None:
-    from forge_doctor.core.capabilities import CapabilityRegistry
+    from forge_doctor_data.core.capabilities import CapabilityRegistry
 
     registry = CapabilityRegistry()
     assert "warehouse" in registry.platforms()

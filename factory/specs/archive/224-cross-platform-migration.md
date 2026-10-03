@@ -13,7 +13,7 @@ verification:
 ## Context
 
 Doc wave 7 = the payoff of the abstraction layers (212, 223): migrate
-*between* platforms, not just versions. `forge-doctor migrate plan
+*between* platforms, not just versions. `forge-doctor-data migrate plan
 --from snowflake --to bigquery`, `what-if --change warehouse=bigquery`.
 This depends on warehouse/abstraction models being real — it maps
 entities via capability parity, lists required changes, and grades

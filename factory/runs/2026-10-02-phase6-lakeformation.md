@@ -58,11 +58,11 @@ status: built
 - `pytest`: 1071 passed
 - `mypy src`: clean (122 files)
 - `ruff check` + `ruff format --check`: clean (220 files)
-- `forge-doctor lakeformation inspect/permissions/graph/cross-account/
+- `forge-doctor-data lakeformation inspect/permissions/graph/cross-account/
   compatibility/findings` on a multi-resource fixture — admins, grants
   (columns/database/catalog kinds), resource link, external accounts,
   hybrid flag all render correctly.
-- `forge-doctor knowledge verify`: all packs ok.
+- `forge-doctor-data knowledge verify`: all packs ok.
 
 ## Review notes
 

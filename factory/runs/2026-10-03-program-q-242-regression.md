@@ -46,9 +46,9 @@ spec-241 history surface.
 
 ## Files
 
-- `src/forge_doctor/core/regression.py` (new)
-- `src/forge_doctor/core/performance.py` (VOLATILE member)
-- `src/forge_doctor/cli/runtime.py`
-- `src/forge_doctor/knowledge/performance/regression.json` (new)
+- `src/forge_doctor_data/core/regression.py` (new)
+- `src/forge_doctor_data/core/performance.py` (VOLATILE member)
+- `src/forge_doctor_data/cli/runtime.py`
+- `src/forge_doctor_data/knowledge/performance/regression.json` (new)
 - `tests/unit/test_regression.py` (new)
 - `docs/checks.md`

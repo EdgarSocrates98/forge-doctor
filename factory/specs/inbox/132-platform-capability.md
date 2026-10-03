@@ -23,7 +23,7 @@ per-runtime `if`s. Depends on 113 (done), 114, 129, 130, 131.
 - Capability engine: `knowledge/platform/capabilities.json` declares
   requirements (runtime≥X, format-version, access model); a checker
   evaluates against fused evidence; unknown inputs → UNKNOWN, not denied.
-- `forge-doctor platform inspect` — the reviewer's output shape
+- `forge-doctor-data platform inspect` — the reviewer's output shape
   (Orchestration/Compute/Engine/Storage/Catalog/Governance/Operations/
   Findings).
 - At least one cross-domain check exercised via the engine

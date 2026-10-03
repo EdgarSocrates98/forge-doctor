@@ -7,11 +7,11 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.search_model import search_model
-from forge_doctor.checks.search import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.analyzers.search_model import search_model
+from forge_doctor_data.checks.search import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 runner = CliRunner()
 

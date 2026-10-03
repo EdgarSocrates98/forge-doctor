@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.models import CheckResult, Severity
-from forge_doctor.core.remediation import plan_remediation
+from forge_doctor_data.core.models import CheckResult, Severity
+from forge_doctor_data.core.remediation import plan_remediation
 
 
 def _finding(check_id: str) -> CheckResult:

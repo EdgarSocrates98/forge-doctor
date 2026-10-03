@@ -18,7 +18,7 @@
   PARQ021 inconsistent codecs, PARQ040 median size below floor, PARQ041
   excessive file count, PARQ042 p95/median skew — all thresholds from
   `knowledge/parquet/format.json`.
-- `forge-doctor parquet inspect` — dataset stats, compression values,
+- `forge-doctor-data parquet inspect` — dataset stats, compression values,
   writer/reader counts, severity-sorted risks. Verified live.
 - Inbox specs for sub-cycles 2–8: 143 physical (metadata snapshot/opt-in
   extra), 144 pushdown cross-SQL, 145 Delta model+protocol, 146 Delta

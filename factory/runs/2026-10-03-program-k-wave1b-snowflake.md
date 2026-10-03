@@ -13,34 +13,34 @@ metadata exports; merges into the generic model; SNOW001–005 checks;
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/snowflake_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/snowflake_model.py` — **new**:
   `SnowflakeModel` (warehouses, databases, schemas, tables, views,
   stages, pipes, streams, tasks, roles/grants, copies, unparsed export
   shapes). Sources: sqlglot statement index (`command`/`create`/`copy`
   kinds — Snowflake DDL arrives as `Command`), Terraform blocks, and
-  `snowflake/` / `.forge-doctor/evidence/` / `information_schema*`
+  `snowflake/` / `.forge-doctor-data/evidence/` / `information_schema*`
   JSON/CSV exports (tolerant; unknown shapes recorded in
   `unparsed_objects`).
-- `src/forge_doctor/analyzers/warehouse_model.py` — merge Snowflake
+- `src/forge_doctor_data/analyzers/warehouse_model.py` — merge Snowflake
   facts into the generic model, deduped against Terraform-mapped rows.
-- `src/forge_doctor/analyzers/runtime_evidence.py` — Snowflake
+- `src/forge_doctor_data/analyzers/runtime_evidence.py` — Snowflake
   query-history exports → `RuntimeEvidenceModel` queries/errors with
   `EvidenceKind.RUNTIME`.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — vendor
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — vendor
   objects the shared model doesn't carry (stage/stream/pipe/task/
   role/grant) emitted under the `snowflake` warehouse; pipe→table
   `WRITES_TO` via embedded `COPY INTO` (same file+line), stream→table
   `READS_FROM` via `ON TABLE`.
-- `src/forge_doctor/checks/snowflake.py` — **new**: SNOW000 surface
+- `src/forge_doctor_data/checks/snowflake.py` — **new**: SNOW000 surface
   marker (pass/info), SNOW001 no `auto_suspend`, SNOW002 asymmetric
   `auto_resume`, SNOW003 large observed table without clustering,
   SNOW004 `COPY INTO` from public/insecure stage, SNOW005 `SELECT *`
   in persisted view/procedure DDL.
-- `src/forge_doctor/cli/snowflake.py` — **new**: `snowflake inspect`.
-- `src/forge_doctor/knowledge/capabilities/snowflake.json` — **new**
+- `src/forge_doctor_data/cli/snowflake.py` — **new**: `snowflake inspect`.
+- `src/forge_doctor_data/knowledge/capabilities/snowflake.json` — **new**
   pack: time travel, zero-copy clone, Snowpipe, streams/tasks,
   clustering, result caching, multi-cluster warehouses.
-- `src/forge_doctor/checks/__init__.py`, `cli/__init__.py`,
+- `src/forge_doctor_data/checks/__init__.py`, `cli/__init__.py`,
   `core/incremental.py` (`snowflake` domains), `docs/checks.md`,
   `README.md`.
 - `labs/snowflake/no-auto-suspend/` — positive scenario.

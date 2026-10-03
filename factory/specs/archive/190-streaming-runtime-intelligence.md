@@ -5,16 +5,16 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_streaming_bus_models.py tests/unit/test_streaming_bus_checks.py tests/unit/test_streaming_runtime.py tests/unit/adversarial/test_streaming_bus.py -x -q
-  - python -m forge_doctor kafka inspect <fixture>
-  - python -m forge_doctor streaming diagnose <progress-files>
-  - python -m forge_doctor knowledge verify
+  - python -m forge_doctor_data kafka inspect <fixture>
+  - python -m forge_doctor_data streaming diagnose <progress-files>
+  - python -m forge_doctor_data knowledge verify
 ---
 
 # Phase 9 - Streaming Runtime + Kafka/Kinesis/Flink Deep Intelligence
 
 ## Context
 
-Phase 9 of the ten-phase Forge Doctor program: complete streaming-bus
+Phase 9 of the ten-phase Forge Doctor Data program: complete streaming-bus
 and runtime-stream reasoning. Existing surface: `streaming_model.py`
 (Spark SS queries with source/sink/checkpoint/watermark/stateful ops),
 `spark_ss_progress` runtime adapter, STREAM001-070 checks. No Kafka,

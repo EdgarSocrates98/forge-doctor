@@ -7,16 +7,16 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.models import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.models import (
     CheckResult,
     Confidence,
     EvidenceKind,
     ScanReport,
     Severity,
 )
-from forge_doctor.core.optimize import optimize
-from forge_doctor.core.platform_graph import DataPlatformGraph, Entity, EntityKind
+from forge_doctor_data.core.optimize import optimize
+from forge_doctor_data.core.platform_graph import DataPlatformGraph, Entity, EntityKind
 
 runner = CliRunner()
 

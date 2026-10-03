@@ -24,7 +24,7 @@ hybrid-access checks, permission graph view.
   the reviewer's LF042 example shape: operation × runtime × access model).
 - Cross-account legs: RAM share + resource link + grant evidence; missing
   leg → finding naming the leg.
-- `forge-doctor lakeformation inspect|permissions|graph` commands.
+- `forge-doctor-data lakeformation inspect|permissions|graph` commands.
 - `knowledge/lakeformation/{permissions,access-models,compatibility}.json`
   schema 2 + sources.
 

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.databricks_model import databricks_model
-from forge_doctor.analyzers.delta_model import delta_model
-from forge_doctor.analyzers.emr_model import emr_model
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.checks.platform_rules import RULES
-from forge_doctor.checks.platforms import CHECKS
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.crossdomain import rule_context
+from forge_doctor_data.analyzers.databricks_model import databricks_model
+from forge_doctor_data.analyzers.delta_model import delta_model
+from forge_doctor_data.analyzers.emr_model import emr_model
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.checks.platform_rules import RULES
+from forge_doctor_data.checks.platforms import CHECKS
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.crossdomain import rule_context
 
 
 def _write(root: Path, rel: str, text: str) -> None:

@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.policy_pack import (
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.policy_pack import (
     INVALID_PACK_CHECK_ID,
     PolicyPackError,
     evaluate_packs,
@@ -17,7 +17,7 @@ from forge_doctor.core.policy_pack import (
 
 
 def _pack(tmp_path: Path, body: str, name: str = "org.yml") -> Path:
-    d = tmp_path / ".forge-doctor" / "policy"
+    d = tmp_path / ".forge-doctor-data" / "policy"
     d.mkdir(parents=True, exist_ok=True)
     p = d / name
     p.write_text(body)

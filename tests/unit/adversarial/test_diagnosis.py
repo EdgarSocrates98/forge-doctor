@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.diagnosis import (
+from forge_doctor_data.core.diagnosis import (
     PromotionLevel,
     cluster_findings,
     promote_findings,
 )
-from forge_doctor.core.models import CheckResult, Severity
-from forge_doctor.core.runtime_evidence import (
+from forge_doctor_data.core.models import CheckResult, Severity
+from forge_doctor_data.core.runtime_evidence import (
     ExecutionError,
     ExecutionMetric,
     RuntimeEvidenceModel,

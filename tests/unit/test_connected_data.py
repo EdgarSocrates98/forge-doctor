@@ -9,15 +9,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.platform_graph_builder import (
+from forge_doctor_data.analyzers.platform_graph_builder import (
     build_platform_graph,
     impact_reachable,
 )
-from forge_doctor.checks.dynamodb import GlobalMrscTransactions
-from forge_doctor.core.capabilities import CapabilityStatus, capability_registry
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import EvidenceKind
-from forge_doctor.core.platform_graph import EntityKind, RelKind
+from forge_doctor_data.checks.dynamodb import GlobalMrscTransactions
+from forge_doctor_data.core.capabilities import CapabilityStatus, capability_registry
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import EvidenceKind
+from forge_doctor_data.core.platform_graph import EntityKind, RelKind
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -142,7 +142,7 @@ def test_determinism(tmp_path: Path) -> None:
 
 
 def test_access_style_breakdown(tmp_path: Path) -> None:
-    from forge_doctor.cli.datamodel import _style_counts
+    from forge_doctor_data.cli.datamodel import _style_counts
 
     ctx = make_context(
         tmp_path,

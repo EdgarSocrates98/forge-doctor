@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.diagnose import diagnose_text, load_signatures, project_correlations
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.diagnose import diagnose_text, load_signatures, project_correlations
 
 
 def test_signatures_load():

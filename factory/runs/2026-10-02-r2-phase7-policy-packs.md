@@ -7,8 +7,8 @@
 
 - `core/policy_pack.py` — `PolicyPack` / `PolicyRule` /
   `ForbidRule` / `RequireRule`; `load_pack`, `discover_packs`
-  (`.forge-doctor/policy/*`, `policy.yml`, `org-policy.yml`,
-  `[tool.forge-doctor] policy_packs`), `load_packs` (invalid →
+  (`.forge-doctor-data/policy/*`, `policy.yml`, `org-policy.yml`,
+  `[tool.forge-doctor-data] policy_packs`), `load_packs` (invalid →
   `POLICY010` error finding), `evaluate_packs`.
 - Rule kinds: `forbid.pattern`+`file_glob` (per-line regex),
   `forbid.terraform{resource_type,attr,op,value}` (`equals`/`matches`/
@@ -36,7 +36,7 @@
   tests/unit/adversarial/test_policy_pack.py` → 19 passed (schema,
   malformed YAML → POLICY010, duplicate ids, bad regex/severity,
   case-insensitive bool, zero-match require, determinism).
-- `forge-doctor policy list|eval|validate` smoke-tested; findings flow
+- `forge-doctor-data policy list|eval|validate` smoke-tested; findings flow
   through `scan` under the `policy` category; `explain POLICY010`
   resolves.
 

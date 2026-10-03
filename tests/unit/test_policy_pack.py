@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
-from forge_doctor.core.policy_pack import (
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.policy_pack import (
     discover_packs,
     evaluate_packs,
     load_pack,
@@ -53,7 +53,7 @@ def _ctx(tmp_path: Path) -> ProjectContext:
 
 
 def _write_pack(tmp_path: Path, text: str = _PACK) -> Path:
-    d = tmp_path / ".forge-doctor" / "policy"
+    d = tmp_path / ".forge-doctor-data" / "policy"
     d.mkdir(parents=True)
     p = d / "org.yml"
     p.write_text(text)
@@ -134,7 +134,9 @@ def test_clean_project_no_violations(tmp_path: Path) -> None:
 
 
 def test_pack_via_pyproject_config(tmp_path: Path) -> None:
-    (tmp_path / "pyproject.toml").write_text('[tool.forge-doctor]\npolicy_packs = ["rules.yml"]\n')
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.forge-doctor-data]\npolicy_packs = ["rules.yml"]\n'
+    )
     (tmp_path / "rules.yml").write_text(
         "pack: extra\nrules:\n  - id: ORG009\n    message: need README\n"
         "    require:\n      file: README.md\n"
@@ -151,7 +153,7 @@ def test_check_runs_inside_scan(tmp_path: Path) -> None:
     (tmp_path / "main.tf").write_text(
         'resource "aws_db_instance" "db" {\n  publicly_accessible = true\n}\n'
     )
-    from forge_doctor.checks.policy_pack import OrgPolicyPacks
+    from forge_doctor_data.checks.policy_pack import OrgPolicyPacks
 
     results = OrgPolicyPacks().run(_ctx(tmp_path))
     assert any(r.check_id == "ORG001" for r in results)
@@ -187,7 +189,7 @@ rules:
 
 
 def _write_pack_named(tmp_path: Path, name: str, text: str) -> Path:
-    d = tmp_path / ".forge-doctor" / "policy"
+    d = tmp_path / ".forge-doctor-data" / "policy"
     d.mkdir(parents=True, exist_ok=True)
     p = d / name
     p.write_text(text)
@@ -224,7 +226,7 @@ def test_extends_cycle_is_error(tmp_path: Path) -> None:
 
 def test_extends_empty_rules_pack(tmp_path: Path) -> None:
     """A pack may consist purely of extends (rule-less overlay)."""
-    d = tmp_path / ".forge-doctor" / "policy"
+    d = tmp_path / ".forge-doctor-data" / "policy"
     d.mkdir(parents=True)
     (d / "base.yml").write_text(_BASE)
     (d / "overlay.yml").write_text("pack: overlay\nextends: org-base\nrules: []\n")
@@ -244,11 +246,11 @@ def test_require_approval_flags_unapproved_suppressions(tmp_path: Path) -> None:
         "pack: strict\nrequire_approval: true\nrules: []\n",
     )
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.forge-doctor]\n"
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[tool.forge-doctor-data]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "GLUE001"\n'
         'owner = "alice"\n'
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "S3_001"\n'
         'approved_by = "bob"\n'
     )
@@ -262,7 +264,7 @@ def test_require_approval_flags_unapproved_suppressions(tmp_path: Path) -> None:
 def test_no_require_approval_no_findings(tmp_path: Path) -> None:
     _write_pack_named(tmp_path, "loose.yml", "pack: loose\nrules: []\n")
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.forge-doctor]\n[[tool.forge-doctor.suppressions]]\nrule = "GLUE001"\n'
+        '[tool.forge-doctor-data]\n[[tool.forge-doctor-data.suppressions]]\nrule = "GLUE001"\n'
     )
     results = evaluate_packs(_ctx(tmp_path), load_packs(tmp_path)[0])
     assert not any(r.check_id == "POLICY011" for r in results)

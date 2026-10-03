@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.runtime_evidence import (
+from forge_doctor_data.analyzers.runtime_evidence import (
     ADAPTERS,
     AthenaStatsAdapter,
     GlueLogAdapter,

@@ -8,9 +8,9 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.history import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.history import (
     HistoryError,
     diff_snapshots,
     list_snapshots,
@@ -20,7 +20,7 @@ from forge_doctor.core.history import (
     resolve_snapshot,
     trend,
 )
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
 
 
 def _finding(check_id: str, fp: str, file: str = "a.py") -> CheckResult:
@@ -55,11 +55,11 @@ def test_record_and_list(tmp_path: Path) -> None:
 
 
 def test_record_never_runs_without_flag(tmp_path: Path) -> None:
-    """Normal scans never touch .forge-doctor/history."""
+    """Normal scans never touch .forge-doctor-data/history."""
     (tmp_path / "a.py").write_text("print('x')\n")
     result = CliRunner().invoke(app, ["scan", str(tmp_path), "--quiet"])
     assert result.exit_code == 0
-    assert not (tmp_path / ".forge-doctor" / "history").exists()
+    assert not (tmp_path / ".forge-doctor-data" / "history").exists()
 
 
 def test_diff_new_resolved_entities(tmp_path: Path) -> None:

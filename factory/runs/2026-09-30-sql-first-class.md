@@ -35,7 +35,7 @@ principle `analyzers → semantic facts → domain models → findings`.
   SQL001 `SELECT *`, SQL002 cartesian/implicit joins, SQL003 non-sargable.
 - Conditional registration: `builtin_checks()` appends the sql module only
   when `find_spec("sqlglot")` succeeds — zero behavior change on base
-  installs. `explain SQL###` without the extra hints at `forge-doctor[sql]`.
+  installs. `explain SQL###` without the extra hints at `forge-doctor-data[sql]`.
 - Backprop: SPEC.md gains **V11** (domain checks consume semantic models —
   no per-check ad-hoc parsing); T32 recorded; roadmap Next reordered per the
   reviewer's priority and marked SQL shipped.

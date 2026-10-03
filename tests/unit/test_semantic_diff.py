@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.semantic_diff import (
+from forge_doctor_data.core.semantic_diff import (
     RISK_HIGH,
     RISK_LOW,
     RISK_MEDIUM,

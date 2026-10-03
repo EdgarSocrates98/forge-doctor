@@ -13,27 +13,27 @@ Existing check ids/semantics untouched (spec constraint).
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/abstractions.py` — **new**:
+- `src/forge_doctor_data/analyzers/abstractions.py` — **new**:
   `CloudAbstractionModel` (`AbstractedService`/`UnmappedService`), TF
   resource map for `azurerm_*`/`google_*`/`aws_*` data-platform
   resources, graph-entity fold (warehouse domain via `platform` attr,
   kinesis/kafka/dynamodb/glue/lakeformation domains), shallow attr
   normalization (name/region/encrypted/public + ≤8 passthrough attrs),
   link detection on attr keys *and* nested block bodies.
-- `src/forge_doctor/checks/cloud.py` — **new**: CLOUD000 census,
+- `src/forge_doctor_data/checks/cloud.py` — **new**: CLOUD000 census,
   CLOUD001 unmapped platform entities (info, capped 15), CLOUD002
   single-cloud kind in mixed estate without replication/migration link.
-- `src/forge_doctor/cli/cloud.py` — **new**: `cloud inspect` prints
+- `src/forge_doctor_data/cli/cloud.py` — **new**: `cloud inspect` prints
   services by abstraction, cloud attrs, estate clouds, unmapped list.
-- `src/forge_doctor/knowledge/capabilities/cloud.json` — **new**:
+- `src/forge_doctor_data/knowledge/capabilities/cloud.json` — **new**:
   cloud-agnostic capability surface (VERSIONING/ENCRYPTION per object
   store, TIME_TRAVEL/ZERO_COPY_CLONE per warehouse service, FGAC per
   catalog, TTL for operational stores, serverless per compute engine) —
   entries keyed `platform=<abstraction>` with `when: {service: ...}`.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py` (`TERRAFORM | UNBOUNDED`),
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md` (`cloud`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` (`TERRAFORM | UNBOUNDED`),
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md` (`cloud`
   producer domain) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/cloud/{azure-only,gcp-only,mixed-parity,linked}/`.
@@ -74,7 +74,7 @@ Existing check ids/semantics untouched (spec constraint).
 - Labs: `azure-only`/`gcp-only` single-cloud silent on CLOUD002;
   `mixed-parity` fires CLOUD002 for stream+operational_store;
   `linked` suppressed via `geo_location`/`failover_priority`.
-- `forge-doctor cloud inspect labs/cloud/mixed-parity` renders the
+- `forge-doctor-data cloud inspect labs/cloud/mixed-parity` renders the
   abstraction view with cloud split.
 - ruff + mypy clean on touched files.
 

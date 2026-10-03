@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.lakeformation_model import lakeformation_model
-from forge_doctor.checks.lakeformation import CHECKS
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.lakeformation_model import lakeformation_model
+from forge_doctor_data.checks.lakeformation import CHECKS
+from forge_doctor_data.core.context import ProjectContext
 
 
 def _write(root: Path, rel: str, text: str) -> None:
@@ -233,8 +233,8 @@ def test_boto3_grant_permissions(tmp_path: Path) -> None:
 
 def test_platform_graph_governs_edges(tmp_path: Path) -> None:
     """LF grants land as principal->catalog GOVERNS edges in the platform graph."""
-    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-    from forge_doctor.core.platform_graph import EntityKind, RelKind
+    from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor_data.core.platform_graph import EntityKind, RelKind
 
     _write(tmp_path, "main.tf", _TF)
     graph = build_platform_graph(_ctx(tmp_path))

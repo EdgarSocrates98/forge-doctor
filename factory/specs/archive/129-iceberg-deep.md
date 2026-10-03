@@ -51,10 +51,10 @@ transforms, format-version feature matrix, static small-file risk.
   WARNING via `knowledge/iceberg/spec.json` matrix.
 
 ## CLI
-- `forge-doctor iceberg merge [path]` — per-MERGE reconstruction:
+- `forge-doctor-data iceberg merge [path]` — per-MERGE reconstruction:
   target/source/ON columns/partition-predicate present? — the reviewer's
   example shape.
-- `forge-doctor iceberg files [path]` — STATIC RISK small-file posture
+- `forge-doctor-data iceberg files [path]` — STATIC RISK small-file posture
   (repartition/coalesce + append evidence), labeled static.
 
 ## Packs/docs/tests

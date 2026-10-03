@@ -10,23 +10,23 @@ contracts).
 
 ## Delivered
 
-- `src/forge_doctor/sdk.py` — stable author surface: `Check`,
+- `src/forge_doctor_data/sdk.py` — stable author surface: `Check`,
   `CheckBase`, `CheckResult`, `Severity`, `Confidence`, `EvidenceKind`,
   `PluginDescriptor`, `PluginIdentity`, `ProjectContext`,
   `CURRENT_API_VERSION`, `SUPPORTED_API_VERSIONS`, `ENTRY_POINT_GROUP`;
-  `__all__` pinned by test. Consumer SDK stays `forge_doctor.api`.
-- `src/forge_doctor/plugins/manager.py` —
+  `__all__` pinned by test. Consumer SDK stays `forge_doctor_data.api`.
+- `src/forge_doctor_data/plugins/manager.py` —
   - `scaffold_plugin(name, dest)`: complete plugin package (pyproject
     entry point + sdk-only check + descriptor + test stub); refuses
     overwrite, validates name.
-  - `lock_plugins(root)`: `.forge-doctor/plugins.lock` pins every
+  - `lock_plugins(root)`: `.forge-doctor-data/plugins.lock` pins every
     installed plugin dist (name, version, sha256 over sorted per-file
     digests recomputed from content — RECORD tampering caught).
   - `verify_plugins(root)`: `ok | changed | missing | added`.
   - `install_plan`/`install_plugin(dist, runner=...)`: `pipx inject
-    forge-doctor <dist>` when pipx exists else `pip install`; runner
+    forge-doctor-data <dist>` when pipx exists else `pip install`; runner
     injectable — no network in tests.
-- Strict trust mode — `[tool.forge-doctor.plugins] mode = "strict"`:
+- Strict trust mode — `[tool.forge-doctor-data.plugins] mode = "strict"`:
   default-deny, only `trusted` passes the pre-load gate; `allow`
   identities no longer suffice. Status line names strict explicitly.
 - CLI: `plugins init|lock|verify|install` (+ `--dry-run`); existing
@@ -43,7 +43,7 @@ contracts).
 
 - Focused: 14 pass; `plugins`/`api`/`docs` suites still green (44).
 - mypy clean (157 files), ruff + format clean.
-- End-to-end: scaffolded `forge-doctor-snowflake` → descriptor
+- End-to-end: scaffolded `forge-doctor-data-snowflake` → descriptor
   `check_compatibility` ok, check runs, `lock`/`verify`/`--dry-run` work.
 
 ## Fixes during implementation

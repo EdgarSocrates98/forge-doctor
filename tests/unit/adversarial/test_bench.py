@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.core.bench import generate_project, load_budget, run_bench
+from forge_doctor_data.core.bench import generate_project, load_budget, run_bench
 
 
 def test_empty_dir_no_division_errors(tmp_path: Path) -> None:

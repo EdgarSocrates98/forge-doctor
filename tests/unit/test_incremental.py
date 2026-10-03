@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.context import ProjectContext, ScanOptions
-from forge_doctor.core.incremental import (
+from forge_doctor_data.core.context import ProjectContext, ScanOptions
+from forge_doctor_data.core.incremental import (
     ALWAYS_RUN,
     ResultStore,
     check_domains,
@@ -20,9 +20,9 @@ from forge_doctor.core.incremental import (
     plan_incremental,
     result_from_dict,
 )
-from forge_doctor.core.runner import CheckRunner
-from forge_doctor.core.service import ScanRequest, ScanService
-from forge_doctor.output.json_renderer import result_to_dict
+from forge_doctor_data.core.runner import CheckRunner
+from forge_doctor_data.core.service import ScanRequest, ScanService
+from forge_doctor_data.output.json_renderer import result_to_dict
 
 _SPARK = (
     "from pyspark.sql import SparkSession\n"
@@ -49,8 +49,8 @@ def _ctx(root: Path) -> ProjectContext:
 
 
 def _registry() -> CheckRunner:
-    from forge_doctor.checks import builtin_checks
-    from forge_doctor.core.registry import CheckRegistry
+    from forge_doctor_data.checks import builtin_checks
+    from forge_doctor_data.core.registry import CheckRegistry
 
     registry = CheckRegistry()
     registry.register_all(builtin_checks())
@@ -103,8 +103,8 @@ def test_classify_path(path: str, expected: set[str]) -> None:
 
 def test_every_builtin_check_module_declares_domains() -> None:
     """Coverage contract: every builtin check's module has an entry."""
-    from forge_doctor.checks import builtin_checks
-    from forge_doctor.core.incremental import MODULE_DOMAINS
+    from forge_doctor_data.checks import builtin_checks
+    from forge_doctor_data.core.incremental import MODULE_DOMAINS
 
     missing = [
         f"{c.id} ({type(c).__module__})"
@@ -116,8 +116,8 @@ def test_every_builtin_check_module_declares_domains() -> None:
 
 
 def test_plan_reruns_only_affected() -> None:
-    from forge_doctor.checks import builtin_checks
-    from forge_doctor.core.registry import CheckRegistry
+    from forge_doctor_data.checks import builtin_checks
+    from forge_doctor_data.core.registry import CheckRegistry
 
     registry = CheckRegistry()
     registry.register_all(builtin_checks())
@@ -134,8 +134,8 @@ def test_plan_reruns_only_affected() -> None:
 
 
 def test_plan_python_change_skips_terraform() -> None:
-    from forge_doctor.checks import builtin_checks
-    from forge_doctor.core.registry import CheckRegistry
+    from forge_doctor_data.checks import builtin_checks
+    from forge_doctor_data.core.registry import CheckRegistry
 
     registry = CheckRegistry()
     registry.register_all(builtin_checks())
@@ -255,7 +255,7 @@ def test_result_from_dict_rejects_malformed() -> None:
 
 def test_service_incremental_reuses_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """End to end: full scan warms the store; --incremental reuses it."""
-    monkeypatch.setenv("FORGE_DOCTOR_CACHE_DIR", str(tmp_path / "user-cache"))
+    monkeypatch.setenv("FORGE_DOCTOR_DATA_CACHE_DIR", str(tmp_path / "user-cache"))
     _fixture(tmp_path)
     service = ScanService()
     first = service.run(ScanRequest(path=tmp_path, cache=True))
@@ -270,7 +270,7 @@ def test_service_incremental_reuses_store(tmp_path: Path, monkeypatch: pytest.Mo
 def test_service_incremental_cold_without_store(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setenv("FORGE_DOCTOR_CACHE_DIR", str(tmp_path / "user-cache"))
+    monkeypatch.setenv("FORGE_DOCTOR_DATA_CACHE_DIR", str(tmp_path / "user-cache"))
     _fixture(tmp_path)
     out = ScanService().run(ScanRequest(path=tmp_path, incremental=True))
     full = ScanService().run(ScanRequest(path=tmp_path))

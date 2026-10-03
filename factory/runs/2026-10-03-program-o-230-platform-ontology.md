@@ -12,15 +12,15 @@ and the `PlatformKind` → cloud-neutral abstraction bridge.
 
 ## Files changed
 
-- `src/forge_doctor/core/platform_ontology.py` — **new** (~990 lines):
+- `src/forge_doctor_data/core/platform_ontology.py` — **new** (~990 lines):
   `PlatformKind` (16 kinds), `WorkloadIntent`, `AccessPattern`,
   `ConsistencyModel`, `OwnershipModel`, deterministic registries
   (`workload_intents`, `workload_kinds`, `kind_abstractions`,
   `service_kinds`), and implementation tables (57 services across
   aws/azure/gcp/snowflake/databricks).
-- `src/forge_doctor/core/ontology.py` — vocabulary extended with the
+- `src/forge_doctor_data/core/ontology.py` — vocabulary extended with the
   semantic sections (entity kinds, rel kinds, provenance tiers).
-- `src/forge_doctor/cli/misc.py` — `ontology` group gained
+- `src/forge_doctor_data/cli/misc.py` — `ontology` group gained
   `workloads`, `access-patterns`, `platform-kinds`, `implementations`,
   `abstraction-map` (all `--json`).
 - `docs/ontology.md` — generated tables appended; version note moved

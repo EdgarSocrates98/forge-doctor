@@ -22,7 +22,7 @@ agent: devin
   `iceberg` (ICE001/008/009/010/024/025), `streaming` (STREAM002/003/020/
   070), `platform` (PLAT001/003/007), `chains` (RC_STREAM_COMMITS 5-step
   required example, RC_SPARK_SKEW 4-step).
-- `cli/remediate.py` — `forge-doctor remediate . [--root-cause <id>]
+- `cli/remediate.py` — `forge-doctor-data remediate . [--root-cause <id>]
   [--json]`; footer states nothing is applied automatically.
 
 ## Boundaries

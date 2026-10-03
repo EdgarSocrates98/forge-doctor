@@ -1,4 +1,4 @@
-name: Forge Doctor
+name: Forge Doctor Data
 description: >-
   Deterministic diagnostics for data engineering projects - one scan emits the
   console report and SARIF for GitHub Code Scanning, then fails the job when
@@ -20,7 +20,7 @@ inputs:
   sarif-file:
     description: Where to write the SARIF report (empty skips SARIF upload).
     required: false
-    default: forge-doctor.sarif
+    default: forge-doctor-data.sarif
   fail-on:
     description: Lowest severity that fails the step (error|warning).
     required: false
@@ -33,7 +33,7 @@ inputs:
     description: >-
       What to install with pipx. Empty installs the action's own checkout
       ($GITHUB_ACTION_PATH) — the action always runs the code at its ref.
-      Set to a spec (e.g. "forge-doctor==0.7.0") to override.
+      Set to a spec (e.g. "forge-doctor-data==0.7.0") to override.
     required: false
     default: ""
 
@@ -44,7 +44,7 @@ runs:
       with:
         python-version: "3.12"
 
-    - name: Install forge-doctor
+    - name: Install forge-doctor-data
       shell: bash
       run: pipx install "${{ inputs.install || github.action_path }}"
 
@@ -54,14 +54,14 @@ runs:
       shell: bash
       run: |
         set +e
-        forge-doctor scan "${{ inputs.path }}" \
+        forge-doctor-data scan "${{ inputs.path }}" \
           --emit "${{ inputs.format }}" \
           ${{ inputs.sarif-file != '' && format('--emit sarif:"{0}"', inputs.sarif-file) || '' }} \
           --fail-on "${{ inputs.fail-on }}" \
           ${{ inputs.baseline && format('--baseline "{0}"', inputs.baseline) || '' }}
         code=$?
         set -e
-        echo "forge_doctor_exit=$code" >> "$GITHUB_ENV"
+        echo "forge_doctor_data_exit=$code" >> "$GITHUB_ENV"
         exit 0
 
     - name: Upload to Code Scanning
@@ -72,4 +72,4 @@ runs:
 
     - name: Enforce fail-on
       shell: bash
-      run: exit "${{ env.forge_doctor_exit || '1' }}"
+      run: exit "${{ env.forge_doctor_data_exit || '1' }}"

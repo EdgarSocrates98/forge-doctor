@@ -1,14 +1,14 @@
 from datetime import date, timedelta
 from pathlib import Path
 
-from forge_doctor.core.config import (
-    ForgeDoctorConfig,
+from forge_doctor_data.core.config import (
+    ForgeDoctorDataConfig,
     Policy,
     RuleOverride,
     Suppression,
 )
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
-from forge_doctor.core.policy import (
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.core.policy import (
     apply_policy,
     is_expired,
     suppression_statuses,
@@ -32,19 +32,19 @@ def _finding(check_id: str = "SPARK001", file: str | None = "job.py", line: int 
 
 
 def test_severity_override_replaces_severity():
-    cfg = ForgeDoctorConfig(policy=Policy(rules={"SPARK001": RuleOverride(severity="error")}))
+    cfg = ForgeDoctorDataConfig(policy=Policy(rules={"SPARK001": RuleOverride(severity="error")}))
     report = apply_policy(_report([_finding()]), cfg)
     assert report.results[0].severity is Severity.ERROR
 
 
 def test_disabled_rule_removes_findings():
-    cfg = ForgeDoctorConfig(policy=Policy(rules={"SPARK001": RuleOverride(enabled=False)}))
+    cfg = ForgeDoctorDataConfig(policy=Policy(rules={"SPARK001": RuleOverride(enabled=False)}))
     report = apply_policy(_report([_finding()]), cfg)
     assert report.results == []
 
 
 def test_active_suppression_removes_finding():
-    cfg = ForgeDoctorConfig(
+    cfg = ForgeDoctorDataConfig(
         suppressions=(Suppression(rule="SPARK001", reason="legacy", owner="team"),)
     )
     report = apply_policy(_report([_finding()]), cfg)
@@ -55,7 +55,7 @@ def test_active_suppression_removes_finding():
 
 def test_expired_suppression_reactivates_and_warns():
     yesterday = (date.today() - timedelta(days=1)).isoformat()
-    cfg = ForgeDoctorConfig(
+    cfg = ForgeDoctorDataConfig(
         suppressions=(Suppression(rule="SPARK001", reason="temp", expires=yesterday),)
     )
     report = apply_policy(_report([_finding()]), cfg)
@@ -66,7 +66,7 @@ def test_expired_suppression_reactivates_and_warns():
 
 
 def test_suppression_scoped_by_path_and_line():
-    cfg = ForgeDoctorConfig(suppressions=(Suppression(rule="SPARK001", path="other/**/*.py"),))
+    cfg = ForgeDoctorDataConfig(suppressions=(Suppression(rule="SPARK001", path="other/**/*.py"),))
     report = apply_policy(_report([_finding(file="job.py")]), cfg)
     assert any(r.check_id == "SPARK001" for r in report.results)
     assert report.suppressions[0].status == "unused"

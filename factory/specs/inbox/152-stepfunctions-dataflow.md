@@ -19,5 +19,5 @@ cost section 9).
   Map without ResultWriter, SFN060 `$` payload passed through
   ResultPath/OutputPath unchanged across >N states (INFO heuristic),
   SFN070 QueryLanguage mixed within one machine.
-- `forge-doctor stepfunctions cost` - static cost signals (state count,
+- `forge-doctor-data stepfunctions cost` - static cost signals (state count,
   transitions, Map fanout, polling loops) labeled static risk.

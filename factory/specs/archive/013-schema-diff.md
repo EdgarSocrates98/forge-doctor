@@ -1,6 +1,6 @@
 ---
 id: 013-schema-diff
-title: Schema & contract doctor — forge-doctor schema diff
+title: Schema & contract doctor — forge-doctor-data schema diff
 agent: devin
 risk: medium
 grill: completed

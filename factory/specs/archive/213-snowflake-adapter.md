@@ -23,7 +23,7 @@ observed metadata (`SHOW`/`INFORMATION_SCHEMA` exports).
   platform=`snowflake` from: Snowflake DDL in `.sql` files, Terraform
   `snowflake_*` resources (warehouse size, auto_suspend, database,
   schema, stage, pipe, task, role/grant), and observed-metadata exports
-  under conventional paths (`snowflake/`, `.forge-doctor/evidence/`,
+  under conventional paths (`snowflake/`, `.forge-doctor-data/evidence/`,
   `information_schema*` JSON/CSV).
 - Capability pack entries: time travel, zero-copy clone, Snowpipe,
   streams/tasks, clustering, result caching, multi-cluster warehouses —

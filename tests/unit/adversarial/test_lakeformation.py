@@ -5,9 +5,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.lakeformation_model import lakeformation_model
-from forge_doctor.checks.lakeformation import CHECKS
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.lakeformation_model import lakeformation_model
+from forge_doctor_data.checks.lakeformation import CHECKS
+from forge_doctor_data.core.context import ProjectContext
 
 
 def _write(root: Path, rel: str, text: str) -> None:

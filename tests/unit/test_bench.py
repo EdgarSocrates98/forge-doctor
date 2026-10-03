@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.core.bench import (
+from forge_doctor_data.core.bench import (
     generate_project,
     load_budget,
     run_bench,
@@ -81,6 +81,7 @@ def test_result_dict_shape(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus"
     generate_project(corpus, 10, seed=1)
     r = run_bench(corpus)
-    d = json.loads(json.dumps(__import__("forge_doctor.core.bench", fromlist=["x"]).result_dict(r)))
+    mod = __import__("forge_doctor_data.core.bench", fromlist=["x"])
+    d = json.loads(json.dumps(mod.result_dict(r)))
     for key in ("cold_ms", "warm_ms", "ast_parsed", "graph_ms", "packs", "peak_mb"):
         assert key in d

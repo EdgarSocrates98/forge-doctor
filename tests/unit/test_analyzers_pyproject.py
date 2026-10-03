@@ -1,6 +1,6 @@
 import tomllib
 
-from forge_doctor.analyzers.pyproject import (
+from forge_doctor_data.analyzers.pyproject import (
     declared_dependencies,
     dev_dependencies,
     is_poetry_managed,

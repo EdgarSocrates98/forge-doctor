@@ -14,17 +14,17 @@ opportunities.
 
 ## Files changed
 
-- `src/forge_doctor/core/optimize.py` — **new**: `OptimizationCandidate`
+- `src/forge_doctor_data/core/optimize.py` — **new**: `OptimizationCandidate`
   model + `optimize()` enumerator. Two evidence-gated sources:
   1. finding → hypothesis map (`SPARK003`→`partition-data`,
      `STREAM002`→`add-checkpoint`, `PLAT003`→`increase-trigger-interval`);
   2. `platform_versions(graph)` vs compatibility-pack `targets` →
      upgrade candidates with `what-if --change` validation
      (`glue-version-upgrade`; registry is additive per domain).
-- `src/forge_doctor/cli/optimize.py` — **new**: `optimize <path>`
+- `src/forge_doctor_data/cli/optimize.py` — **new**: `optimize <path>`
   (table with conf/reason/cost proxy/entities/validate command,
   `-f json`, `--top N`).
-- `src/forge_doctor/cli/__init__.py` — registration (Estate & change
+- `src/forge_doctor_data/cli/__init__.py` — registration (Estate & change
   panel).
 - `tests/unit/test_optimize.py` — **new**, 13 tests.
 - `README.md`, `CHANGELOG.md` — entries.
@@ -40,9 +40,9 @@ opportunities.
   (spec's open question defers calibration until a stale-pricing
   policy exists — kept observed-metadata-only).
 - **Validation handoff is a literal command string**: finding-backed
-  candidates print `forge-doctor lab experiment <path> --hypothesis
+  candidates print `forge-doctor-data lab experiment <path> --hypothesis
   <name>` (the project itself is a valid scenario for `run_experiment`);
-  version candidates print `forge-doctor what-if --change
+  version candidates print `forge-doctor-data what-if --change
   <target>=<to> <path>` where `<to>` is the newest declared pack
   target.
 - **Entity attribution via `Entity.file`** — graph entities whose file

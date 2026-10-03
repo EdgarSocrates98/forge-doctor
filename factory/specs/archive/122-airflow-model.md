@@ -63,7 +63,7 @@ not calls. Checks never parse (V11).
   no pyproject.
 
 ## Command (`cli/airflow.py`, `airflow` typer group)
-- `forge-doctor airflow inspect [path]` — DAGs (id/schedule/tasks), tasks by
+- `forge-doctor-data airflow inspect [path]` — DAGs (id/schedule/tasks), tasks by
   operator, sensors deferrable count, edges, providers, risks (same shape as
   `controlm inspect`). Bare `airflow` → hint + exit 2; empty repo clean.
 

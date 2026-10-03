@@ -18,7 +18,7 @@ Reviewer's example: `GetTemporaryCredentialsForTableV2` + Glue 5.x + FGAC +
 write op → credential-vending/write-path conflict hint.
 
 # Acceptance Criteria
-- Knowledge pack `src/forge_doctor/knowledge/lakeformation/` covering the
+- Knowledge pack `src/forge_doctor_data/knowledge/lakeformation/` covering the
   reviewer list: GetTemporaryCredentialsForTable(V2), credential vending,
   FGAC, resource links, RAM/cross-account, hybrid access,
   IAMAllowedPrincipals, LF-tags, DATA_LOCATION_ACCESS, register/S3 path

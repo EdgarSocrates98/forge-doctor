@@ -20,17 +20,17 @@ Terraform streaming resources (`aws_msk_cluster`, `aws_kinesis_stream`,
 join as edges.
 
 # Acceptance Criteria
-- `forge-doctor streaming graph .` renders source→engine→sink chains
+- `forge-doctor-data streaming graph .` renders source→engine→sink chains
   with orchestrator/infra edges; deterministic ordering.
 - `StreamingReliability` scorecard (factual, not a score): recovery
   (checkpoint/stable location/source replay), state (watermark/
   bounded/timeout), sink (transactional/idempotent), ops (lag
   monitoring/backpressure). Cells = ✓/?/✗ from model evidence.
-- `forge-doctor streaming migrate .` candidates: DStream → Structured
+- `forge-doctor-data streaming migrate .` candidates: DStream → Structured
   Streaming, Spark batch → streaming, Glue 5 streaming → Glue 6 RTM,
   manual Databricks stream → Lakeflow, stream-static → CDC pipeline.
   Report-only; no code rewriting.
-- `forge-doctor streaming modernize .` candidates: Lakeflow, Glue RTM,
+- `forge-doctor-data streaming modernize .` candidates: Lakeflow, Glue RTM,
   Flink, Auto Loader, AUTO CDC, event-driven ingestion — contextual.
 - Orchestrator checks: AIRSTR001 scheduler repeatedly starts continuous
   stream (WARNING), CTMSTR001 cyclic Control-M over always-on workload

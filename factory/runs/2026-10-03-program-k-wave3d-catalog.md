@@ -13,28 +13,28 @@ Catalog presence/coverage signals, ingestion-recipe connector types
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/metadata_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/metadata_model.py` — **new**:
   `MetadataEstateModel` (`CatalogDataset`/`IngestionRecipe`), DataHub
   export parsing (dataset URNs → platform/env/qualified name, aspect
   arrays → owners/description/tags/glossary/schema/upstreams),
   OpenMetadata entity parsing (`fullyQualifiedName`, owner dicts,
   tagFQN tags), Glue/Unity presence+coverage under `glue*/`/`unity*/`
   path hints, recipe scanner emitting connector `type` values only.
-- `src/forge_doctor/checks/metadata.py` — **new**: META000 census,
+- `src/forge_doctor_data/checks/metadata.py` — **new**: META000 census,
   META001 stale catalog entry, META002 coverage gap (capped at 20,
   info), META003 ownerless dataset, META004 prod asset without
   description/tags, META005 declared-vs-detected lineage contradiction.
-- `src/forge_doctor/cli/catalog.py` — **new**: `catalog inspect`
+- `src/forge_doctor_data/cli/catalog.py` — **new**: `catalog inspect`
   prints vendor, datasets (env/owners/tags/upstreams), recipes
   (connector types only), lineage, unparsed files.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — `_metadata`
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — `_metadata`
   adapter: `dataset:metadata:*` entities (domain `metadata`,
   `GOVERNS`-style declaration) so catalog datasets join the canonical
   graph without self-matching drift checks.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py`,
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md` (`metadata`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py`,
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md` (`metadata`
   producer domain) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/catalog/stale-entry/` (META001/003/004 fire),
@@ -84,7 +84,7 @@ Catalog presence/coverage signals, ingestion-recipe connector types
 - `pytest tests/unit/test_metadata.py` — 20 passed.
 - Lab `stale-entry` fires META001/003/004 (ghost table stale, orders
   ownerless+undocumented prod); `adversarial` silent.
-- `forge-doctor catalog inspect labs/catalog/stale-entry` renders
+- `forge-doctor-data catalog inspect labs/catalog/stale-entry` renders
   vendor, env, owners, tags, upstreams — no secret material.
 - ruff format/check + mypy clean on touched files.
 

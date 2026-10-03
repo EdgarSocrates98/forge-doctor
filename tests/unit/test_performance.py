@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.execution_adapters import ingest_executions
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.analyzers.execution_adapters import ingest_executions
+from forge_doctor_data.core.execution_model import (
     ExecutionScan,
     ExecutionStage,
     QueryExecution,
     StageKind,
 )
-from forge_doctor.core.models import Severity
-from forge_doctor.core.performance import (
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.performance import (
     PerformanceSignal,
     PerfPolicy,
     RegressionClass,
@@ -35,7 +35,7 @@ def _exec(**kw) -> QueryExecution:
         **{k: v for k, v in base.items() if k != "metrics"},
     )
     # derive metrics like adapters do
-    from forge_doctor.core.execution_model import derive_metrics
+    from forge_doctor_data.core.execution_model import derive_metrics
 
     return QueryExecution(
         **{
@@ -230,8 +230,8 @@ def test_end_to_end_from_artifact(tmp_path: Path) -> None:
 
 
 def test_extract_designs_from_graph() -> None:
-    from forge_doctor.core.physical_design import extract_designs, physical_findings
-    from forge_doctor.core.platform_graph import (
+    from forge_doctor_data.core.physical_design import extract_designs, physical_findings
+    from forge_doctor_data.core.platform_graph import (
         DataPlatformGraph,
         Entity,
         EntityKind,
@@ -266,7 +266,7 @@ def test_extract_designs_from_graph() -> None:
 
 
 def test_phy005_fanout() -> None:
-    from forge_doctor.core.physical_design import PhysicalDesign, physical_findings
+    from forge_doctor_data.core.physical_design import PhysicalDesign, physical_findings
 
     designs = [PhysicalDesign(engine=e, subject="orders") for e in ("a", "b", "c", "d")]
     out = physical_findings(designs)
@@ -282,14 +282,14 @@ def test_phy002_needs_signals() -> None:
         observed="95/100 partitions scanned",
         derived="pruning_share=0.95",
     )
-    from forge_doctor.core.physical_design import PhysicalDesign, physical_findings
+    from forge_doctor_data.core.physical_design import PhysicalDesign, physical_findings
 
     out = physical_findings([PhysicalDesign(engine="snowflake", subject="orders")], [sig])
     assert any(f.check_id == "PHY002" for f in out)
 
 
 def test_phy001_no_org_keys() -> None:
-    from forge_doctor.core.physical_design import PhysicalDesign, physical_findings
+    from forge_doctor_data.core.physical_design import PhysicalDesign, physical_findings
 
     bare = PhysicalDesign(engine="opensearch", subject="logs", replication="replicas=1")
     organized = PhysicalDesign(engine="bigquery", subject="events", partitioning=("ts",))
@@ -301,7 +301,7 @@ def test_phy001_no_org_keys() -> None:
 
 
 def test_phy004_storage_pressure() -> None:
-    from forge_doctor.core.physical_design import PhysicalDesign, physical_findings
+    from forge_doctor_data.core.physical_design import PhysicalDesign, physical_findings
 
     sig = PerformanceSignal(
         SignalFamily.SMALL_FILE_AMPLIFICATION,

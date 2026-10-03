@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.core.golden import (
+from forge_doctor_data.core.golden import (
     _diff,
     run_all_golden,
     run_golden,

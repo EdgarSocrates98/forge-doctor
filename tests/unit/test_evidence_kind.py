@@ -5,24 +5,24 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.checks.controlm import EventNeverProduced
-from forge_doctor.checks.git_checks import GitRepository
-from forge_doctor.checks.iceberg import IcebergUsage, RuntimeCompatibility
-from forge_doctor.checks.parquet import SmallFileDataset, UncompressedWrite
-from forge_doctor.checks.repository import PyprojectExists
-from forge_doctor.checks.spark import CollectToDriver
-from forge_doctor.checks.stepfunctions import _SfnCheck
-from forge_doctor.checks.streaming import SharedCheckpoint, TempCheckpoint
-from forge_doctor.checks.terraform import _TfCheck
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import (
+from forge_doctor_data.checks.controlm import EventNeverProduced
+from forge_doctor_data.checks.git_checks import GitRepository
+from forge_doctor_data.checks.iceberg import IcebergUsage, RuntimeCompatibility
+from forge_doctor_data.checks.parquet import SmallFileDataset, UncompressedWrite
+from forge_doctor_data.checks.repository import PyprojectExists
+from forge_doctor_data.checks.spark import CollectToDriver
+from forge_doctor_data.checks.stepfunctions import _SfnCheck
+from forge_doctor_data.checks.streaming import SharedCheckpoint, TempCheckpoint
+from forge_doctor_data.checks.terraform import _TfCheck
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import (
     CheckResult,
     EvidenceKind,
     ScanReport,
     Severity,
 )
-from forge_doctor.output.json_renderer import render_json, result_to_dict
-from forge_doctor.plugins.protocol import CheckBase
+from forge_doctor_data.output.json_renderer import render_json, result_to_dict
+from forge_doctor_data.plugins.protocol import CheckBase
 
 
 def test_parse() -> None:

@@ -13,27 +13,27 @@ behavior was invented for contracts.
 
 ## Files changed
 
-- `src/forge_doctor/core/schemas.py` — six new contract schemas:
+- `src/forge_doctor_data/core/schemas.py` — six new contract schemas:
   `evidence`, `finding`, `capability-report`, `platform-graph`,
   `remediation-plan`, `handoff-bundle` (draft 2020-12, `$id`-keyed).
-- `src/forge_doctor/core/handoff.py` — **new**: `build_handoff(report,
+- `src/forge_doctor_data/core/handoff.py` — **new**: `build_handoff(report,
   ctx)` assembling `{contract, contract_version, schema_version, tool,
   project, summary, results, graph, capabilities, plans}` with stable
   keys and deterministic ordering (results sorted by
   `(check_id, fingerprint)`, plans by id).
-- `src/forge_doctor/core/contract_check.py` — **new**: dependency-free
+- `src/forge_doctor_data/core/contract_check.py` — **new**: dependency-free
   subset validator (`type`/`required`/`properties`/`items`/`enum`/
   `const`/`oneOf`/`additionalProperties` incl. schema-valued/
   `pattern`) + `verify_contract(instance, name)`.
-- `src/forge_doctor/core/remediation.py` — `plan_to_dict()` shared
+- `src/forge_doctor_data/core/remediation.py` — `plan_to_dict()` shared
   serializer (extracted from `cli/remediate.py` so `remediate --json`
   and handoff bundles emit identical plan rows).
-- `src/forge_doctor/cli/export.py` — **new**: `export <path> --format
+- `src/forge_doctor_data/cli/export.py` — **new**: `export <path> --format
   handoff [-o file]` (stdout default).
-- `src/forge_doctor/cli/misc.py` — new `contracts` group:
+- `src/forge_doctor_data/cli/misc.py` — new `contracts` group:
   `contracts list` + `contracts verify <bundle> [--contract]` where
   `<bundle>` is a file or `-`/omitted for stdin.
-- `src/forge_doctor/cli/__init__.py` — `contracts` panel membership +
+- `src/forge_doctor_data/cli/__init__.py` — `contracts` panel membership +
   `export` already in "Setup & integrations".
 - `docs/contracts.md` — **new**: interop spec (guarantees, versioning
   rules, bundle shape, verify usage, boundaries).

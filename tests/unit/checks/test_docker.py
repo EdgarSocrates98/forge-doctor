@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.docker import CHECKS
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
-from forge_doctor.plugins.protocol import Check
+from forge_doctor_data.checks.docker import CHECKS
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.plugins.protocol import Check
 
 
 def get_check(check_id: str) -> Check:

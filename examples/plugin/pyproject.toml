@@ -1,18 +1,18 @@
-# Example external check plugin for forge-doctor.
+# Example external check plugin for forge-doctor-data.
 #
-# Install into the same environment as forge-doctor:
-#     pipx inject forge-doctor examples/plugin
-# then `forge-doctor plugins` lists it and `forge-doctor scan` runs EXAMPLE001.
+# Install into the same environment as forge-doctor-data:
+#     pipx inject forge-doctor-data examples/plugin
+# then `forge-doctor-data plugins` lists it and `forge-doctor-data scan` runs EXAMPLE001.
 
 [project]
-name = "forge-doctor-example"
+name = "forge-doctor-data-example"
 version = "0.1.0"
-description = "Example forge-doctor check plugin"
+description = "Example forge-doctor-data check plugin"
 requires-python = ">=3.11"
-dependencies = ["forge-doctor"]
+dependencies = ["forge-doctor-data"]
 
-[project.entry-points."forge_doctor.checks"]
-example = "forge_doctor_example:ExampleTodoCheck"
+[project.entry-points."forge_doctor_data.checks"]
+example = "forge_doctor_data_example:ExampleTodoCheck"
 
 [build-system]
 requires = ["poetry-core>=2.0"]

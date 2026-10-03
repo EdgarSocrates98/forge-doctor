@@ -11,10 +11,10 @@ data; no fetching, no network.
 
 ## Files changed
 
-- `src/forge_doctor/core/knowledge.py` — added `scaffold_pack`,
+- `src/forge_doctor_data/core/knowledge.py` — added `scaffold_pack`,
   `write_scaffold`, `diff_packs`, `load_pack_ref`, `conformance`,
   `publish_checklist`, `bump_pack`, `SCAFFOLD_KINDS`.
-- `src/forge_doctor/cli/misc.py` — `knowledge new|diff|test|publish`
+- `src/forge_doctor_data/cli/misc.py` — `knowledge new|diff|test|publish`
   commands on the existing group; `import json` fix + dead-import
   cleanup.
 - `tests/unit/test_knowledge_chain.py` — **new**, 24 tests.

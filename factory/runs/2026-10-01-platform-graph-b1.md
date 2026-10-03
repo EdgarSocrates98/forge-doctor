@@ -7,7 +7,7 @@ edges, adversarial-fixture DoD added to specs 174/176/178.
 ## What shipped
 
 - `core/platform_graph.py` — deliberately separate from `core/graph.py`
-  (the repo-structure `forge-doctor graph` view): this is the canonical
+  (the repo-structure `forge-doctor-data graph` view): this is the canonical
   entity/relationship model.
 - `EntityKind` (15): workflow, task, compute_job, query, dataset, table,
   stream, catalog, storage_location, principal, infrastructure_resource,

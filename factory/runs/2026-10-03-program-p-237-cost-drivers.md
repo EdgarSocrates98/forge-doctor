@@ -12,7 +12,7 @@ prices.
 
 ## Files changed
 
-- `src/forge_doctor/core/cost_drivers.py` — **new**: `CostDriverKind`
+- `src/forge_doctor_data/core/cost_drivers.py` — **new**: `CostDriverKind`
   (17 kinds), `CostDriver`, `extract_drivers` (execution + entity
   evidence, per-engine time/cpu kind mapping), attribution chain
   execution→dataset→team→environment (team only with ownership
@@ -20,13 +20,13 @@ prices.
   when both clouds are known), `cost_findings` COST001–COST007,
   `driver_kinds_for_engine` + `migration_cost_delta` (kind-set diff,
   never "target cheaper").
-- `src/forge_doctor/core/execution_model.py` — additive:
+- `src/forge_doctor_data/core/execution_model.py` — additive:
   `ExecutionScan.files_scanned` (exported file count) so COST007 only
   fires on real file evidence.
-- `src/forge_doctor/knowledge/cost_drivers/` — **new** packs:
+- `src/forge_doctor_data/knowledge/cost_drivers/` — **new** packs:
   `thresholds.json` (byte/count bounds), `drivers.json` (per-engine
   driver semantics, no pricing).
-- `src/forge_doctor/cli/runtime.py` — `runtime cost` command
+- `src/forge_doctor_data/cli/runtime.py` — `runtime cost` command
   (optional `--root` for entity drivers + transfer detection).
 - `docs/checks.md` — COST### documented as runtime-scoped findings.
 - `tests/unit/test_cost_drivers.py` — **new**, 15 tests.

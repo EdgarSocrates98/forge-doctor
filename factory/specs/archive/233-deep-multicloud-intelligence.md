@@ -58,7 +58,7 @@ depth for Azure and GCP.
 - No new vendor without evidence-analyzers; detection only from repo
   artifacts (Terraform, config, code, committed exports).
 - Hermetic rule §13: no os.environ/home/which inside analyzers.
-- Error-severity lab findings need [[tool.forge-doctor.suppressions]]
+- Error-severity lab findings need [[tool.forge-doctor-data.suppressions]]
   entries (RS004 precedent) so the dogfood job stays green.
 
 ## Test requirements

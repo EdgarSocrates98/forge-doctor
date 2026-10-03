@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.cost_drivers import (
+from forge_doctor_data.core.cost_drivers import (
     CostDriverKind,
     CostPolicy,
     cost_findings,
@@ -11,7 +11,7 @@ from forge_doctor.core.cost_drivers import (
     extract_drivers,
     migration_cost_delta,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionScan,
     ExecutionStage,
     QueryExecution,
@@ -70,7 +70,7 @@ def test_scan_shuffle_spill_drivers() -> None:
 
 
 def test_team_attribution_requires_ownership_evidence() -> None:
-    from forge_doctor.core.platform_graph import (
+    from forge_doctor_data.core.platform_graph import (
         DataPlatformGraph,
         Entity,
         EntityKind,
@@ -120,7 +120,7 @@ def test_cost002_repeated_scan_volume() -> None:
 
 
 def test_cost003_cross_cloud_transfer() -> None:
-    from forge_doctor.core.platform_graph import (
+    from forge_doctor_data.core.platform_graph import (
         DataPlatformGraph,
         Entity,
         EntityKind,
@@ -137,7 +137,7 @@ def test_cost003_cross_cloud_transfer() -> None:
 
 
 def test_no_transfer_when_cloud_unknown() -> None:
-    from forge_doctor.core.platform_graph import (
+    from forge_doctor_data.core.platform_graph import (
         DataPlatformGraph,
         Entity,
         EntityKind,
@@ -150,7 +150,7 @@ def test_no_transfer_when_cloud_unknown() -> None:
 
 
 def test_cost004_replication() -> None:
-    from forge_doctor.core.platform_graph import (
+    from forge_doctor_data.core.platform_graph import (
         DataPlatformGraph,
         Entity,
         EntityKind,

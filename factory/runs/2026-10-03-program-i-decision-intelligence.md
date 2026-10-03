@@ -13,14 +13,14 @@ Automate ranking, not decisions.
 
 ## Files changed
 
-- `src/forge_doctor/core/decisions.py` — **new**: `Advice` model +
+- `src/forge_doctor_data/core/decisions.py` — **new**: `Advice` model +
   `advise()` ranking. Score = documented constant terms
   (severity 100/40, confidence 30/15/5, cluster 10 + size*5 +
   confirmed 30, fix 20/10/0, plan 15, policy 40, blast radius min
   10*3); `score == sum(breakdown)` is a test-pinned invariant.
-- `src/forge_doctor/cli/advise.py` — **new**: `advise <path>`
+- `src/forge_doctor_data/cli/advise.py` — **new**: `advise <path>`
   (text table w/ breakdown rows, `-f json`, `--top N`).
-- `src/forge_doctor/cli/__init__.py` — registration (Estate & change
+- `src/forge_doctor_data/cli/__init__.py` — registration (Estate & change
   panel).
 - `tests/unit/test_decisions.py` — **new**, 11 tests.
 - `README.md`, `CHANGELOG.md` — entries.

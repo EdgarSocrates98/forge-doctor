@@ -32,7 +32,7 @@ later. Existing `iac` checks stay untouched.
   (WARNING), TF022 git module without immutable ref (`ref=main|master|HEAD`
   or no ref - WARNING), TF130 `backend "local"` (WARNING). why/when_ok/fix
   on each.
-- `cli/terraform.py`: `forge-doctor terraform inspect [path]` rendering the
+- `cli/terraform.py`: `forge-doctor-data terraform inspect [path]` rendering the
   reviewer's shape (Terraform version / Providers / Resources by domain /
   Modules / State / Findings).
 - `knowledge/terraform/language.json` (feature floors: moved>=1.1,

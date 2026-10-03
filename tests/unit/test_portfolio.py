@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     Relationship,
 )
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     EntityKind as K,
 )
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     RelKind as R,
 )
-from forge_doctor.core.portfolio import (
+from forge_doctor_data.core.portfolio import (
     DuplicationClass,
     DuplicationKind,
     LifecycleStatus,
@@ -31,7 +31,7 @@ from forge_doctor.core.portfolio import (
     record_optimization_evidence,
     recurring_patterns,
 )
-from forge_doctor.core.workspace import WorkspaceModel, WorkspaceRepo
+from forge_doctor_data.core.workspace import WorkspaceModel, WorkspaceRepo
 
 
 def _e(kind: K, domain: str, ident: str, **attrs: str) -> Entity:
@@ -124,7 +124,7 @@ class TestPortfolio:
 
 class TestLifecycle:
     def test_unknown_platform(self) -> None:
-        from forge_doctor.core.portfolio import _lifecycle
+        from forge_doctor_data.core.portfolio import _lifecycle
 
         status, _ = _lifecycle("nonexistent_platform_xyz", "1.0")
         assert status is LifecycleStatus.UNKNOWN

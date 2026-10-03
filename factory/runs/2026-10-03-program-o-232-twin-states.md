@@ -13,13 +13,13 @@ snapshot diffing, and history recording.
 
 ## Files changed
 
-- `src/forge_doctor/core/twin_states.py` — **new**: `TwinState`,
+- `src/forge_doctor_data/core/twin_states.py` — **new**: `TwinState`,
   `TwinFact`, `DriftType` (`OWNERSHIP_DRIFT`, `IMPLEMENTATION_DRIFT`,
   `MISSING_DESIRED`, `UNDECLARED_IMPLEMENTATION`),
   `collect_twin_facts`, `reconcile`, `drift_summary`,
   `twin_state_snapshot`, `diff_twin_snapshots`,
   `record_twin_snapshot`, `hypothetical_facts` (WhatIfReport → facts).
-- `src/forge_doctor/cli/twin.py` — `twin facts`, `twin reconcile`,
+- `src/forge_doctor_data/cli/twin.py` — `twin facts`, `twin reconcile`,
   `twin diff <a> <b>`, `twin explain`, `twin record <name>`.
 - `tests/unit/test_twin_states.py` — **new**.
 

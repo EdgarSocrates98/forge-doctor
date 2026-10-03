@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.datacontract_model import datacontract_model, norm_family
-from forge_doctor.checks.datacontract import CHECKS
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.analyzers.datacontract_model import datacontract_model, norm_family
+from forge_doctor_data.checks.datacontract import CHECKS
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.semantic_diff import (
+from forge_doctor_data.core.semantic_diff import (
     RISK_HIGH,
     RISK_LOW,
     _type_relation,
@@ -177,7 +177,7 @@ def test_dctr003_no_detected_schema_quiet(tmp_path: Path) -> None:
 
 
 def test_graph_contract_governs_relation(tmp_path: Path) -> None:
-    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
 
     _write_contract(tmp_path)
     (tmp_path / "ddl.sql").write_text("CREATE TABLE orders (order_id BIGINT);\n", encoding="utf-8")

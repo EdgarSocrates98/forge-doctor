@@ -28,7 +28,7 @@ changed → only impacted rules re-evaluated.
   same tree — a test compares incremental vs full results on fixtures
   after seeded edits. Where a check's evidence domain can't be bounded,
   it always runs (conservative default).
-- `forge-doctor scan --incremental` flag (opt-in; full scan stays
+- `forge-doctor-data scan --incremental` flag (opt-in; full scan stays
   default) and `--watch` uses the incremental path when enabled.
 
 ## Constraints

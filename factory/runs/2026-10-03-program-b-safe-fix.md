@@ -12,7 +12,7 @@ repair is a pure, reversible edit.
 
 ## Files changed
 
-- `src/forge_doctor/core/fixes.py` — **new** (~360 lines): `FixAction`
+- `src/forge_doctor_data/core/fixes.py` — **new** (~360 lines): `FixAction`
   model (`check_id`, `check_ids`, `fingerprints`, `file`, `title`,
   `fix_class`, `transform`, `before`/`after`, `create`/`delete`,
   `guidance`, `superseded`), transform registry keyed by check id,
@@ -21,10 +21,10 @@ repair is a pure, reversible edit.
   streaming(-bus), controlm, glue, stepfunctions), `plan_fixes` with
   deterministic same-file superseding, `apply_fix` with root-escape +
   stale-source + manual-class refusal, unified-diff rendering.
-- `src/forge_doctor/cli/fix.py` — **new** `forge-doctor fix <path>`:
+- `src/forge_doctor_data/cli/fix.py` — **new** `forge-doctor-data fix <path>`:
   dry-run diffs by default; `--apply` writes `safe` only;
   `--apply --class review` adds review tier; `--json` audit output.
-- `src/forge_doctor/cli/__init__.py` — register module + help panel.
+- `src/forge_doctor_data/cli/__init__.py` — register module + help panel.
 - `tests/unit/test_fixes.py` — **new**, 24 tests.
 - `README.md`, `docs/checks.md`, `docs/getting-started.md`,
   `CHANGELOG.md` — user-facing docs.

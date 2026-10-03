@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.neptune import (
+from forge_doctor_data.checks.neptune import (
     CHECKS,
     AnalyticsOnDatabase,
     BulkLoaderCandidate,
@@ -28,8 +28,8 @@ from forge_doctor.checks.neptune import (
     WeakBackup,
     WeakSelectivity,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

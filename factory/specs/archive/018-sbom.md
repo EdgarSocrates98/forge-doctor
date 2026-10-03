@@ -1,6 +1,6 @@
 ---
 id: 018-sbom
-title: forge-doctor sbom — CycloneDX output
+title: forge-doctor-data sbom — CycloneDX output
 agent: devin
 risk: low
 grill: completed

@@ -7,10 +7,10 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.models import EvidenceKind
-from forge_doctor.core.platform_graph import DataPlatformGraph, Entity, EntityKind
-from forge_doctor.core.twin_states import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.models import EvidenceKind
+from forge_doctor_data.core.platform_graph import DataPlatformGraph, Entity, EntityKind
+from forge_doctor_data.core.twin_states import (
     DriftType,
     TwinFact,
     TwinState,
@@ -22,7 +22,7 @@ from forge_doctor.core.twin_states import (
     record_twin_snapshot,
     twin_state_snapshot,
 )
-from forge_doctor.core.whatif import WhatIfChange, WhatIfImpact, WhatIfReport
+from forge_doctor_data.core.whatif import WhatIfChange, WhatIfImpact, WhatIfReport
 
 runner = CliRunner()
 
@@ -183,7 +183,7 @@ def test_record_and_load_roundtrip(tmp_path: Path) -> None:
     path = record_twin_snapshot(tmp_path, snap, "snap1")
     assert path.is_file()
     loaded = load_twin_snapshot(tmp_path, "snap1")
-    assert loaded["format"] == "forge-doctor/twin-state@1"
+    assert loaded["format"] == "forge-doctor-data/twin-state@1"
     assert loaded["entities"] == snap["entities"]
 
 

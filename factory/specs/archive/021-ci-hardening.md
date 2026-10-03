@@ -10,6 +10,6 @@ verification:
 
 # Acceptance Criteria
 - quality job unchanged (ubuntu 3.11-3.13)
-- smoke job: os x [ubuntu,windows,macos] x py3.12: poetry build; pip install wheel; forge-doctor --version; scan a fixture project
+- smoke job: os x [ubuntu,windows,macos] x py3.12: poetry build; pip install wheel; forge-doctor-data --version; scan a fixture project
 - dogfood job: uses: ./ with sarif-file disabled
 - pyproject requires-poetry >=2.2

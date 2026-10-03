@@ -16,10 +16,10 @@ non-allowlisted plugin still executes code on import. Check-ids can't be a
 load barrier (only known post-load).
 
 # Acceptance Criteria
-- New config: `[tool.forge-doctor.plugins] trusted = [dist|entry-point names]`
+- New config: `[tool.forge-doctor-data.plugins] trusted = [dist|entry-point names]`
   gates at entry-point METADATA level — disallowed plugins are never loaded.
   No `ep.load()` on untrusted plugins.
-- Post-load check filtering: `[tool.forge-doctor.plugins.checks] enabled =
+- Post-load check filtering: `[tool.forge-doctor-data.plugins.checks] enabled =
   [check ids]` (or `disabled`), applied after load for trusted plugins.
 - Backward compat: existing `allow = [...]` keeps working — dist/entry-point
   entries act as trust gate, check-id entries as post-load filter. Documented.

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.parquet_model import parquet_model
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.parquet_model import parquet_model
+from forge_doctor_data.core.context import ProjectContext
 
 
 def make_context(tmp_path: Path, files: dict[str, str | bytes]) -> ProjectContext:

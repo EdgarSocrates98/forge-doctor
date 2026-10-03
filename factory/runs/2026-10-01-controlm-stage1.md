@@ -30,7 +30,7 @@ semantic model + detection + structural checks + `controlm inspect`.
   produced, CTM010 event-never-consumed, CTM028 undefined calendar,
   CTM051 missing required metadata (field list from objects pack),
   CTM070 credential literal (no evidence line — would leak the value).
-- `cli/controlm.py` — `forge-doctor controlm inspect` (definitions,
+- `cli/controlm.py` — `forge-doctor-data controlm inspect` (definitions,
   folders, jobs-by-type + per-job target/trigger, events incl. unmatched,
   calendars, site standards, refs, severity-sorted risks).
 - `knowledge/controlm/objects.json` + `knowledge/errors/controlm.json`

@@ -28,7 +28,7 @@
   STREAM014 dynamic checkpoint (WARNING), STREAM020 stateful-without-
   watermark honoring the pack's `needs_watermark` op table (INFO),
   STREAM070 foreachBatch detected (INFO).
-- `forge-doctor streaming inspect` — per-query `source → sink`,
+- `forge-doctor-data streaming inspect` — per-query `source → sink`,
   mode/trigger/checkpoint/watermark/stateful facts, severity-sorted
   risks. Verified live.
 - `knowledge/streaming/spark/stateful_ops.json` — op→state-type map +

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.service import (
+from forge_doctor_data.core.service import (
     PLUGINS_ENV_VAR,
     ScanRequest,
     ScanRequestError,
@@ -33,7 +33,7 @@ def test_unknown_category_raises(tmp_path: Path):
 def test_policy_suppressions_applied(tmp_path: Path):
     (tmp_path / "pyproject.toml").write_text(
         "[project]\nname='x'\n\n"
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "REP002"\nreason = "docs elsewhere"\nowner = "t"\n'
     )
     outcome = ScanService(warn=lambda m: None).run(ScanRequest(path=tmp_path))

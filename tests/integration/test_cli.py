@@ -3,8 +3,8 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor import __version__
-from forge_doctor.cli import app
+from forge_doctor_data import __version__
+from forge_doctor_data.cli import app
 
 runner = CliRunner()
 
@@ -32,7 +32,7 @@ def test_help_panels_group_commands():
 
 
 def test_bare_invocation_shows_help():
-    """Bare `forge-doctor` prints the full help instead of a bare
+    """Bare `forge-doctor-data` prints the full help instead of a bare
     'Missing command' error; exit stays non-zero (it is a usage error)."""
     result = runner.invoke(app, [])
     assert result.exit_code in (0, 2)
@@ -50,7 +50,7 @@ def test_scan_help_option_panels():
 def test_version_flag():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "forge-doctor" in result.output
+    assert "forge-doctor-data" in result.output
 
 
 def test_version_command():
@@ -145,7 +145,7 @@ def test_scan_html_default_output(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["scan", str(tmp_path), "--format", "html"])
     assert result.exit_code == 0, result.output
-    assert (tmp_path / "forge-doctor-report.html").exists()
+    assert (tmp_path / "forge-doctor-data-report.html").exists()
 
 
 def test_scan_text_output_to_file(tmp_path: Path):
@@ -228,7 +228,7 @@ def test_watch_rejects_non_text_format(tmp_path: Path):
 
 
 def test_snapshot_detects_changes(tmp_path: Path):
-    from forge_doctor.cli import _snapshot
+    from forge_doctor_data.cli import _snapshot
 
     (tmp_path / "a.py").write_text("x = 1\n", encoding="utf-8")
     first = _snapshot(tmp_path)
@@ -277,14 +277,14 @@ def test_scan_sarif_output(tmp_path: Path):
     assert result.exit_code == 0, result.output
     sarif = json.loads(result.output)
     assert sarif["version"] == "2.1.0"
-    assert sarif["runs"][0]["tool"]["driver"]["name"] == "forge-doctor"
+    assert sarif["runs"][0]["tool"]["driver"]["name"] == "forge-doctor-data"
 
 
 def test_scan_agent_output(tmp_path: Path):
     result = runner.invoke(app, ["scan", str(tmp_path), "--format", "agent"])
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
-    assert payload["tool"] == "forge-doctor"
+    assert payload["tool"] == "forge-doctor-data"
     assert all(set(f) == {"id", "sev", "loc", "fp"} for f in payload["findings"])
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.spark import (
+from forge_doctor_data.checks.spark import (
     CHECKS,
     ActionInLoop,
     CacheWithoutUnpersist,
@@ -19,8 +19,8 @@ from forge_doctor.checks.spark import (
     WithColumnInLoop,
     analyze_project,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 JOB = """\
 from pyspark.sql import SparkSession

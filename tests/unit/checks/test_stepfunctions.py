@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.stepfunctions import (
+from forge_doctor_data.checks.stepfunctions import (
     CHECKS,
     ChoiceNoDefault,
     DeadEndState,
@@ -12,8 +12,8 @@ from forge_doctor.checks.stepfunctions import (
     SyncTaskNoTimeout,
     UnreachableState,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -133,7 +133,7 @@ def test_all_checks_run(tmp_path: Path) -> None:
 def test_cli_inspect(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     make_context(tmp_path, {"m.states.json": SIMPLE})
     result = CliRunner().invoke(app, ["stepfunctions", "inspect", str(tmp_path)])
@@ -145,7 +145,7 @@ def test_cli_inspect(tmp_path: Path) -> None:
 def test_cli_inspect_empty(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     result = CliRunner().invoke(app, ["stepfunctions", "inspect", str(tmp_path)])
     assert result.exit_code == 0

@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from forge_doctor import __version__
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
-from forge_doctor.core.registry import CheckRegistry
-from forge_doctor.core.runner import CheckRunner
-from forge_doctor.plugins.protocol import CheckBase
+from forge_doctor_data import __version__
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.registry import CheckRegistry
+from forge_doctor_data.core.runner import CheckRunner
+from forge_doctor_data.plugins.protocol import CheckBase
 
 
 class _Ok(CheckBase):
@@ -42,11 +42,11 @@ def test_runner_collects_results(tmp_path: Path):
 
 def test_runner_stamps_plugin_source(tmp_path: Path):
     check = _Ok()
-    check.__fd_source__ = "forge-doctor-example"  # type: ignore[attr-defined]
+    check.__fd_source__ = "forge-doctor-data-example"  # type: ignore[attr-defined]
     registry = CheckRegistry()
     registry.register(check)
     report = CheckRunner(registry).run(ProjectContext(root=tmp_path))
-    assert report.results[0].source == "forge-doctor-example"
+    assert report.results[0].source == "forge-doctor-data-example"
 
 
 def test_runner_builtin_results_have_no_source(tmp_path: Path):

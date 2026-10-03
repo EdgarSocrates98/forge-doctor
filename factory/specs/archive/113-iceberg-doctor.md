@@ -12,7 +12,7 @@ verification:
 ---
 
 # Context
-`prompt_fase2.md` ("Forge Doctor 0.8 — Iceberg Intelligence") supersedes the
+`prompt_fase2.md` ("Forge Doctor Data 0.8 — Iceberg Intelligence") supersedes the
 original thin spec 113. Requirements per the review:
 
 - An `IcebergProjectModel` semantic model (V11) absorbing evidence from
@@ -73,7 +73,7 @@ original thin spec 113. Requirements per the review:
 - Register unconditionally (sqlglot optional); document in `explain`.
 
 ## Commands (`cli/iceberg.py`, `app.add_typer(iceberg_app, "iceberg")`)
-- `forge-doctor iceberg inspect [path]` — Rich summary: runtimes, catalogs,
+- `forge-doctor-data iceberg inspect [path]` — Rich summary: runtimes, catalogs,
   operation counts, maintenance detected/not-detected, and the ICE check
   findings summary (like the reviewer's example block).
 - `iceberg maintenance` — maintenance posture only (each maintenance op:

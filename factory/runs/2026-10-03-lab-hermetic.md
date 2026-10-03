@@ -11,7 +11,7 @@ host state leaked into "deterministic" results:
 - `AWS002` read `~/.aws/config` (PASS locally, WARNING on CI) —
   the observed CI failure.
 - `ctx.git` ascended to ancestor repos — CI's `.pytest_tmp` basetemp
-  inside the checkout made GIT checks evaluate *forge-doctor's own*
+  inside the checkout made GIT checks evaluate *forge-doctor-data's own*
   tracked files.
 - `shutil.which` (`aws`, `poetry`) and `ctx.env`/`python_version` varied
   per machine.

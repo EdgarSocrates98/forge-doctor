@@ -24,9 +24,9 @@ conditions) and effective scheduling.
   schedule-never-fires heuristics (CTM029: impossible WeekDays+Calendar
   intersection, conflicting FromTime/ToTime CTM027, cyclic without end
   CTM026, narrow window CTM025 when downstream of a longer-window upstream).
-- `forge-doctor controlm schedule <path>` — per-folder effective schedule
+- `forge-doctor-data controlm schedule <path>` — per-folder effective schedule
   view (calendar, window) + risks, matching the reviewer's example shape.
-- `forge-doctor controlm graph <path>` — text/dot rendering of the DAG.
+- `forge-doctor-data controlm graph <path>` — text/dot rendering of the DAG.
 
 # Constraints
 - No SCC/heavy graph lib — small deterministic topo/cycle impl.

@@ -1,6 +1,6 @@
 ---
 id: 022-graph
-title: Project Intelligence Graph — forge-doctor graph
+title: Project Intelligence Graph — forge-doctor-data graph
 agent: devin
 risk: medium
 grill: completed

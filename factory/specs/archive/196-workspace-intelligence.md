@@ -5,9 +5,9 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_workspace.py tests/unit/adversarial/test_workspace.py -x -q
-  - python -m forge_doctor workspace inspect --path <workspace>
-  - python -m forge_doctor lab run
-  - python -m forge_doctor golden run
+  - python -m forge_doctor_data workspace inspect --path <workspace>
+  - python -m forge_doctor_data lab run
+  - python -m forge_doctor_data golden run
 ---
 
 # Roadmap-2 Phase 5 - Workspace Multi-Repository Intelligence
@@ -32,7 +32,7 @@ one WorkspaceModel with repo entities and cross-repo links.
   E` (glue code file whose normalized stem matches the job name),
   `repo INVOKES E` (repo's workflows target it). Internal `task:*`
   targets and same-repo invocations are not links.
-- `forge-doctor workspace inspect [--format json]` prints repos,
+- `forge-doctor-data workspace inspect [--format json]` prints repos,
   languages, markers, the merged-graph stats, and the link table.
 - Tests: discovery rules, convergence, all three link kinds, spoofed
   filenames (no glue code → no IMPLEMENTS), self-links suppressed,

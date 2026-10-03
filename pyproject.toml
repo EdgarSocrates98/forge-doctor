@@ -1,8 +1,8 @@
 [project]
-name = "forge-doctor"
+name = "forge-doctor-data"
 version = "0.7.0"
 description = "Deterministic diagnostics for data engineering projects"
-authors = [{ name = "Forge Doctor contributors" }]
+authors = [{ name = "Forge Doctor Data contributors" }]
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -31,11 +31,11 @@ schemas = ["pyyaml>=6.0"]
 sql = ["sqlglot>=26,<29"]
 
 [project.urls]
-Repository = "https://github.com/EdgarSocrates98/forge-doctor"
-Changelog = "https://github.com/EdgarSocrates98/forge-doctor/blob/main/CHANGELOG.md"
+Repository = "https://github.com/EdgarSocrates98/forge-doctor-data"
+Changelog = "https://github.com/EdgarSocrates98/forge-doctor-data/blob/main/CHANGELOG.md"
 
 [project.scripts]
-forge-doctor = "forge_doctor.cli:app"
+forge-doctor-data = "forge_doctor_data.cli:app"
 
 [dependency-groups]
 dev = [
@@ -47,17 +47,17 @@ dev = [
 ]
 
 [tool.poetry]
-packages = [{ include = "forge_doctor", from = "src" }]
-include = [{ path = "src/forge_doctor/knowledge", format = ["sdist", "wheel"] }]
+packages = [{ include = "forge_doctor_data", from = "src" }]
+include = [{ path = "src/forge_doctor_data/knowledge", format = ["sdist", "wheel"] }]
 requires-poetry = ">=2.2"
 
-[tool.forge-doctor]
+[tool.forge-doctor-data]
 exclude = [".pytest_tmp/**", "tests/sample_projects/**"]
 
 # labs/** fixtures are intentionally misconfigured mini-projects used as
 # detection ground truth; suppress their expected error findings so the
 # dogfood CI job only fails on real regressions.
-[[tool.forge-doctor.suppressions]]
+[[tool.forge-doctor-data.suppressions]]
 rule = "RS004"
 path = "labs/**"
 reason = "lab fixture intentionally sets publicly_accessible/unencrypted cluster"
@@ -69,7 +69,7 @@ testpaths = ["tests"]
 addopts = "-ra --basetemp=.pytest_tmp"
 
 [tool.coverage.run]
-source = ["src/forge_doctor"]
+source = ["src/forge_doctor_data"]
 branch = true
 
 [tool.coverage.report]
@@ -95,12 +95,12 @@ ignore = ["RUF001"]  # severity icons (ℹ ⚠) are deliberate
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
-"src/forge_doctor/cli/**" = ["B006"]  # Typer list-valued options use [] defaults
+"src/forge_doctor_data/cli/**" = ["B006"]  # Typer list-valued options use [] defaults
 
 [tool.mypy]
 python_version = "3.11"
 mypy_path = "src"
-packages = ["forge_doctor"]
+packages = ["forge_doctor_data"]
 strict = true
 warn_unreachable = true
 
@@ -113,7 +113,7 @@ ignore_missing_imports = true
 
 # pygls decorators are untyped upstream.
 [[tool.mypy.overrides]]
-module = ["forge_doctor.integrations.lsp_server"]
+module = ["forge_doctor_data.integrations.lsp_server"]
 disallow_untyped_decorators = false
 
 [build-system]

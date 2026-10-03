@@ -9,22 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added (roadmap-2: production readiness)
 
-- **Forge Lab** — `forge-doctor lab list|run|report|metrics`:
+- **Forge Lab** — `forge-doctor-data lab list|run|report|metrics`:
   reproducible scenario suites under `labs/` with `expected.json`
   ground truth plus per-domain precision/recall/FPR/parser-coverage
   metrics (`allowed_findings` + `labs/_defaults.json` noise budgets).
-- **Golden repositories** — `forge-doctor golden list|run|update`:
+- **Golden repositories** — `forge-doctor-data golden list|run|update`:
   `golden/<name>/repo` + `expected/` snapshots pin full engine output
   (findings, graph, root causes, remediations, migrations) for
   regression gating. 8-repo seed corpus.
-- **Performance benchmark** — `forge-doctor bench run [--files N]`
+- **Performance benchmark** — `forge-doctor-data bench run [--files N]`
   measures cold/warm scan time, AST parse count, graph build, pack load,
   and peak memory; `--budget` enforces portable ratio/count budgets.
-- **Workspace intelligence** — `forge-doctor workspace inspect` builds a
+- **Workspace intelligence** — `forge-doctor-data workspace inspect` builds a
   `WorkspaceModel`: marker-based repo discovery, per-repo platform
   graphs merged by canonical entity id, and cross-repo `DEFINES` /
   `IMPLEMENTS` / `INVOKES` links from `repo:workspace:<name>` entities.
-- **Semantic diff** — `forge-doctor diff <base>...<head> --semantic`:
+- **Semantic diff** — `forge-doctor-data diff <base>...<head> --semantic`:
   entity-level `added`/`removed`/`modified`/`touched` changes, blast
   radius via dependency-aware traversal, and a deterministic
   low/medium/high risk classification with reasons — CI-gateable PR
@@ -34,17 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `spark_version`); `add_entity` merges duplicate-id entities instead of
   discarding later producers' attrs.
 - **Organization policy packs** — declarative `forbid`/`require` rules
-  in `.forge-doctor/policy/*.yml|*.json` (or `policy_packs` config):
+  in `.forge-doctor-data/policy/*.yml|*.json` (or `policy_packs` config):
   file-pattern rules, terraform attr checks (`equals`/`matches`/
   `present`), required files, required file content. Findings carry org
   rule ids; invalid packs surface as `POLICY010`. New commands:
-  `forge-doctor policy list|eval|validate`.
-- **Public API** — `forge_doctor.api` is the stable SDK surface
+  `forge-doctor-data policy list|eval|validate`.
+- **Public API** — `forge_doctor_data.api` is the stable SDK surface
   (`scan`, `platform_graph`, `capabilities_evaluate`, `what_if`,
   `migrate_plans`, `version`, `SCHEMA_VERSION`, re-exported
   `ScanReport`/`ScanOptions`/`DataPlatformGraph`); `SCHEMA_VERSION` is
   now the single constant behind every `schema_version` JSON key.
-  `forge-doctor schema contracts [name]` publishes JSON Schemas for the
+  `forge-doctor-data schema contracts [name]` publishes JSON Schemas for the
   public artifacts; `docs/api.md` records the semver/stability rules.
 - **Docs completeness** — README usage now covers every command group
   (domain `inspect` CLIs, `lab`/`golden`/`bench`, `policy`, `what-if`,
@@ -65,26 +65,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   strengthened: contract-shape asserts plus `schema contracts`,
   `explain`, `checks` on the installed wheel. New `docs/release.md`
   v1.0 pre-flight checklist.
-- **Plugin SDK & ecosystem** — `forge_doctor.sdk` is the stable
+- **Plugin SDK & ecosystem** — `forge_doctor_data.sdk` is the stable
   author-facing surface (Check/CheckBase/CheckResult/PluginDescriptor/
   ProjectContext/api versions, `__all__` pinned); `plugins init`
   scaffolds a complete plugin package; `plugins lock`/`verify` pin and
   audit installed-plugin integrity via content digests; `plugins
   install` wraps `pipx inject`/`pip` with post-install validation;
-  `[tool.forge-doctor.plugins] mode = "strict"` adds default-deny trust
+  `[tool.forge-doctor-data.plugins] mode = "strict"` adds default-deny trust
   (only `trusted` may load — `allow` identities no longer suffice).
 - **Enterprise governance** — policy packs gain layering (`extends:` a
   named or path-referenced pack; child rules override the parent's on
   id collision; cycles/missing refs surface as `POLICY010`) and
   `require_approval`, under which suppressions missing `approved_by`
   emit `POLICY011` findings. `suppressions` records/report show the
-  approver. `forge-doctor policy report` summarizes compliance (packs,
+  approver. `forge-doctor-data policy report` summarizes compliance (packs,
   violations by rule, suppression audit; `--format json`). `--baseline`
   /`--save-baseline` accept bare names (`main`) that resolve to
-  `.forge-doctor/baselines/<name>.json` for per-branch baselines.
+  `.forge-doctor-data/baselines/<name>.json` for per-branch baselines.
   `scan --evidence-out <dir>` writes a dated audit bundle
   (`report.json` + `suppressions.json` + `packs.json`).
-- **Fleet intelligence** — `forge-doctor fleet` merges a manifest of
+- **Fleet intelligence** — `forge-doctor-data fleet` merges a manifest of
   repositories (`fleet.yml`/`fleet.json` paths, or `root:`/directory
   workspace discovery) into one estate graph via the same
   DEFINES/IMPLEMENTS/INVOKES merge as `workspace`. Queries:
@@ -94,9 +94,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <check-id|glob>` (per-repo scan). `fleet report` = estate census +
   findings roll-up; text + JSON. See `docs/fleet.md`.
 - **Historical intelligence** — `scan --record [--keep N]` appends a
-  compact snapshot to `.forge-doctor/history/<utc>.json` (summary
+  compact snapshot to `.forge-doctor-data/history/<utc>.json` (summary
   counts, finding fingerprints, entity census, capability states, ARCH
-  drift ids). `forge-doctor history` lists snapshots; `history diff
+  drift ids). `forge-doctor-data history` lists snapshots; `history diff
   <a> <b>`/`--last` reports new/resolved findings (fingerprint join
   key), entity adds/removals, capability transitions, drift changes;
   `history trend` shows per-category counts over the series + a debt
@@ -106,7 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Scan & findings / Platform intelligence / Estate & change / Quality
   gates / Setup & integrations); scan options grouped into Scope &
   filters / Output / Gates & baselines / Runtime / History & evidence
-  with a runnable `Examples:` epilog; bare `forge-doctor` prints help;
+  with a runnable `Examples:` epilog; bare `forge-doctor-data` prints help;
   groups with a bare-invoke default advertise it ("Bare: …"); category
   section headers render proper names (AWS, CI, IaC, DynamoDB…).
 - **Change intelligence** — `diff --semantic` now reports capability
@@ -119,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `diff --semantic -f json` emits `capabilities` +
   `migration_requirements`; absent or uncovered versions report
   `unknown`, never fabricated steps. Exit-code semantics unchanged.
-- **Incremental analysis** — `forge-doctor scan --incremental` reuses
+- **Incremental analysis** — `forge-doctor-data scan --incremental` reuses
   per-check results from the previous scan for checks whose declared
   evidence domains are untouched by the file changes detected since
   then. `core/incremental.py` defines the evidence-domain vocabulary
@@ -133,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   incremental and full scans. `--stats` reports
   `incremental: N file(s) changed, X checks rerun, Y reused`; watch
   mode inherits incremental when enabled.
-- **Safe-fix intelligence** — `forge-doctor fix <path>` produces
+- **Safe-fix intelligence** — `forge-doctor-data fix <path>` produces
   safety-classified fix proposals (`core/fixes.py`): `safe`
   deterministic text transforms (declare `requires-python`, append
   ignore patterns to `.gitignore`, create a default `.gitignore`),
@@ -143,7 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   diffs; `--apply` re-reads targets and aborts stale sources; `--json`
   emits an audit record. No git ops, no commits — version control is
   the rollback.
-- **Experiment engine** — `forge-doctor lab experiment <scenario>
+- **Experiment engine** — `forge-doctor-data lab experiment <scenario>
   --hypothesis <name>` applies a named deterministic transform
   (`bump-glue-version`, `partition-data`, `add-checkpoint`,
   `increase-trigger-interval`) to a temporary copy of a lab fixture,
@@ -167,12 +167,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   interop surface: `evidence`, `finding`, `capability-report`,
   `platform-graph`, `remediation-plan`, and `handoff-bundle` join the
   existing `scan-report`/`policy-pack`/`lab-expected`/`golden-snapshot`
-  schemas (`forge-doctor schema contracts <name>`). New commands:
-  `forge-doctor export <path> --format handoff` emits a portable JSON
+  schemas (`forge-doctor-data schema contracts <name>`). New commands:
+  `forge-doctor-data export <path> --format handoff` emits a portable JSON
   bundle (`{contract, contract_version, schema_version, tool, project,
   summary, results, graph, capabilities, plans}`) with stable keys and
   deterministic ordering for downstream Forge tools, and
-  `forge-doctor contracts list|verify <bundle>` validates an artifact
+  `forge-doctor-data contracts list|verify <bundle>` validates an artifact
   file or stdin against the published schemas via a dependency-free
   subset validator (`core/contract_check.py`). `plan_to_dict()` moves to
   `core/remediation.py` so `remediate --json` and handoff bundles share
@@ -180,8 +180,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Platform ontology** — `core/ontology.py` is the canonical vocabulary
   registry: every entity kind, relationship kind, evidence plane,
   evidence domain, producer domain, and capability family carries a
-  documented definition. `forge-doctor ontology` prints it
-  (`-f json` for the stable machine shape); `forge-doctor ontology
+  documented definition. `forge-doctor-data ontology` prints it
+  (`-f json` for the stable machine shape); `forge-doctor-data ontology
   validate <path>` conformance-checks a project's graph — free-text
   producer domains outside the vocabulary are diagnostics. The
   `platform-graph` contract now pins `kind`/`evidence_kind` to the
@@ -190,7 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Capability graph** — every evaluated capability now carries its
   deciding evidence: `CapabilityResult` gains `entry_id`,
   `matched_when`, and `missing_evidence` (for `unknown` — the versions
-  or when-attrs that would decide). `forge-doctor capabilities graph
+  or when-attrs that would decide). `forge-doctor-data capabilities graph
   <path>` renders the provenance subgraph: `capability` entities
   `EVIDENCED_BY` their deciding `knowledge_pack` entities plus the
   platform entities that supplied the evaluated version; `--json`
@@ -204,12 +204,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   plus a deterministic invariant suite (I1 dangling endpoints, I2
   canonical id shape, I3 evidence-plane binding, I4 finding-file
   resolution under root, I5 attr-completeness as informational gaps).
-  `forge-doctor twin inspect <path>` prints the summary + invariant
+  `forge-doctor-data twin inspect <path>` prints the summary + invariant
   report and exits 1 on hard violations; `twin export` emits the
   deterministic snapshot artifact (`entities`/`relationships` +
   `invariants_ok`/`summary` header — satisfies the `platform-graph`
   contract). Validation reports; it never mutates the graph.
-- **Decision intelligence** — `forge-doctor advise <path>` merges
+- **Decision intelligence** — `forge-doctor-data advise <path>` merges
   existing signals into one ranked, fully-cited action list
   (`core/decisions.py`): severity, confidence, cluster membership
   (+runtime-confirmed boost), fix safety class, remediation plan
@@ -218,7 +218,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fingerprints and entity ids; ties break deterministically on
   fingerprint. `-f json` emits a stable shape; `--top N` truncates.
   Advisory only — it points at `fix`/`remediate`, never applies.
-- **Optimization intelligence** — `forge-doctor optimize <path>`
+- **Optimization intelligence** — `forge-doctor-data optimize <path>`
   enumerates the optimizations the platform is eligible for
   (`core/optimize.py`): finding-backed candidates reuse the experiment
   vocabulary (`partition-data`, `add-checkpoint`,
@@ -246,7 +246,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `analyzers/snowflake_model.py` populates a vendor detail model from
   Snowflake DDL (`CREATE WAREHOUSE|DATABASE|SCHEMA|TABLE|STAGE|PIPE|
   STREAM|TASK`, plus embedded `COPY INTO`), Terraform `snowflake_*`
-  resources, and observed `snowflake/` / `.forge-doctor/evidence/` /
+  resources, and observed `snowflake/` / `.forge-doctor-data/evidence/` /
   `information_schema*` JSON/CSV exports (unknown shapes recorded, not
   dropped). Facts merge into `WarehouseProjectModel` (deduped against
   Terraform rows) and the graph adapter emits Snowflake stages, streams,
@@ -255,7 +255,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Checks `SNOW001`–`SNOW005` cover missing `auto_suspend`, asymmetric
   `auto_resume`, unclustered large tables, public/insecure `COPY INTO`
   stages, and `SELECT *` in persisted DDL. New command
-  `forge-doctor snowflake inspect`, capability pack `snowflake.json`
+  `forge-doctor-data snowflake inspect`, capability pack `snowflake.json`
   (time travel, zero-copy clone, Snowpipe, streams/tasks, clustering,
   result caching, multi-cluster warehouses), and labs
   `labs/snowflake/no-auto-suspend` + adversarial `generic-sql`.
@@ -274,7 +274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   undocumented authorized views, and materialized views over mutable
   bases without `max_staleness`. `BigQueryJobsAdapter` ingests
   `INFORMATION_SCHEMA.JOBS` exports as runtime evidence (bytes
-  processed/billed, slot-ms). New command `forge-doctor bigquery
+  processed/billed, slot-ms). New command `forge-doctor-data bigquery
   inspect`, capability pack `bigquery.json` (partitioning, clustering,
   BI Engine, slots vs on-demand, time travel, BigLake, DML quotas),
   labs `labs/bigquery/unpartitioned` + adversarial `plain-sql`.
@@ -293,7 +293,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   maintenance scripts on ATO-eligible compute. STL/SVV-derived findings
   carry `evidence_kind=observed_metadata`. `RedshiftQueryLogAdapter`
   ingests STL_QUERY exports as runtime evidence (exec + WLM queue
-  times). New command `forge-doctor redshift inspect`, capability pack
+  times). New command `forge-doctor-data redshift inspect`, capability pack
   `redshift.json` (Spectrum, datashares, RA3 managed storage,
   Serverless RPU, concurrency scaling, auto MVs, dist/sort keys), labs
   `labs/redshift/public-cluster` + `skewed-even` + adversarial
@@ -313,7 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   them. Checks `DBT001`–`DBT005`: models without tests, incremental
   models without `unique_key`, sources without freshness, declared-but-
   unused sources, and low documentation coverage. New command
-  `forge-doctor dbt inspect`, labs `labs/dbt/basic-project` +
+  `forge-doctor-data dbt inspect`, labs `labs/dbt/basic-project` +
   adversarial `plain-dir`.
 - **Data contracts + schema evolution** (spec 217, roadmap-4 wave 2b) —
   `analyzers/datacontract_model.py` discovers `datacontract.yml`,
@@ -338,7 +338,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   limits, spill keys, `resource-groups.config-file`), `node.properties`,
   `jvm.config`, authored SQL `catalog.schema.table` three-part refs,
   and optional observed cluster exports (`trino/` or
-  `.forge-doctor/evidence/` JSON with coordinator/nodeVersion signal).
+  `.forge-doctor-data/evidence/` JSON with coordinator/nodeVersion signal).
   `.properties` parsing is a deterministic `key=value` + comments
   subset — no JVM. Checks `TRINO001`–`TRINO005`: hive catalog without
   metastore, coordinator without spill-to-disk while writes exist,
@@ -349,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   per-connector surfaces (reads/writes/pushdown/transactions) gated on
   the `connector` attribute plus spill/resource-group/event-listener
   facts. Graph: `catalog:trino:*` entities `CONTAINS` referenced
-  `table:trino:*`. New command `forge-doctor trino inspect`, labs
+  `table:trino:*`. New command `forge-doctor-data trino inspect`, labs
   `labs/trino/{prod-cluster,plain-props}`. Presto semantics deferred
   per spec.
 - **Analytical engines** (spec 219, roadmap-4 wave 3b) —
@@ -359,14 +359,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never attributes), Pinot (`*.table.json`/`*.schema.json` marker
   keys), and Druid (`ingestionSpec`/`dataSchema`+`ioConfig` JSON).
   Observed metadata only from exported artifacts under engine dirs or
-  `.forge-doctor/evidence/`. Checks `CH001`–`CH004` (MergeTree without
+  `.forge-doctor-data/evidence/`. Checks `CH001`–`CH004` (MergeTree without
   ORDER BY, Replicated without keeper config, Distributed without
   local shard, Kafka ingestion without dedupe plan), `PIN001`–`PIN003`
   (realtime without retention, filtered high-card dim without inverted
   index — MEDIUM, group-by-heavy observed queries without star-tree —
   MEDIUM), `DRU001`–`DRU002` (datasource without partitionsSpec,
   rollup disabled on wide dims+metrics). Graph: `table:<engine>:*`
-  entities + `schema:pinot:*`. New command `forge-doctor analytical
+  entities + `schema:pinot:*`. New command `forge-doctor-data analytical
   inspect`, labs `labs/clickhouse/unkeyed`, `labs/pinot/rt-gap`,
   `labs/druid/unpartitioned`, adversarial `labs/analytical/plain-json`.
   StarRocks/Doris deferred — the model assumes no closed membership.
@@ -384,7 +384,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encryption/TLS. Capability pack `search.json` covers vector/kNN per
   vendor+version (ES `version >= 8.0` gated), ISM-vs-ILM, serverless
   variants. Graph: `table:search:*` + `infrastructure_resource:search:*`.
-  New command `forge-doctor search inspect`, labs
+  New command `forge-doctor-data search inspect`, labs
   `labs/search/{prod-no-replicas,adversarial}` — the adversarial case
   pins that a bare `"mappings"` key never attributes.
 - **Metadata catalogs** (spec 221, roadmap-4 wave 3d) —
@@ -405,7 +405,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (declared vs detected) drives it; both directions are findings, not
   auto-fixes. Catalog datasets join the graph as `dataset:metadata:*`
   entities (domain `metadata`, excluded from coverage self-matching).
-  New command `forge-doctor catalog inspect`, labs
+  New command `forge-doctor-data catalog inspect`, labs
   `labs/catalog/{stale-entry,adversarial}` — generic JSON without vendor
   evidence stays silent.
 - **Data quality evidence** (spec 222, roadmap-4 wave 5) —
@@ -423,7 +423,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   suite targeting a table absent from the detected graph, `DQ004`
   expectation on a column the detected contract schema no longer
   carries (silent when the schema is unknown). New command
-  `forge-doctor quality inspect`, labs
+  `forge-doctor-data quality inspect`, labs
   `labs/quality/{gx-unwired,contract-drift,soda-covered,adversarial}` —
   a bare CI `checks:` key never attributes SodaCL.
 - **Multi-cloud abstractions** (spec 223, roadmap-4 wave 6) —
@@ -446,7 +446,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   migration link. Capability pack `cloud.json` answers cloud-agnostic
   questions — `capabilities_evaluate("object_storage", "VERSIONING",
   attributes={"service": "gcs"})` resolves the per-cloud surface.
-  New command `forge-doctor cloud inspect`, labs
+  New command `forge-doctor-data cloud inspect`, labs
   `labs/cloud/{azure-only,gcp-only,mixed-parity,linked}`.
 - **Cross-platform migration** (spec 224, roadmap-4 wave 7) —
   `migrate plan --from <platform> --to <platform>` and
@@ -500,11 +500,11 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 
 - **Plugin trust boundary** — `trusted`/identity `allow` entries gate
   *before* `ep.load()`; untrusted plugins never execute code.
-  `checks.enabled`/`disabled` filter post-load. `FORGE_DOCTOR_NO_PLUGINS`
+  `checks.enabled`/`disabled` filter post-load. `FORGE_DOCTOR_DATA_NO_PLUGINS`
   is an env kill-switch.
 - **Cache moved out of the repo** — scan cache now lives in the platform
   user cache (`%LOCALAPPDATA%`/`~/Library/Caches`/`$XDG_CACHE_HOME`,
-  `FORGE_DOCTOR_CACHE_DIR` override), keyed by repo + tool + schema
+  `FORGE_DOCTOR_DATA_CACHE_DIR` override), keyed by repo + tool + schema
   version. Auto-disabled in CI unless `--cache`. Dependency-aware
   invalidation: editing a producer module re-analyzes its importers.
 - **Spark cross-file propagation** — producer functions bound across
@@ -571,7 +571,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   unidirectional adapters; edges carry the EvidenceKind of their source
   fact. Cross-domain joins are deterministic identity only — a Terraform
   `aws_sfn_state_machine` block and its embedded ASL definition converge
-  on one `workflow:stepfunctions:` node. `forge-doctor platform graph`
+  on one `workflow:stepfunctions:` node. `forge-doctor-data platform graph`
   (census + `--json`) and `platform blast-radius <entity>` (reachability).
 - **Evidence classification** — every finding now carries
   `evidence_kind` (`static`/`config`/`observed_metadata`/`runtime`/
@@ -588,7 +588,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   category: STREAM001 anchor, STREAM002 missing checkpoint, STREAM003
   temp checkpoint path, STREAM013 shared checkpoint, STREAM014 dynamic
   checkpoint, STREAM020 stateful-without-watermark (pack-driven op
-  table), STREAM070 foreachBatch. New `forge-doctor streaming inspect` +
+  table), STREAM070 foreachBatch. New `forge-doctor-data streaming inspect` +
   `knowledge/streaming/spark/stateful_ops.json`.
 - **Step Functions Doctor (stage 1)** — `StepFunctionsModel` parses ASL
   offline (stdlib JSON only): `*.asl.json`/`*.states.json`/`*.sfn.json`,
@@ -601,7 +601,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   unreachable state, SFN003 dead-end path, SFN005 Choice without
   Default, SFN010 sync/callback task without TimeoutSeconds, SFN020
   Distributed Map inside an EXPRESS machine. New
-  `forge-doctor stepfunctions inspect` +
+  `forge-doctor-data stepfunctions inspect` +
   `knowledge/stepfunctions/integrations.json` (service-integration arn
   map with sync/callback support flags).
 - **Parquet Doctor (stage 1)** — `ParquetProjectModel` fuses AST-index
@@ -611,7 +611,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   New `parquet` category: PARQ000 anchor, PARQ010 repartition-before-write,
   PARQ020 uncompressed write, PARQ021 mixed codecs, PARQ040/041/042
   dataset-level small-file/excessive-count/size-skew (thresholds from
-  `knowledge/parquet/format.json`). New `forge-doctor parquet inspect`.
+  `knowledge/parquet/format.json`). New `forge-doctor-data parquet inspect`.
 - **Terraform Doctor (stage 1)** — `TerraformProjectModel` extends
   `hcl_lite` to a full block-level model: `terraform` internals
   (`required_version`, `required_providers`, `backend`), providers with
@@ -621,7 +621,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   category: TF000 anchor, TF001 missing required_version, TF002
   unconstrained provider, TF003 unbounded constraint, TF020 local module,
   TF021 registry module unpinned, TF022 mutable git ref, TF130 local
-  backend. New `forge-doctor terraform inspect` + `knowledge/terraform/`
+  backend. New `forge-doctor-data terraform inspect` + `knowledge/terraform/`
   packs (language feature floors, provider source map).
 - **Airflow Doctor (stage 1)** — `AirflowProjectModel`: index-flagged
   `airflow*` files get one targeted AST pass — `with DAG(...)`/`@dag`/
@@ -632,7 +632,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   task, AIR013 dynamic start_date, AIR021/AIR025 parse-time external +
   `Variable.get` calls, AIR040/AIR042 sensor poke-mode/timeout, AIR100
   retries without delay, AIR130 undeclared provider. New
-  `forge-doctor airflow inspect` + `knowledge/airflow/` and
+  `forge-doctor-data airflow inspect` + `knowledge/airflow/` and
   `errors/airflow` packs (feeds `diagnose`).
 - **Control-M Doctor (stage 1)** — `ControlMModel` parses Automation API
   JSON definitions (folders, jobs, events, calendars, site standards,
@@ -641,7 +641,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   CTM002 no execution target, CTM003 duplicate names, CTM004 never-firing
   job, CTM009/CTM010 event produce/consume mismatches, CTM028 undefined
   calendar, CTM051 missing required metadata, CTM070 credential literals
-  (names only — values never emitted). New `forge-doctor controlm inspect`
+  (names only — values never emitted). New `forge-doctor-data controlm inspect`
   command group + `knowledge/controlm/` and `knowledge/errors/controlm`
   packs (the latter feeds `diagnose`).
 - **Iceberg Doctor** — `IcebergProjectModel` fuses evidence from the AST
@@ -659,7 +659,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   `IcebergSparkSessionExtensions`, ICE023 MERGE ON-cols missing partition
   columns, ICE024 repartition/coalesce-before-write, ICE025 feature-vs-format
   floors (`merge-on-read` needs v2, deletion-vectors/row-lineage need v3 —
-  driven by `knowledge/iceberg/spec.json`). New `forge-doctor iceberg
+  driven by `knowledge/iceberg/spec.json`). New `forge-doctor-data iceberg
   merge|files` subcommands, plus the existing `iceberg inspect|maintenance|
   compatibility` group and `knowledge/iceberg/` packs.
 - **SQL first-class** — optional `[sql]` extra (sqlglot): `SqlIndex` parses
@@ -668,7 +668,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   New `sql` category: SQL000 surface anchor, SQL001 `SELECT *`, SQL002
   cartesian/comma joins, SQL003 non-sargable predicates. Unparseable
   statements are counted, never fatal; without the extra the category is
-  absent and `explain SQL###` points at `forge-doctor[sql]`.
+  absent and `explain SQL###` points at `forge-doctor-data[sql]`.
 - **Lake Formation pack + diagnose correlation** — `knowledge/lakeformation/`
   covers credential vending (GetTemporaryCredentialsForTableV2), FGAC,
   resource links, RAM/cross-account, hybrid access, IAMAllowedPrincipals,
@@ -693,7 +693,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   global-table MREC/MRSC semantics), Neptune (Gremlin/openCypher/SPARQL,
   bulk loader, explain/profile, global database, paradigm-vs-language
   incompatibility), and paradigm-level graph capabilities. Checks reach it
-  via `ctx.capabilities`; CLI: `forge-doctor capabilities list|explain`
+  via `ctx.capabilities`; CLI: `forge-doctor-data capabilities list|explain`
   (`--json`, `--version`, `--variant`, `--attr`). ICE001 now consults the
   registry for its format-version floor — first migrated check.
 - **Graph Intelligence** (`analyzers/graph_model.py` +
@@ -717,9 +717,9 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   length, high fan-out, late filtering, repeated pattern), plus local
   extensions GRAPH026 (full-graph starts) and GRAPH030 (mixed paradigms).
   `knowledge/graph/` packs (property-graph, rdf, modeling, algorithms;
-  schema 2 + sources). CLI: `forge-doctor graph inspect|schema|
+  schema 2 + sources). CLI: `forge-doctor-data graph inspect|schema|
   traversals`; the prior project-intelligence dump stays reachable as
-  `forge-doctor graph <path>` (unchanged) and `graph project`.
+  `forge-doctor-data graph <path>` (unchanged) and `graph project`.
 - **DynamoDB Intelligence** (`analyzers/dynamodb_model.py`) — tables
   from Terraform `aws_dynamodb_table` (nested gsi/lsi/replica/ttl/pitr/
   encryption blocks), CloudFormation `AWS::DynamoDB::*` (incl.
@@ -741,7 +741,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   (ERROR). All static-risk framing; single-table structure reported,
   never recommended. `knowledge/dynamodb/` packs (indexes,
   transactions, limits, modeling, streams, global-tables; schema 2 +
-  sources). CLI: `forge-doctor dynamodb inspect|access-patterns|
+  sources). CLI: `forge-doctor-data dynamodb inspect|access-patterns|
   indexes|streams|global-tables|capacity`.
 - **Neptune Intelligence** (`analyzers/neptune_model.py`,
   `neptune_queries.py`, `neptune_explain.py`) — `NeptuneProjectModel`
@@ -760,9 +760,9 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   large intermediates, broad starts, late filters — offline only.
   `knowledge/neptune/` packs (products, engines, ingestion, features,
   query-languages, bulk-loader, global-database, explain, analytics,
-  compatibility; schema 2 + sources). CLI: `forge-doctor neptune
+  compatibility; schema 2 + sources). CLI: `forge-doctor-data neptune
   inspect|schema|queries|ingest|explain|analyze-explain|compatibility`;
-  `forge-doctor data-model inspect` reports the access-style breakdown
+  `forge-doctor-data data-model inspect` reports the access-style breakdown
   as facts only. Platform graph gained DynamoDB adapters (table
   PRODUCES stream, stream TRIGGERS lambda, code READS/WRITES table) and
   Neptune adapters (`graph:neptune:<cluster>`, loader READS S3 / WRITES
@@ -782,7 +782,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   gained `target`/`default_retries`; the Airflow adapter now emits
   task→compute-job INVOKES edges for orchestrating operators
   (GlueJobOperator, LambdaInvoke*, StepFunction*, EMR, Databricks).
-  CLI: `forge-doctor platform findings` (also runs inside `scan` under
+  CLI: `forge-doctor-data platform findings` (also runs inside `scan` under
   the `platform` category).
 - **Runtime Evidence layer** — `core/runtime_evidence.py` normalizes
   exported artifacts into `RuntimeEvidenceModel` (executions, metrics,
@@ -803,7 +803,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   commit amplification → small files → consumer overhead, and
   join/shuffle key → skew → spill → long stage — emitting root causes,
   symptoms, related findings, affected entities, evidence, and causal
-  edges. CLI: `forge-doctor root-cause . --runtime artifact.json`
+  edges. CLI: `forge-doctor-data root-cause . --runtime artifact.json`
   (`--json` supported).
 - **Deterministic remediation planning** — `core/remediation.py` maps
   findings and root-cause clusters to ordered `RemediationPlan`s from
@@ -811,7 +811,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   streaming, platform families + the RC_* chains; schema-2 provenance).
   Plans are advisory only — what/where/why/how-to-validate; nothing is
   patched, committed, applied, or deployed. CLI:
-  `forge-doctor remediate . [--root-cause <id>]` (`--json`).
+  `forge-doctor-data remediate . [--root-cause <id>]` (`--json`).
 - **Architecture contract + drift** — `core/contract.py` parses a
   versioned `platform-contract.yml` (pipelines with compute platform/
   version, storage format, orchestration, SLA, semantics, ownership,
@@ -954,39 +954,39 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   entry_point)` stamped on loaded checks; allowlist matches check id,
   distribution, or entry point (never class names). `plugins list|validate|
   doctor` inspect health.
-- **Policy-as-code** — `[tool.forge-doctor.policy] extends/rules` and
-  `[[tool.forge-doctor.suppressions]]` (scoped, owned, expiring). Expired
+- **Policy-as-code** — `[tool.forge-doctor-data.policy] extends/rules` and
+  `[[tool.forge-doctor-data.suppressions]]` (scoped, owned, expiring). Expired
   suppressions reactivate findings and emit `POLICY001`; `suppressions`
   audits ACTIVE/EXPIRED/UNUSED with match counts.
 - **Semantic index** — one `ast.parse` per file powers Spark and Glue
   checks; cross-file producer propagation (`from reader import load_orders`).
 - **Incremental cache** — the user cache dir (never the scanned repo)
   persists per-file sha256 → analyzer facts with dependency provenance;
-  `--cache/--no-cache`, `forge-doctor cache` stats + `cache clean`; off by
+  `--cache/--no-cache`, `forge-doctor-data cache` stats + `cache clean`; off by
   default in CI. `--watch` uses `watchfiles` when the extra is installed and
   snapshot polling otherwise. `--stats` prints per-check timings and cache
   hit rate.
-- **`forge-doctor trace ID FILE:LINE`** — explains one finding: evidence,
+- **`forge-doctor-data trace ID FILE:LINE`** — explains one finding: evidence,
   enclosing symbol, receiver classification, assignment chain, imports;
   `--json` for agents.
-- **`forge-doctor diagnose FILE|-`** — deterministic log fingerprinting via
+- **`forge-doctor-data diagnose FILE|-`** — deterministic log fingerprinting via
   `knowledge/errors/` packs (spark, glue, iceberg, lakeformation, databricks,
   python); substring + `re:` regex patterns, occurrence counts, causes.
 - **Spark runtime doctor** — `spark eventlog` (executor loss, task skew,
   shuffle spill, GC pressure, single-task stages, retries, scheduler delay),
   `spark plan` (cartesian products, BNLJ, single-partition exchanges, global
   sorts, join-strategy mix), `spark logs` (error packs + runtime patterns).
-- **Static lineage** — `forge-doctor lineage` detects `spark.read.*`,
+- **Static lineage** — `forge-doctor-data lineage` detects `spark.read.*`,
   `read.format().load()`, `spark.sql` FROM/JOIN/INSERT, `saveAsTable`,
   `insertInto`, `writeTo`, `write.<fmt>()`, Glue `from_catalog`; renders
   text/json/dot/mermaid plus an OpenLineage-shaped `--format openlineage`.
-- **`forge-doctor schema diff`** — Avro, JSON Schema, SQL DDL, dbt
+- **`forge-doctor-data schema diff`** — Avro, JSON Schema, SQL DDL, dbt
   `schema.yml` (optional `pyyaml`); classifies added/dropped/type/nullability
   changes and rename candidates; works on files or `base...head` git ranges.
 - **IaC checks (IAC001–004)** — dependency-free Terraform/HCL-lite and
   CloudFormation (JSON + mined YAML) parsing: Glue version aging, worker
   sanity, CFN Glue/Lambda/EMR runtimes. IaC pins feed `compatibility`.
-- **`forge-doctor migrate glue`** — combines knowledge-pack version deltas
+- **`forge-doctor-data migrate glue`** — combines knowledge-pack version deltas
   with real project signals (code pins, DynamicFrame usage, dependencies,
   IaC) grouped Runtime/Code/Dependencies/Infrastructure.
 - **Workspace orchestration** — `workspace` (discovery), `workspace scan`
@@ -995,28 +995,28 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 - **Knowledge provenance** — packs carry `schema_version: 2` +
   `pack_version`/`verified_at`/`sources`; `knowledge list|info|verify`
   (stale > 90d flagged).
-- **`forge-doctor sbom`** — CycloneDX 1.5: project deps, plugins, knowledge
+- **`forge-doctor-data sbom`** — CycloneDX 1.5: project deps, plugins, knowledge
   packs, the tool itself.
-- **`forge-doctor mcp`** — zero-dependency JSON-RPC stdio server:
+- **`forge-doctor-data mcp`** — zero-dependency JSON-RPC stdio server:
   `initialize`, `tools/list`+`tools/call` (scan_project, explain_rule,
   check_compatibility, get_lineage, diagnose_log, diff_findings),
-  `resources/list`+`resources/read` (`forge-doctor://rules/ID`,
-  `forge-doctor://knowledge/DOMAIN/NAME`), `ping`, notifications tolerated.
-- **`forge-doctor lsp`** — optional `pygls`-based stdio server mapping
-  findings to `publishDiagnostics` (severity, `source: forge-doctor`, check
+  `resources/list`+`resources/read` (`forge-doctor-data://rules/ID`,
+  `forge-doctor-data://knowledge/DOMAIN/NAME`), `ping`, notifications tolerated.
+- **`forge-doctor-data lsp`** — optional `pygls`-based stdio server mapping
+  findings to `publishDiagnostics` (severity, `source: forge-doctor-data`, check
   id code) on open/change/save; mapping logic is unit-tested without pygls.
-- **`forge-doctor graph`** — Project Intelligence Graph: repo, job, dataset,
+- **`forge-doctor-data graph`** — Project Intelligence Graph: repo, job, dataset,
   IaC, orchestrator nodes with contains/reads/writes/deploys/triggers edges;
   json/dot/mermaid.
-- **`forge-doctor doctor`** — environment health: git, config validity,
+- **`forge-doctor-data doctor`** — environment health: git, config validity,
   plugin status, cache dir writability, knowledge pack freshness.
 - **Exact-duplicate dedup** in the runner; per-check timing instrumentation.
 
 ### Changed
 
-- `forge_doctor/cli.py` is now the `forge_doctor/cli/` package
+- `forge_doctor_data/cli.py` is now the `forge_doctor_data/cli/` package
   (`app`/`common`/`scan`/`diff`/`workspace`/`compatibility`/`plugins`/`misc`);
-  the `forge_doctor.cli:app` entry point is unchanged.
+  the `forge_doctor_data.cli:app` entry point is unchanged.
 - `workspace`/`spark`/`cache`/`plugins`/`knowledge`/`schema`/`migrate` are
   command groups; category scans keep the same flags.
 - Poetry >= 2.2 required; extras: `watch` (watchfiles), `lsp` (pygls +
@@ -1037,19 +1037,19 @@ by a hardening cycle on the trust boundary, cache, and integrations.
   tags, locations with evidence snippets, `partialFingerprints`, `fixes`.
 - `--format agent` — compact `{id, sev, loc, fp}` bundle for agent
   consumers; `explain <ID> --json` exposes rule metadata on demand.
-- `forge-doctor diff` — compares findings by fingerprint across two saved
+- `forge-doctor-data diff` — compares findings by fingerprint across two saved
   reports, a report vs a git ref, or a `base...head` range (scanned in a
   temporary detached worktree); exit 1 when new findings exist.
-- `forge-doctor compatibility` — detects Glue/Spark/Python/Java/Iceberg
+- `forge-doctor-data compatibility` — detects Glue/Spark/Python/Java/Iceberg
   environment and prints migration risks (`--from`/`--to`).
-- `forge-doctor workspace` — discovers nested `pyproject.toml` projects.
-- **Knowledge packs** under `forge_doctor/knowledge/`: Glue version status
+- `forge-doctor-data workspace` — discovers nested `pyproject.toml` projects.
+- **Knowledge packs** under `forge_doctor_data/knowledge/`: Glue version status
   through **Glue 6.0** (Spark 4.1.1, Python 3.13, Java 17, Iceberg 1.11.0),
   Glue runtime map, Glue/Python compatibility — shipped inside the wheel.
 - **Profiles** (`--profile`): `default`, `strict`, `security`,
   `spark-performance`, `glue-migration`, `production`.
 - `--new-only` (requires `--baseline`), `--files` filtering (pre-commit),
-  `--no-plugins`, and `[tool.forge-doctor.plugins].allow` trust list.
+  `--no-plugins`, and `[tool.forge-doctor-data.plugins].allow` trust list.
 - Spark AST v2: alias and symbol tracking (`import ... as`,
   `df = spark.read...`, chained-call receivers) — Spark findings now carry
   receiver `confidence`; SPARK006 pairs `unpersist()` per variable.
@@ -1071,7 +1071,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 - CI002 grades refs honestly: full SHA quiet, version tag INFO, floating
   ref/no-@ WARNING (`security` profile escalates tags to warnings).
 - `.tokensave/` removed from git index; `DataDoctorConfig` fully renamed
-  to `ForgeDoctorConfig` (old name kept as deprecated alias).
+  to `ForgeDoctorDataConfig` (old name kept as deprecated alias).
 - GLUE002 no longer recommends "4.0/5.x" — knowledge pack drives status
   and the `compatibility` command provides migration guidance.
 
@@ -1079,27 +1079,27 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 
 ### Added
 
-- `forge-doctor explain <CHECK_ID>` — renders a rule's why/when-OK/fix from
+- `forge-doctor-data explain <CHECK_ID>` — renders a rule's why/when-OK/fix from
   code-level attributes (`CheckBase.why`, `.when_ok`, `.fix`) populated for
   all built-in checks; works for plugin checks too.
 - New categories: **docker** (DOCKER001-004 — unpinned `FROM`, missing
   `USER`, secret-looking `ENV`/`ARG` names), **glue** (GLUE001-004 — AST:
   awsglue usage, EOL runtimes, `getResolvedOptions`, DynamicFrame mixing),
   **ci** (CI001-004 — unpinned actions, python-version, test/lint steps).
-- `examples/plugin/` — minimal installable plugin (`forge-doctor-example`)
+- `examples/plugin/` — minimal installable plugin (`forge-doctor-data-example`)
   + `docs/plugins.md` SDK guide.
 - Console output degrades non-UTF glyphs to ASCII on legacy encodings
   (Windows cp1252).
-- `forge-doctor init` — scaffolds a PEP 621/Poetry project (`--name`,
+- `forge-doctor-data init` — scaffolds a PEP 621/Poetry project (`--name`,
   `--force`); never overwrites existing files unless forced.
-- `forge-doctor info` — instant project stats: files, lines, top types,
+- `forge-doctor-data info` — instant project stats: files, lines, top types,
   git state, detected tooling (no checks run).
 - Baselines: `--save-baseline PATH` records a scan, `--baseline PATH`
   diffs against it — findings render a `NEW` marker, JSON gains
   `is_new`/`baseline`, and `--fail-on` only counts **new** findings so
   pre-existing debt does not break CI.
 - `--format html` — self-contained shareable report (`--output PATH`,
-  defaults to `forge-doctor-report.html`).
+  defaults to `forge-doctor-data-report.html`).
 - `--output/-o` — also writes text reports to a file.
 - `--watch/-w` — re-scans whenever project files change (polling, Ctrl+C
   exits with the last scan's code).
@@ -1107,7 +1107,7 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 - Console redesign: header panel (project/version/check count),
   spinner while scanning, grouped categories, color-coded summary panel
   with baseline diff, Rich tables for `checks`/`plugins`/`explain`.
-- Shell completion via `forge-doctor --install-completion`.
+- Shell completion via `forge-doctor-data --install-completion`.
 
 ### Fixed
 
@@ -1125,8 +1125,8 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 
 ### Changed
 
-- Renamed the project `data-doctor` → `forge-doctor` (module, CLI, PyPI name,
-  `[tool.forge-doctor]` config section, `forge_doctor.checks` entry-point
+- Renamed the project `data-doctor` → `forge-doctor-data` (module, CLI, PyPI name,
+  `[tool.forge-doctor-data]` config section, `forge_doctor_data.checks` entry-point
   group) to avoid the `vision-data-doctor` CLI collision and pair with the
   future Spark Forge ecosystem.
 - DEP005 now runs `poetry check --lock` when Poetry is on PATH (definitive
@@ -1138,15 +1138,15 @@ by a hardening cycle on the trust boundary, cache, and integrations.
 
 ### Added
 
-- `forge-doctor scan` engine: layered architecture (CLI → runner → checks →
+- `forge-doctor-data scan` engine: layered architecture (CLI → runner → checks →
   analyzers → context → renderers) with stable check ids.
 - 6 check categories, 35 rules: repository (REP), python (PY),
   dependencies/poetry (DEP), git (GIT), spark AST analysis (SPARK), local AWS
   config (AWS).
 - Rich console output, stable `--format json` contract, `--quiet`,
   `--ignore`, `--check`, `--fail-on`, `--verbose`.
-- `[tool.forge-doctor]` configuration with `exclude` globs and `ignore` lists.
-- Plugin discovery via the `forge_doctor.checks` entry-point group.
+- `[tool.forge-doctor-data]` configuration with `exclude` globs and `ignore` lists.
+- Plugin discovery via the `forge_doctor_data.checks` entry-point group.
 - `plugins`, `checks`, `version` commands; `--version` flag.
 - Exit codes: 0 clean, 1 errors, 2 internal.
 - CI (lint/format/type/test/build matrix) and manual release workflow.

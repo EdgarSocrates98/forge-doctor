@@ -6,9 +6,9 @@ import json
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.ontology import vocabulary
-from forge_doctor.core.platform_ontology import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.ontology import vocabulary
+from forge_doctor_data.core.platform_ontology import (
     ConsistencyModel,
     DataAccessPattern,
     DataMovement,

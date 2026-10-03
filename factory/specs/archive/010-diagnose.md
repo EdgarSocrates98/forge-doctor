@@ -1,12 +1,12 @@
 ---
 id: 010-diagnose
-title: forge-doctor diagnose — deterministic log error fingerprinting
+title: forge-doctor-data diagnose — deterministic log error fingerprinting
 agent: devin
 risk: medium
 grill: completed
 verification:
   - python -m pytest tests/unit/test_diagnose.py -q
-  - cat fixture.log | python -m forge_doctor diagnose - 
+  - cat fixture.log | python -m forge_doctor_data diagnose - 
 ---
 
 # Acceptance Criteria

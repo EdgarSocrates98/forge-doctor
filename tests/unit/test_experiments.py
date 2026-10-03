@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.cli import app
-from forge_doctor.core.experiments import (
+from forge_doctor_data.cli import app
+from forge_doctor_data.core.experiments import (
     HYPOTHESES,
     Hypothesis,
     run_experiment,

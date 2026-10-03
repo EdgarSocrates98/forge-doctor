@@ -25,7 +25,7 @@ The prompt is explicit: report detected access styles; never emit
   Lambda/code entities WRITES NeptuneGraph / DynamoDBTable; Terraform
   DEFINES Neptune/DynamoDB resources; graph_node/graph_edge entities
   from the 174 schema.
-- `cli/datamodel.py`: `forge-doctor data-model inspect .` — detected
+- `cli/datamodel.py`: `forge-doctor-data data-model inspect .` — detected
   access-style breakdown (key lookups vs bounded queries vs scans vs
   multi-hop traversals) as percentages of observed access ops; a
   neutral "graph-oriented access pattern detected" informational line

@@ -37,7 +37,7 @@ code is never executed).
   dynamically (WARNING), STREAM020 stateful ops without `withWatermark`
   (INFO), STREAM070 foreachBatch detected (INFO — idempotency unknown
   statically). why/when_ok/fix each.
-- `cli/streaming.py`: `forge-doctor streaming inspect [path]` — queries
+- `cli/streaming.py`: `forge-doctor-data streaming inspect [path]` — queries
   (source → sink), output mode/trigger/checkpoint/watermark/stateful
   ops, severity-sorted risks.
 - `knowledge/streaming/spark/stateful_ops.json` — op→state-type map +

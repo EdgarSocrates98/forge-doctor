@@ -6,10 +6,10 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.abstractions import abstractions_model
-from forge_doctor.checks.cloud import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.abstractions import abstractions_model
+from forge_doctor_data.checks.cloud import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
 
 runner = CliRunner()
 
@@ -125,7 +125,7 @@ def test_cloud001_unmapped(tmp_path: Path) -> None:
 
 
 def test_capability_cloud_agnostic() -> None:
-    from forge_doctor.api import capabilities_evaluate
+    from forge_doctor_data.api import capabilities_evaluate
 
     assert (
         capabilities_evaluate("warehouse", "TIME_TRAVEL", attributes={"service": "snowflake"})

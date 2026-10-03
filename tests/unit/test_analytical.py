@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.analytical_model import analytical_model
-from forge_doctor.analyzers.sql_ast import SQLGLOT_AVAILABLE
-from forge_doctor.checks.analytical import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Confidence
+from forge_doctor_data.analyzers.analytical_model import analytical_model
+from forge_doctor_data.analyzers.sql_ast import SQLGLOT_AVAILABLE
+from forge_doctor_data.checks.analytical import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Confidence
 
 runner = CliRunner()
 needs_sqlglot = pytest.mark.skipif(not SQLGLOT_AVAILABLE, reason="sqlglot not installed")

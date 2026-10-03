@@ -6,7 +6,7 @@ risk: medium
 grill: completed
 verification:
   - python -m pytest tests/integration/test_cli.py -q
-  - python -m forge_doctor scan tests/sample_projects/spark_problem_project --emit text --emit json:/tmp/fd.json
+  - python -m forge_doctor_data scan tests/sample_projects/spark_problem_project --emit text --emit json:/tmp/fd.json
 ---
 
 # Context

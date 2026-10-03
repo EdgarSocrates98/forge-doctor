@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from forge_doctor.core.models import EvidenceKind
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.models import EvidenceKind
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,

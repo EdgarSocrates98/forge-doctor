@@ -37,7 +37,7 @@ Phase 3 of 4. Specs staged to `active/`; review is a human gate.
   Severity honest: static facts WARNING/INFO, data-dependent claims
   stay INFO. Global-table capability decisions resolve through
   `ctx.capabilities` (provenance carried into findings).
-- `cli/dynamodb.py` — `forge-doctor dynamodb inspect|access-patterns|
+- `cli/dynamodb.py` — `forge-doctor-data dynamodb inspect|access-patterns|
   indexes|streams|global-tables|capacity <path>`.
 - `knowledge/dynamodb/` — indexes, limits, modeling, streams,
   transactions, global-tables (schema 2 + sources); `knowledge verify`
@@ -54,7 +54,7 @@ Phase 3 of 4. Specs staged to `active/`; review is a human gate.
 - `pytest -x -q`: 869 passed
 - `mypy src`: 102 files clean; `ruff check src tests`: clean;
   `ruff format`: applied
-- Smoke: `forge-doctor dynamodb inspect <fixture>` renders table,
+- Smoke: `forge-doctor-data dynamodb inspect <fixture>` renders table,
   GSI, stream, global-table (1 region), entity prefix; findings show
   DDB002/DDBSTR005/DDB001/DDB003 as expected for the fixture.
 

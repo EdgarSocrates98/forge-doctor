@@ -17,7 +17,7 @@ suppressions→baseline→cache). MCP and LSP rebuild it manually — they
 diverge (no policy, no suppressions, no plugin controls).
 
 # Acceptance Criteria
-- `forge_doctor/application/` (or core/service.py): ScanRequest(path, opts),
+- `forge_doctor_data/application/` (or core/service.py): ScanRequest(path, opts),
   ScanResult(report, suppressions, timings, cache_stats); ScanService.run()
   is THE pipeline — plugins, profile, policy, suppressions, baseline,
   fingerprints, cache all inside.

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
-from forge_doctor.output.html_renderer import render_html
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.output.html_renderer import render_html
 
 
 def _report() -> ScanReport:

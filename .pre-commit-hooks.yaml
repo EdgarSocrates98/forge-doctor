@@ -1,17 +1,17 @@
 # pre-commit integration: https://pre-commit.com
 #
 # .pre-commit-config.yaml in a consumer repo:
-#   - repo: https://github.com/EdgarSocrates98/forge-doctor
+#   - repo: https://github.com/EdgarSocrates98/forge-doctor-data
 #     rev: v0.2.0
 #     hooks:
-#       - id: forge-doctor
+#       - id: forge-doctor-data
 #
 # pre-commit passes changed filenames after `entry`, so findings are
 # restricted to the files under review (project-level results still show).
-- id: forge-doctor
-  name: forge-doctor
+- id: forge-doctor-data
+  name: forge-doctor-data
   description: Deterministic diagnostics for data engineering projects.
-  entry: forge-doctor scan --files
+  entry: forge-doctor-data scan --files
   language: python
   types: [file]
   pass_filenames: true

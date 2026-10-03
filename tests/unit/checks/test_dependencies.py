@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.checks.dependencies import (
+from forge_doctor_data.checks.dependencies import (
     CHECKS,
     DevToolsAsRuntimeDeps,
     LockFile,
@@ -19,8 +19,8 @@ from forge_doctor.checks.dependencies import (
     RuntimeDevDuplication,
     UnrestrictedDependencies,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 PLAIN_PYPROJECT = """\
 [project]

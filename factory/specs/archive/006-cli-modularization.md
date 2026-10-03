@@ -9,6 +9,6 @@ verification:
 ---
 
 # Acceptance Criteria
-- forge_doctor/cli/ package: app.py, common.py, scan.py, diff.py, workspace.py, compatibility.py, plugins.py, misc.py (init/info/explain/checks/version)
-- forge_doctor/cli.py remains shim exporting app (entry point unchanged)
+- forge_doctor_data/cli/ package: app.py, common.py, scan.py, diff.py, workspace.py, compatibility.py, plugins.py, misc.py (init/info/explain/checks/version)
+- forge_doctor_data/cli.py remains shim exporting app (entry point unchanged)
 - zero behavior change; all tests green

@@ -13,27 +13,27 @@ STL query-log runtime adapter.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/redshift_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/redshift_model.py` — **new**:
   `RedshiftProjectModel` (clusters/workgroups, databases/schemas incl.
   Spectrum external schemas, tables with diststyle/distkey/sortkey/
   encode attrs, materialized views, datashares, maintenance queries,
   observed SVV/STL rows, `ato_available()` gate).
-- `src/forge_doctor/analyzers/warehouse_model.py` — `_from_redshift`
+- `src/forge_doctor_data/analyzers/warehouse_model.py` — `_from_redshift`
   merge: compute, namespaces (external_schema→schema), tables, views,
   queries; parameter groups→workload_management; datashares→sharing.
-- `src/forge_doctor/analyzers/runtime_evidence.py` —
+- `src/forge_doctor_data/analyzers/runtime_evidence.py` —
   `RedshiftQueryLogAdapter`: STL_QUERY-style exports → runtime model
   (executions + execution_time + wlm_queue_time + aborted→error).
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — Redshift
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — Redshift
   vendor objects (datashare→catalog, authz/consumer/iam→principal,
   routine→compute_job, the rest→infrastructure_resource).
-- `src/forge_doctor/checks/redshift.py` — **new**: RS000 census,
+- `src/forge_doctor_data/checks/redshift.py` — **new**: RS000 census,
   RS001 large EVEN/ALL+joined table (observed_metadata evidence),
   RS002 unsorted table behind range predicates, RS003 ATO disabled with
   skew, RS004 public/unencrypted cluster, RS005 manual VACUUM/ANALYZE
   gated on ATO-eligible compute.
-- `src/forge_doctor/cli/redshift.py` — **new**: `redshift inspect`.
-- `src/forge_doctor/knowledge/capabilities/redshift.json` — **new**
+- `src/forge_doctor_data/cli/redshift.py` — **new**: `redshift inspect`.
+- `src/forge_doctor_data/knowledge/capabilities/redshift.json` — **new**
   pack: Spectrum, datashares, RA3 managed storage (conditional on
   node_type), Serverless RPU, concurrency scaling, auto MVs/ATO
   (conditional), dist/sort keys.

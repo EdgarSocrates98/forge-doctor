@@ -26,7 +26,7 @@ confirmed, and cluster evidence into causal chains (root cause -> symptom).
 - Promotion never mutates the original finding or its fingerprint.
 - Required chains: micro-batch -> commit amplification -> small files ->
   consumer overhead; join/shuffle key -> skew -> spill -> long stage.
-- CLI: `forge-doctor root-cause .` and `forge-doctor root-cause --runtime
+- CLI: `forge-doctor-data root-cause .` and `forge-doctor-data root-cause --runtime
   artifact.json .` (repeatable option, `--json` supported).
 - Deterministic: same inputs -> same promotions, clusters, ids regardless of
   input ordering.

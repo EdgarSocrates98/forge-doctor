@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.migration import plan_migrations
-from forge_doctor.core.whatif import evaluate_change, parse_change
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.migration import plan_migrations
+from forge_doctor_data.core.whatif import evaluate_change, parse_change
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

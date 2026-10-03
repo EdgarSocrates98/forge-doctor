@@ -23,4 +23,4 @@ code (`boto3.client("athena")`, `start_query_execution`), configs.
   (INFO), ATH030 query runs in primary workgroup unintentionally (INFO),
   ATH031 no output location configured (WARNING), ATH033
   enforce_workgroup_configuration false (INFO).
-- `forge-doctor athena inspect`.
+- `forge-doctor-data athena inspect`.

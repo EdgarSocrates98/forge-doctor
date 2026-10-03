@@ -14,7 +14,7 @@ report-only cross-platform plans on the abstraction layer.
 
 ## Files changed
 
-- `src/forge_doctor/core/crossmigration.py` — **new**:
+- `src/forge_doctor_data/core/crossmigration.py` — **new**:
   `PlatformMigrationPlan` (`EntityMapping`/`CapabilityDelta`/
   `StagePlan`), `_ECOSYSTEM` target-service maps per platform
   (bigquery/redshift/synapse/snowflake/databricks), `_CHANGE_NOTES`
@@ -22,15 +22,15 @@ report-only cross-platform plans on the abstraction layer.
   packs, staged plan ordering (catalog→schema→data→compute→consumers),
   `_unmapped_consumers` via graph READS*/DEPENDS_ON edges, and
   `_migr_findings` emitting MIGR001/002/003 `CheckResult`s.
-- `src/forge_doctor/core/whatif.py` — `platform`/`warehouse` change
+- `src/forge_doctor_data/core/whatif.py` — `platform`/`warehouse` change
   targets delegate to `_platform_change_report` (source auto-detected
   from the single warehouse-platform service; MIGR findings become
   WhatIfImpacts, lost/gained surface in `unsupported_now`/
   `supported_now`).
-- `src/forge_doctor/cli/whatif.py` — `migrate plan` gained
+- `src/forge_doctor_data/cli/whatif.py` — `migrate plan` gained
   `--from/--to` + `--format json`; text render shows entity map,
   deltas, stages, findings; exits 1 on error-severity findings.
-- `src/forge_doctor/analyzers/abstractions.py` — warehouse-domain
+- `src/forge_doctor_data/analyzers/abstractions.py` — warehouse-domain
   vendor objects (stage/stream/task/pipe kinds) now fold into
   `object_storage`/`stream`/`compute_engine` abstractions so snowflake
   estates map end-to-end.

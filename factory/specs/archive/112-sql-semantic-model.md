@@ -23,7 +23,7 @@ analyzer/index pattern, not ad-hoc scanning.
 - New optional extra `sql = ["sqlglot>=26,<29"]` in pyproject + sqlglot added
   to the mypy `follow_imports=skip` overrides (same pattern as pygls/yaml) +
   added to dev dependency-group so tests exercise it.
-- New `src/forge_doctor/analyzers/sql_ast.py` producing `SqlIndex`:
+- New `src/forge_doctor_data/analyzers/sql_ast.py` producing `SqlIndex`:
   - `SqlStatement` records: file, line, source (`"file"` | `"call"`), dialect,
     `tables_read`, `tables_written`, `wildcard`, `cross_join`,
     `implicit_join`, `non_sargable` (bool flags), sorted deterministic order.
@@ -35,8 +35,8 @@ analyzer/index pattern, not ad-hoc scanning.
   - `sqlglot` parse failures never crash: statement skipped, counted in
     `SqlIndex.unparsed`.
   - Analysis memoized on the context (same pattern as
-    `analyze_project`/`_forge_doctor_spark_buckets`).
-- New `src/forge_doctor/checks/sql.py`, `category = "sql"`, `CHECKS` list:
+    `analyze_project`/`_forge_doctor_data_spark_buckets`).
+- New `src/forge_doctor_data/checks/sql.py`, `category = "sql"`, `CHECKS` list:
   - `SQL000` SQL surface (INFO anchor: statements analyzed + unparsed count).
   - `SQL001` `SELECT *` wildcard projection (WARNING).
   - `SQL002` CROSS JOIN or implicit comma join `FROM a, b` (WARNING).

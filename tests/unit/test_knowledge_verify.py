@@ -1,4 +1,4 @@
-from forge_doctor.core.knowledge import list_packs, load_pack, pack_meta, verify_pack
+from forge_doctor_data.core.knowledge import list_packs, load_pack, pack_meta, verify_pack
 
 
 def test_list_packs_includes_errors_domain():

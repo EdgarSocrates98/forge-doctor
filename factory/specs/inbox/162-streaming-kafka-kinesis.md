@@ -36,7 +36,7 @@ AST index already captures.
   KIN004 starting position replay risk (INFO); STREAM100 offset
   strategy unclear (INFO), STREAM101 replay may process full history
   (INFO when earliest + no bound).
-- CLI: `forge-doctor kafka inspect` + `forge-doctor kinesis inspect`.
+- CLI: `forge-doctor-data kafka inspect` + `forge-doctor-data kinesis inspect`.
 - knowledge packs: `knowledge/streaming/kafka/options.json`,
   `kinesis/options.json`.
 - Tests + docs + CHANGELOG.

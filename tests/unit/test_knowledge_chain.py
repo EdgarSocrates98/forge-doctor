@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.cli import app
-from forge_doctor.core.knowledge import (
+from forge_doctor_data.cli import app
+from forge_doctor_data.core.knowledge import (
     bump_pack,
     conformance,
     diff_packs,

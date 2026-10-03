@@ -2,7 +2,7 @@
 
 ## Built
 - `core/history.py` — `record_snapshot` writes
-  `.forge-doctor/history/<utc>.json` (format `forge-doctor/history@1`):
+  `.forge-doctor-data/history/<utc>.json` (format `forge-doctor-data/history@1`):
   severity summary, findings keyed by existing `result_key` fingerprint,
   entity ids + census (kind/domain), capability states (registry
   evaluated per observed domain), ARCH drift keys. `list/load/resolve

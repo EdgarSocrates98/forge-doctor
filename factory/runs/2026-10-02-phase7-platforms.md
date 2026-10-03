@@ -63,7 +63,7 @@
 - `pytest tests` — 1091 passed
 - `mypy src` — 127 files, clean
 - `ruff check src tests` — clean; `ruff format --check` — clean
-- `forge-doctor knowledge verify` — all packs ok
+- `forge-doctor-data knowledge verify` — all packs ok
 - CLI smoke on a multi-domain fixture rendered EMR clusters/serverless,
   Databricks job/cluster/UC objects, and Delta ops/features/protocol.
 

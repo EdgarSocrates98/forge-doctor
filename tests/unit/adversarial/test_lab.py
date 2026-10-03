@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.lab import (
+from forge_doctor_data.core.lab import (
     discover_scenarios,
     load_ground_truth,
     run_scenario,

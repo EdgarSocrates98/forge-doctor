@@ -4,12 +4,12 @@ import types
 from importlib.metadata import EntryPoint
 from pathlib import Path
 
-import forge_doctor.plugins.discovery as discovery
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
-from forge_doctor.core.registry import CheckRegistry
-from forge_doctor.core.runner import CheckRunner
-from forge_doctor.plugins.protocol import CheckBase
+import forge_doctor_data.plugins.discovery as discovery
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.registry import CheckRegistry
+from forge_doctor_data.core.runner import CheckRunner
+from forge_doctor_data.plugins.protocol import CheckBase
 
 
 class FakePluginCheck(CheckBase):
@@ -22,7 +22,9 @@ class FakePluginCheck(CheckBase):
 
 
 def _fake_entry_points(monkeypatch, loaded_value, name="fake"):
-    ep = EntryPoint(name=name, value="fake_plugin:FakePluginCheck", group="forge_doctor.checks")
+    ep = EntryPoint(
+        name=name, value="fake_plugin:FakePluginCheck", group="forge_doctor_data.checks"
+    )
     monkeypatch.setattr(ep.__class__, "load", lambda self: loaded_value)
     monkeypatch.setattr(discovery, "iter_entry_points", lambda: [ep])
     return ep
@@ -66,7 +68,7 @@ def test_plugin_check_flows_through_runner(monkeypatch, tmp_path: Path):
 def test_untrusted_plugin_never_loads(monkeypatch):
     """The trust boundary: ep.load() must not run for untrusted plugins."""
     loaded: list[object] = []
-    ep = EntryPoint(name="evil", value="evil:Check", group="forge_doctor.checks")
+    ep = EntryPoint(name="evil", value="evil:Check", group="forge_doctor_data.checks")
 
     def _load(self):  # pragma: no cover - must never be reached
         loaded.append(self)
@@ -74,7 +76,7 @@ def test_untrusted_plugin_never_loads(monkeypatch):
 
     monkeypatch.setattr(EntryPoint, "load", _load)
     monkeypatch.setattr(discovery, "iter_entry_points", lambda: [ep])
-    checks, infos, errors = discovery.load_plugins(trusted=("forge-doctor-good",))
+    checks, infos, errors = discovery.load_plugins(trusted=("forge-doctor-data-good",))
     assert loaded == []
     assert checks == []
     assert errors == []
@@ -101,8 +103,8 @@ def test_allow_check_id_loads_and_filters(monkeypatch):
     _fake_entry_points(monkeypatch, FakePluginCheck, name="fake")
     checks, _infos, _errors = discovery.load_plugins(allow=("PLUGIN001",))
     assert len(checks) == 1  # loaded; registry-level filtering drops others
-    identities, check_ids = discovery.split_allow(("PLUGIN001", "forge-doctor-x"))
-    assert identities == frozenset({"forge-doctor-x"})
+    identities, check_ids = discovery.split_allow(("PLUGIN001", "forge-doctor-data-x"))
+    assert identities == frozenset({"forge-doctor-data-x"})
     assert check_ids == frozenset({"PLUGIN001"})
 
 
@@ -122,9 +124,9 @@ def _ep_with_dist(name, loaded, dist_name=None, dist_version=None):
 
 def test_trusted_by_distribution_name_loads(monkeypatch):
     """``trusted`` matches the distribution name, not only the ep name."""
-    ep = _ep_with_dist("entry-name", FakePluginCheck, dist_name="forge-doctor-fake")
+    ep = _ep_with_dist("entry-name", FakePluginCheck, dist_name="forge-doctor-data-fake")
     monkeypatch.setattr(discovery, "iter_entry_points", lambda: [ep])
-    checks, infos, _errors = discovery.load_plugins(trusted=("forge-doctor-fake",))
+    checks, infos, _errors = discovery.load_plugins(trusted=("forge-doctor-data-fake",))
     assert len(checks) == 1
     assert infos[0].status is None
 
@@ -162,7 +164,7 @@ def test_untrusted_callable_never_invoked(monkeypatch):
         called.append(True)
         return FakePluginCheck()
 
-    ep = EntryPoint(name="evil", value="evil:factory", group="forge_doctor.checks")
+    ep = EntryPoint(name="evil", value="evil:factory", group="forge_doctor_data.checks")
     monkeypatch.setattr(EntryPoint, "load", lambda self: factory)
     monkeypatch.setattr(discovery, "iter_entry_points", lambda: [ep])
     checks, infos, _errors = discovery.load_plugins(trusted=("other-dist",))
@@ -172,15 +174,19 @@ def test_untrusted_callable_never_invoked(monkeypatch):
 
 
 def test_build_registry_applies_check_filters(monkeypatch, tmp_path: Path):
-    from forge_doctor.cli.common import _build_registry
-    from forge_doctor.core.config import ForgeDoctorConfig, PluginRules
+    from forge_doctor_data.cli.common import _build_registry
+    from forge_doctor_data.core.config import ForgeDoctorDataConfig, PluginRules
 
     _fake_entry_points(monkeypatch, FakePluginCheck, name="fake")
-    cfg = ForgeDoctorConfig(plugins=PluginRules(trusted=("fake",), checks_disabled=("PLUGIN001",)))
+    cfg = ForgeDoctorDataConfig(
+        plugins=PluginRules(trusted=("fake",), checks_disabled=("PLUGIN001",))
+    )
     registry, errors = _build_registry(config=cfg)
     assert registry.get("PLUGIN001") is None
     assert any("disabled" in e for e in errors)
 
-    cfg2 = ForgeDoctorConfig(plugins=PluginRules(trusted=("fake",), checks_enabled=("PLUGIN001",)))
+    cfg2 = ForgeDoctorDataConfig(
+        plugins=PluginRules(trusted=("fake",), checks_enabled=("PLUGIN001",))
+    )
     registry2, _ = _build_registry(config=cfg2)
     assert registry2.get("PLUGIN001") is not None

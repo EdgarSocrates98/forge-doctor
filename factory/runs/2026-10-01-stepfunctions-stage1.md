@@ -26,7 +26,7 @@
   SFN003 dead-end path, SFN005 Choice without Default, SFN010
   sync/callback task without TimeoutSeconds, SFN020 Distributed Map
   inside an EXPRESS machine.
-- `forge-doctor stepfunctions inspect` — per-machine type/state-type
+- `forge-doctor-data stepfunctions inspect` — per-machine type/state-type
   counts/integrations/retry+catch inventory, IaC refs, severity-sorted
   risks. Verified live.
 - `knowledge/stepfunctions/integrations.json` — service-integration arn

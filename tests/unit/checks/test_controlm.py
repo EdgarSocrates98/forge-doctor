@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.controlm import (
+from forge_doctor_data.checks.controlm import (
     CHECKS,
     CalendarNotDefined,
     ControlMUsage,
@@ -16,8 +16,8 @@ from forge_doctor.checks.controlm import (
     JobWithoutTarget,
     MissingMetadata,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -212,7 +212,7 @@ def test_all_checks_run_and_category(tmp_path: Path) -> None:
 def _cli(args: list[str]):
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     return CliRunner().invoke(app, args)
 

@@ -13,19 +13,19 @@ entities, and named missing evidence for `unknown`.
 
 ## Files changed
 
-- `src/forge_doctor/core/capabilities.py` — `CapabilityResult` gains
+- `src/forge_doctor_data/core/capabilities.py` — `CapabilityResult` gains
   `entry_id`, `matched_when`, `missing_evidence`; `evaluate` populates
   them (unknowns name the unmet `when` attrs or uncovered known
   versions).
-- `src/forge_doctor/core/capability_graph.py` — **new**:
+- `src/forge_doctor_data/core/capability_graph.py` — **new**:
   `capability_subgraph(graph)` builds capability + knowledge_pack
   entities linked `EVIDENCED_BY` (deciding pack) and `EVIDENCED_BY`
   version-source entities (attr `provides=version`).
-- `src/forge_doctor/core/platform_graph.py` + `core/ontology.py` +
+- `src/forge_doctor_data/core/platform_graph.py` + `core/ontology.py` +
   `docs/ontology.md` — additive vocabulary: `EntityKind.CAPABILITY`,
   `EntityKind.KNOWLEDGE_PACK`, `RelKind.EVIDENCED_BY`, producer domain
   `knowledge`.
-- `src/forge_doctor/cli/capabilities.py` — `capabilities graph <path>`
+- `src/forge_doctor_data/cli/capabilities.py` — `capabilities graph <path>`
   (text + `--json` platform-graph shape), `list --json --provenance`,
   `explain` reports the new fields; JSON output moved off
   `console.print` to `typer.echo` (Rich line-wrap corrupted payloads).

@@ -5,15 +5,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.abstractions import abstractions_model
-from forge_doctor.analyzers.azure_model import azure_model
-from forge_doctor.analyzers.gcp_model import gcp_model
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.analyzers.runtime_evidence import ADAPTERS
-from forge_doctor.checks.azure import CHECKS as AZ_CHECKS
-from forge_doctor.checks.gcp import CHECKS as GCP_CHECKS
-from forge_doctor.core.capabilities import capability_registry
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.abstractions import abstractions_model
+from forge_doctor_data.analyzers.azure_model import azure_model
+from forge_doctor_data.analyzers.gcp_model import gcp_model
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.analyzers.runtime_evidence import ADAPTERS
+from forge_doctor_data.checks.azure import CHECKS as AZ_CHECKS
+from forge_doctor_data.checks.gcp import CHECKS as GCP_CHECKS
+from forge_doctor_data.core.capabilities import capability_registry
+from forge_doctor_data.core.context import ProjectContext
 
 # --- fixtures -------------------------------------------------------------
 

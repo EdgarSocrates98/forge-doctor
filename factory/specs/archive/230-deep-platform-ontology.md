@@ -70,7 +70,7 @@ layer on top — additive only; EntityKind is not replaced.
 ## Constraints
 
 - Deterministic, offline, no cloud calls, no LLM. Honest UNKNOWN.
-- Public API additive — existing `forge_doctor.api`/sdk/schemas/SARIF/
+- Public API additive — existing `forge_doctor_data.api`/sdk/schemas/SARIF/
   JSONL unchanged.
 - §12/§13 rules apply: no fuzzy joins; analyzers never touch
   os.environ/Path.home()/shutil.which() — all via ProjectContext.

@@ -1,0 +1,1757 @@
+"""Populate a DataPlatformGraph from the domain models (spec 172).
+
+Each domain adapter maps model facts to canonical entities + typed
+relationships. Adapters are unidirectional: models never import each
+other - this module is the single composition point. Edges carry the
+EvidenceKind of the fact they came from.
+
+Canonical ids use the *platform* domain (``table:dynamodb:x``,
+``compute_job:lambda:f``), not the producing model - a Terraform
+``aws_dynamodb_table`` and later DynamoDB code evidence merge on the
+same entity id. Joins are therefore deterministic by construction: two
+producers emit the same id only when the identifier is identical.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, cast
+
+from forge_doctor_data.core.models import EvidenceKind
+from forge_doctor_data.core.platform_graph import (
+    DataPlatformGraph,
+    Entity,
+    Relationship,
+)
+from forge_doctor_data.core.platform_graph import (
+    EntityKind as K,
+)
+from forge_doctor_data.core.platform_graph import (
+    RelKind as R,
+)
+
+if TYPE_CHECKING:
+    from forge_doctor_data.core.context import ProjectContext
+
+_CACHE_ATTR = "_forge_doctor_data_platform_graph"
+
+_CFG = EvidenceKind.CONFIG
+_STA = EvidenceKind.STATIC
+_DER = EvidenceKind.DERIVED
+_OBS = EvidenceKind.OBSERVED_METADATA
+
+# Terraform resource type -> (entity kind, platform domain) so the
+# definition lands on the same canonical id code evidence would use.
+_TF_TYPED: dict[str, tuple[K, str]] = {
+    "aws_sfn_state_machine": (K.WORKFLOW, "stepfunctions"),
+    "aws_lambda_function": (K.COMPUTE_JOB, "lambda"),
+    "aws_glue_job": (K.COMPUTE_JOB, "glue"),
+    "aws_dynamodb_table": (K.TABLE, "dynamodb"),
+    "aws_s3_bucket": (K.STORAGE_LOCATION, "s3"),
+    "aws_kinesis_stream": (K.STREAM, "kinesis"),
+    "aws_neptune_cluster": (K.GRAPH, "neptune"),
+    "aws_glue_catalog_database": (K.CATALOG, "glue"),
+    "aws_emr_cluster": (K.COMPUTE_JOB, "emr"),
+    "aws_emrserverless_application": (K.COMPUTE_JOB, "emr"),
+    "aws_emrcontainers_virtual_cluster": (K.COMPUTE_JOB, "emr"),
+    "databricks_job": (K.COMPUTE_JOB, "databricks"),
+    "databricks_cluster": (K.COMPUTE_JOB, "databricks"),
+    "databricks_pipeline": (K.COMPUTE_JOB, "databricks"),
+    "databricks_sql_warehouse": (K.COMPUTE_JOB, "databricks"),
+    "databricks_sql_endpoint": (K.COMPUTE_JOB, "databricks"),
+    "databricks_catalog": (K.CATALOG, "databricks"),
+    "databricks_schema": (K.CATALOG, "databricks"),
+    "databricks_volume": (K.STORAGE_LOCATION, "databricks"),
+    "databricks_external_location": (K.STORAGE_LOCATION, "databricks"),
+    "databricks_storage_credential": (K.PRINCIPAL, "databricks"),
+    "aws_athena_named_query": (K.QUERY, "athena"),
+    "aws_athena_prepared_statement": (K.QUERY, "athena"),
+    "aws_athena_database": (K.CATALOG, "glue"),
+    "aws_athena_data_catalog": (K.CATALOG, "athena"),
+    "aws_athena_workgroup": (K.COMPUTE_JOB, "athena"),
+    "aws_msk_cluster": (K.STREAM, "kafka"),
+    "aws_msk_serverless_cluster": (K.STREAM, "kafka"),
+    "aws_msk_topic": (K.STREAM, "kafka"),
+    "kafka_topic": (K.STREAM, "kafka"),
+    "aws_kinesis_firehose_delivery_stream": (K.STREAM, "firehose"),
+    "aws_kinesisanalyticsv2_application": (K.COMPUTE_JOB, "flink"),
+    # Azure (spec 233)
+    "azurerm_storage_account": (K.STORAGE_LOCATION, "adls"),
+    "azurerm_storage_data_lake_gen2_filesystem": (K.STORAGE_LOCATION, "adls"),
+    "azurerm_eventhub_namespace": (K.STREAM, "eventhubs"),
+    "azurerm_eventhub": (K.STREAM, "eventhubs"),
+    "azurerm_synapse_workspace": (K.WAREHOUSE, "synapse"),
+    "azurerm_synapse_sql_pool": (K.WAREHOUSE_COMPUTE, "synapse"),
+    "azurerm_synapse_spark_pool": (K.COMPUTE_JOB, "synapse"),
+    "azurerm_data_factory": (K.WORKFLOW, "adf"),
+    "azurerm_data_factory_pipeline": (K.WORKFLOW, "adf"),
+    "azurerm_purview_account": (K.CATALOG, "purview"),
+    "azurerm_fabric_capacity": (K.COMPUTE_JOB, "fabric"),
+    "azurerm_cosmosdb_account": (K.DATABASE, "cosmosdb"),
+    "azurerm_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    "azurerm_linux_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    "azurerm_windows_function_app": (K.COMPUTE_JOB, "azure_functions"),
+    # GCP (spec 233)
+    "google_storage_bucket": (K.STORAGE_LOCATION, "gcs"),
+    "google_pubsub_topic": (K.STREAM, "pubsub"),
+    "google_pubsub_subscription": (K.STREAM, "pubsub"),
+    "google_dataflow_job": (K.COMPUTE_JOB, "dataflow"),
+    "google_dataflow_flex_template_job": (K.COMPUTE_JOB, "dataflow"),
+    "google_dataproc_cluster": (K.COMPUTE_JOB, "dataproc"),
+    "google_composer_environment": (K.WORKFLOW, "composer"),
+    "google_dataplex_lake": (K.CATALOG, "dataplex"),
+    "google_dataplex_zone": (K.CATALOG, "dataplex"),
+    "google_cloudfunctions_function": (K.COMPUTE_JOB, "cloud_functions"),
+    "google_cloudfunctions2_function": (K.COMPUTE_JOB, "cloud_functions"),
+}
+
+# Terraform provider prefix -> cloud domain for infrastructure_resource
+# entities. Providers outside the three clouds keep "aws" (historical).
+_TF_CLOUD_DOMAINS = {"azurerm": "azure", "google": "gcp", "aws": "aws"}
+
+# Streaming source/sink class -> entity kind (bus/topic vs table vs blob).
+_ENDPOINT_KINDS: dict[str, K] = {
+    "kafka": K.STREAM,
+    "kinesis": K.STREAM,
+    "delta": K.TABLE,
+    "iceberg": K.TABLE,
+}
+
+# ASL integration family -> (entity kind, platform domain) for Task
+# resources the state machine invokes.
+_SFN_RESOURCES: dict[str, tuple[K, str]] = {
+    "lambda": (K.COMPUTE_JOB, "lambda"),
+    "glue": (K.COMPUTE_JOB, "glue"),
+    "athena": (K.QUERY, "athena"),
+    "dynamodb": (K.TABLE, "dynamodb"),
+    "sns": (K.STREAM, "sns"),
+    "sqs": (K.STREAM, "sqs"),
+}
+
+
+def _e(
+    entity_kind: K,
+    domain: str,
+    ident: str,
+    file: Path | None = None,
+    line: int | None = None,
+    **attrs: str,
+) -> Entity:
+    return Entity(
+        kind=entity_kind,
+        domain=domain,
+        identifier=ident,
+        file=file,
+        line=line,
+        attrs=tuple(sorted(attrs.items())),
+    )
+
+
+# Airflow operator -> (entity kind, platform domain) for the external
+# resource its ``target`` kwarg names. Only operators whose target maps
+# to a canonical platform entity id produce an edge.
+_AIRFLOW_OPERATOR_TARGETS: dict[str, tuple[K, str]] = {
+    "GlueJobOperator": (K.COMPUTE_JOB, "glue"),
+    "GlueJobRunTrigger": (K.COMPUTE_JOB, "glue"),
+    "LambdaInvokeFunctionOperator": (K.COMPUTE_JOB, "lambda"),
+    "LambdaInvokeAsyncOperator": (K.COMPUTE_JOB, "lambda"),
+    "StepFunctionStartExecutionOperator": (K.WORKFLOW, "stepfunctions"),
+    "EmrAddStepsOperator": (K.COMPUTE_JOB, "emr"),
+    "EmrServerlessStartJobOperator": (K.COMPUTE_JOB, "emr"),
+    "DatabricksRunNowOperator": (K.COMPUTE_JOB, "databricks"),
+    "DatabricksSubmitRunOperator": (K.COMPUTE_JOB, "databricks"),
+}
+
+
+def _airflow(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.airflow_model import airflow_model
+
+    model = airflow_model(ctx)
+    for dag in model.dags:
+        g.add_entity(
+            _e(
+                K.WORKFLOW,
+                "airflow",
+                dag.dag_id or dag.var,
+                dag.file,
+                dag.line,
+                schedule=dag.schedule,
+            )
+        )
+    task_ids: dict[str, str] = {}  # var or task_id -> canonical task id
+    for task in model.tasks:
+        t = _e(
+            K.TASK,
+            "airflow",
+            task.task_id,
+            task.file,
+            task.line,
+            operator=task.operator,
+            **({"retries": task.retries} if task.retries else {}),
+        )
+        g.add_entity(t)
+        for alias in {task.var, task.task_id}:
+            if alias:
+                task_ids.setdefault(alias, t.id)
+        if task.dag:
+            for dag in model.dags:
+                if task.dag in {dag.var, dag.dag_id}:
+                    g.add_entity(
+                        _e(
+                            K.WORKFLOW,
+                            "airflow",
+                            dag.dag_id or dag.var,
+                            retries=dag.default_retries,
+                        )
+                    )
+                    g.add_relationship(
+                        Relationship(
+                            src=f"workflow:airflow:{dag.dag_id or dag.var}",
+                            dst=t.id,
+                            kind=R.INVOKES,
+                            evidence_kind=_STA,
+                        )
+                    )
+        kind_domain = _AIRFLOW_OPERATOR_TARGETS.get(task.operator)
+        if task.target and kind_domain is not None:
+            kind, domain = kind_domain
+            ident = task.target.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+            target = _e(kind, domain, ident or task.target)
+            g.add_entity(target)
+            g.add_relationship(
+                Relationship(src=t.id, dst=target.id, kind=R.INVOKES, evidence_kind=_STA)
+            )
+    for edge in model.edges:
+        # `a >> b` means b depends on a; edges reference vars or task_ids.
+        src_id = task_ids.get(edge.dst)
+        dst_id = task_ids.get(edge.src)
+        if src_id and dst_id:
+            g.add_relationship(
+                Relationship(src=src_id, dst=dst_id, kind=R.DEPENDS_ON, evidence_kind=_STA)
+            )
+
+
+def _controlm(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.controlm_model import controlm_model
+
+    model = controlm_model(ctx)
+    for folder in model.folders:
+        g.add_entity(_e(K.WORKFLOW, "controlm", folder.name, folder.file, folder.line))
+    producers: dict[str, str] = {}  # event name -> producing job id
+    for job in model.jobs:
+        jid = f"{job.folder}.{job.name}" if job.folder else job.name
+        j = _e(K.TASK, "controlm", jid, job.file, job.line, job_type=job.job_type)
+        g.add_entity(j)
+        if job.folder:
+            g.add_relationship(
+                Relationship(
+                    src=f"workflow:controlm:{job.folder}",
+                    dst=j.id,
+                    kind=R.INVOKES,
+                    evidence_kind=_CFG,
+                )
+            )
+        for event in job.add_events:
+            producers.setdefault(event, j.id)
+    for job in model.jobs:
+        jid = f"{job.folder}.{job.name}" if job.folder else job.name
+        for event in job.wait_events:
+            src = producers.get(event)
+            if src and src != f"task:controlm:{jid}":
+                g.add_relationship(
+                    Relationship(
+                        src=f"task:controlm:{jid}",
+                        dst=src,
+                        kind=R.DEPENDS_ON,
+                        evidence_kind=_DER,
+                        attrs=(("via_event", event),),
+                    )
+                )
+
+
+def _stepfunctions(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.stepfunctions_model import stepfunctions_model
+
+    for machine in stepfunctions_model(ctx).machines:
+        wf = _e(
+            K.WORKFLOW, "stepfunctions", machine.name, machine.file, machine.line, type=machine.type
+        )
+        g.add_entity(wf)
+        for state in machine.states:
+            sid = f"{machine.name}.{state.name}"
+            task = _e(K.TASK, "stepfunctions", sid, machine.file, type=state.type)
+            g.add_entity(task)
+            g.add_relationship(
+                Relationship(src=wf.id, dst=task.id, kind=R.INVOKES, evidence_kind=_CFG)
+            )
+            target = _sfn_target(state)
+            if target is not None:
+                g.add_entity(target)
+                g.add_relationship(
+                    Relationship(src=task.id, dst=target.id, kind=R.INVOKES, evidence_kind=_CFG)
+                )
+
+
+def _sfn_target(state: object) -> Entity | None:
+    """Entity for a Task's integration resource, when identifiable."""
+    integration = getattr(state, "integration", "")
+    resource = getattr(state, "resource", "")
+    # ``arn:aws:states:::lambda:invoke``-style resources encode the
+    # integration pattern, not a named entity - nothing to point at.
+    if not resource or resource.startswith("arn:aws:states:::"):
+        return None
+    if integration.startswith("sdk:"):
+        svc = integration.split(":", 1)[1]
+        return _resource_entity(resource, K.INFRASTRUCTURE_RESOURCE, svc or "aws")
+    kind_domain = _SFN_RESOURCES.get(integration)
+    if kind_domain is None:
+        return None
+    return _resource_entity(resource, *kind_domain)
+
+
+def _resource_entity(arn: str, kind: K, domain: str) -> Entity:
+    """Canonical entity for a service-integration ARN-ish reference."""
+    ident = arn.rsplit(":", 1)[-1].rsplit("/", 1)[-1] if ":" in arn else arn
+    return _e(kind, domain, ident or arn)
+
+
+# Catalog name -> impl classes seen, from model facts only
+# (``spark.sql.catalog.<name> = <impl>``, IaC catalog resources).
+def _catalog_impls(ctx: ProjectContext) -> dict[str, set[str]]:
+    from forge_doctor_data.analyzers.iceberg_model import iceberg_model
+
+    impls: dict[str, set[str]] = {}
+    for e in iceberg_model(ctx).by_kind("catalog"):
+        impls.setdefault(e.name, set()).add(e.value)
+    return impls
+
+
+def _non_iceberg(impls: dict[str, set[str]], name: str) -> bool:
+    """True iff the catalog has impl evidence and none is iceberg."""
+    vals = {v for v in impls.get(name, set()) if v}
+    return bool(vals) and not any("iceberg" in v.lower() for v in vals)
+
+
+# Catalog name -> table domain: ``spark.sql.catalog.<name> = *iceberg*``
+# means refs under ``<name>.`` are iceberg tables - the producer doesn't
+# choose the namespace, the configured catalog does. Never fuzzy.
+def _catalog_domains(ctx: ProjectContext) -> dict[str, str]:
+    impls = _catalog_impls(ctx)
+    return {
+        name: "iceberg" for name, vals in impls.items() if any("iceberg" in v.lower() for v in vals)
+    }
+
+
+def _table_id(name: str, declared: str, catalog_domains: dict[str, str]) -> str:
+    """Canonical id for a table reference. A known catalog qualifier wins
+    over the producing model's domain; otherwise the declared domain
+    (sql/delta/iceberg) is kept."""
+    head, _, _rest = name.partition(".")
+    domain = catalog_domains.get(head) or declared
+    return f"table:{domain}:{name}"
+
+
+def _endpoint_entity(fmt: str, identifier: str, catalog_domains: dict[str, str]) -> Entity:
+    """Endpoint entity for a stream source/sink.
+
+    An *identified* endpoint lands on its canonical id (kafka topic,
+    delta/iceberg table resolved through known catalogs). An
+    unidentified one becomes ``dataset:<fmt>:<fmt>`` - an honest marker
+    that never masquerades as a specific table.
+    """
+    kind = _ENDPOINT_KINDS.get(fmt, K.DATASET)
+    if kind is K.TABLE:
+        if identifier:
+            return _table(_table_id(identifier, fmt, catalog_domains))
+        return _e(K.DATASET, fmt, fmt, identified="no")
+    if identifier:
+        return _e(kind, fmt, identifier)
+    return _e(kind, fmt, fmt, identified="no")
+
+
+def _streaming(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.streaming_model import streaming_model
+
+    catalog_domains = _catalog_domains(ctx)
+    for q in streaming_model(ctx).queries:
+        sid = f"{q.file.as_posix()}:{q.line}:{q.name}"
+        stream = _e(
+            K.STREAM,
+            "spark_ss",
+            sid,
+            q.file,
+            q.line,
+            engine=q.engine,
+            trigger=q.trigger_kind,
+            **(
+                {"checkpoint": q.checkpoint}
+                if q.checkpoint
+                else (
+                    {"checkpoint_dynamic": "true"}
+                    if q.checkpoint_dynamic
+                    else {"checkpoint": "none"}
+                )
+            ),
+        )
+        g.add_entity(stream)
+        if q.source:
+            src = _endpoint_entity(q.source, q.source_identifier, catalog_domains)
+            g.add_entity(src)
+            g.add_relationship(
+                Relationship(src=stream.id, dst=src.id, kind=R.CONSUMES, evidence_kind=_STA)
+            )
+        if q.sink and q.sink != "foreachBatch":
+            sink = _endpoint_entity(q.sink, q.sink_identifier, catalog_domains)
+            g.add_entity(sink)
+            g.add_relationship(
+                Relationship(src=stream.id, dst=sink.id, kind=R.PRODUCES, evidence_kind=_STA)
+            )
+
+
+def _table(table_id: str) -> Entity:
+    """Entity for a canonical ``table:<domain>:<name>`` id."""
+    _, domain, ident = table_id.split(":", 2)
+    return _e(K.TABLE, domain, ident)
+
+
+def _graph_intel(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """GraphProjectModel adapter: schema/model entities, not real nodes.
+
+    ``graph:graphdata:<file>`` marks each detected artifact; vertex/edge
+    labels land as GRAPH_NODE/GRAPH_EDGE *types* (never per-record) and
+    traversals become QUERY entities reading/writing the workload graph.
+    """
+    from forge_doctor_data.analyzers.graph_model import graph_model
+
+    model = graph_model(ctx)
+    by_file: dict[Path, str] = {}
+    for w in model.workloads:
+        e = _e(K.GRAPH, "graphdata", w.file.as_posix(), w.file, w.line, paradigm=w.paradigm)
+        g.add_entity(e)
+        by_file.setdefault(w.file, e.id)
+    for label, sites in model.vertex_labels.items():
+        e = _e(K.GRAPH_NODE, "graph", label, sites[0][0], sites[0][1])
+        g.add_entity(e)
+    for label, sites in model.edge_labels.items():
+        e = _e(K.GRAPH_EDGE, "graph", label, sites[0][0], sites[0][1])
+        g.add_entity(e)
+    for t in model.traversals:
+        q = _e(
+            K.QUERY,
+            "graph",
+            f"{t.file.as_posix()}:{t.line}",
+            t.file,
+            t.line,
+            language=t.language,
+        )
+        g.add_entity(q)
+        target = by_file.get(t.file)
+        if target:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=target,
+                    kind=R.WRITES if t.writes else R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+        for label in t.vertex_labels:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=f"graph_node:graph:{label}",
+                    kind=R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+        for label in t.edge_labels:
+            g.add_relationship(
+                Relationship(
+                    src=q.id,
+                    dst=f"graph_edge:graph:{label}",
+                    kind=R.READS,
+                    evidence_kind=_STA,
+                )
+            )
+
+
+def _lambda_index(ctx: ProjectContext) -> tuple[dict[str, str], dict[str, str]]:
+    """Lambda canonical names + handler-module stems for joins.
+
+    Returns (label -> display name, module stem -> lambda name)."""
+    from forge_doctor_data.analyzers.terraform_model import terraform_model
+
+    by_label: dict[str, str] = {}
+    by_module: dict[str, str] = {}
+    for res in terraform_model(ctx).resources:
+        if not res.labels or res.labels[0] != "aws_lambda_function":
+            continue
+        name = str(res.attrs.get("function_name") or res.labels[-1])
+        by_label[res.labels[-1]] = name
+        handler = str(res.attrs.get("handler") or "")
+        stem = handler.split(".", 1)[0]
+        if stem:
+            by_module.setdefault(stem, name)
+    return by_label, by_module
+
+
+def _dynamodb(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """DynamoDB adapter: tables, streams->lambdas, code access edges."""
+    from forge_doctor_data.analyzers.dynamodb_model import dynamodb_model
+    from forge_doctor_data.analyzers.terraform_model import terraform_model
+
+    model = dynamodb_model(ctx)
+    for t in model.tables:
+        g.add_entity(_e(K.TABLE, "dynamodb", t.name, t.file, t.line, source=t.source))
+    for s in model.streams:
+        if not s.table:
+            continue
+        stream = _e(K.STREAM, "dynamodb", s.table, s.file, s.line, view=s.view_type)
+        g.add_entity(stream)
+        g.add_relationship(
+            Relationship(
+                src=f"table:dynamodb:{s.table}",
+                dst=stream.id,
+                kind=R.PRODUCES,
+                evidence_kind=_CFG,
+            )
+        )
+    tf_label_to_table: dict[str, str] = {}
+    for res in terraform_model(ctx).resources:
+        if res.labels and res.labels[0] == "aws_dynamodb_table":
+            tf_label_to_table[res.labels[-1]] = str(res.attrs.get("name") or res.labels[-1])
+    lambda_names, _ = _lambda_index(ctx)
+    for res in terraform_model(ctx).resources:
+        if not res.labels or res.labels[0] != "aws_lambda_event_source_mapping":
+            continue
+        arn = str(res.attrs.get("event_source_arn") or "")
+        table = next(
+            (name for label, name in tf_label_to_table.items() if label in arn),
+            None,
+        )
+        if table is None:
+            continue
+        fn = str(res.attrs.get("function_name") or res.attrs.get("function_arn") or "")
+        fn_name = next((name for label, name in lambda_names.items() if label in fn), fn or "")
+        if not fn_name:
+            continue
+        lam = _e(K.COMPUTE_JOB, "lambda", fn_name, res.file, res.line)
+        g.add_entity(lam)
+        stream = _e(K.STREAM, "dynamodb", table)
+        g.add_entity(stream)
+        g.add_relationship(
+            Relationship(src=stream.id, dst=lam.id, kind=R.TRIGGERS, evidence_kind=_CFG)
+        )
+    for a in model.accesses:
+        if not a.table:
+            continue
+        t_ent = _e(K.TABLE, "dynamodb", a.table)
+        g.add_entity(t_ent)
+        q = _e(
+            K.QUERY,
+            "dynamodb",
+            f"{a.file.as_posix()}:{a.line}",
+            a.file,
+            a.line,
+            op=a.op,
+        )
+        g.add_entity(q)
+        kind = (
+            R.WRITES
+            if a.op.startswith(("put", "update", "delete", "batch_write", "transact_write"))
+            else R.READS
+        )
+        g.add_relationship(Relationship(src=q.id, dst=t_ent.id, kind=kind, evidence_kind=_STA))
+
+
+def _neptune(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Neptune adapter: cluster graphs, loader jobs, code writes."""
+    from forge_doctor_data.analyzers.neptune_model import neptune_model
+    from forge_doctor_data.analyzers.neptune_queries import neptune_queries
+
+    model = neptune_model(ctx)
+    cluster_ids: list[str] = []
+    for c in model.clusters:
+        ent = _e(K.GRAPH, "neptune", c.name, c.file, c.line, product="database")
+        g.add_entity(ent)
+        cluster_ids.append(ent.id)
+    for e in model.endpoints:
+        g.add_entity(
+            _e(
+                K.INFRASTRUCTURE_RESOURCE,
+                "neptune",
+                e.value,
+                e.file,
+                e.line,
+                type="endpoint",
+            )
+        )
+
+    # File -> cluster resolution: a query joins the cluster whose name
+    # appears in an endpoint the same file references; a single cluster
+    # absorbs everything. Otherwise the join stays unresolved (no edge).
+    file_cluster: dict[Path, str] = {}
+    for e in model.endpoints:
+        for c in model.clusters:
+            if c.name and c.name in e.value:
+                file_cluster.setdefault(e.file, f"graph:neptune:{c.name}")
+
+    _labels, lambda_by_module = _lambda_index(ctx)
+    for q in neptune_queries(ctx).queries:
+        target = file_cluster.get(q.file)
+        if target is None:
+            if len(cluster_ids) != 1:
+                continue  # multi-cluster ambiguity stays unresolved
+            target = cluster_ids[0]
+        qent = _e(
+            K.QUERY,
+            "neptune",
+            f"{q.file.as_posix()}:{q.line}",
+            q.file,
+            q.line,
+            language=q.language,
+        )
+        g.add_entity(qent)
+        g.add_relationship(
+            Relationship(
+                src=qent.id,
+                dst=target,
+                kind=R.WRITES if q.writes else R.READS,
+                evidence_kind=_STA,
+            )
+        )
+        if q.writes:
+            lam = lambda_by_module.get(q.file.stem)
+            if lam:
+                le = _e(K.COMPUTE_JOB, "lambda", lam)
+                g.add_entity(le)
+                g.add_relationship(
+                    Relationship(src=le.id, dst=target, kind=R.WRITES, evidence_kind=_DER)
+                )
+    for load in model.bulk_loads:
+        job = _e(
+            K.TASK,
+            "neptune_loader",
+            f"{load.file.as_posix()}:{load.line}",
+            load.file,
+            load.line,
+            origin=load.origin,
+        )
+        g.add_entity(job)
+        if load.source_s3:
+            bucket = load.source_s3.removeprefix("s3://").split("/", 1)[0]
+            s3 = _e(K.STORAGE_LOCATION, "s3", bucket)
+            g.add_entity(s3)
+            g.add_relationship(
+                Relationship(src=job.id, dst=s3.id, kind=R.READS, evidence_kind=_STA)
+            )
+        target = cluster_ids[0] if cluster_ids else None
+        if target:
+            g.add_relationship(
+                Relationship(src=job.id, dst=target, kind=R.WRITES, evidence_kind=_STA)
+            )
+
+
+def _sql(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.sql_ast import analyze_sql
+
+    catalog_domains = _catalog_domains(ctx)
+    for stmt in analyze_sql(ctx).statements:
+        q = _e(
+            K.QUERY,
+            "sql",
+            f"{stmt.file.as_posix()}:{stmt.line}",
+            stmt.file,
+            stmt.line,
+            kind=stmt.kind,
+        )
+        g.add_entity(q)
+        for table in stmt.tables_read:
+            t = _table(_table_id(table, "sql", catalog_domains))
+            g.add_entity(t)
+            g.add_relationship(Relationship(src=q.id, dst=t.id, kind=R.READS, evidence_kind=_STA))
+        for table in stmt.tables_written:
+            t = _table(_table_id(table, "sql", catalog_domains))
+            g.add_entity(t)
+            g.add_relationship(Relationship(src=q.id, dst=t.id, kind=R.WRITES, evidence_kind=_STA))
+
+
+def _warehouse(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Vendor-neutral warehouse entities (spec 212).
+
+    Only vendor-attributed rows emit entities here - generic-dialect SQL
+    stays owned by the ``sql`` domain adapter above.
+    """
+    from forge_doctor_data.analyzers.warehouse_model import warehouse_model
+
+    model = warehouse_model(ctx)
+    for platform in model.platforms:
+        g.add_entity(_e(K.WAREHOUSE, "warehouse", platform))
+
+    def wh(platform: str) -> str:
+        return f"warehouse:warehouse:{platform}"
+
+    def contains(src: str, dst: str, evidence: EvidenceKind) -> None:
+        if g.entity(src) and g.entity(dst):
+            g.add_relationship(
+                Relationship(src=src, dst=dst, kind=R.CONTAINS, evidence_kind=evidence)
+            )
+
+    for c in model.compute:
+        e = _e(
+            K.WAREHOUSE_COMPUTE,
+            "warehouse",
+            f"{c.platform}/{c.name}",
+            c.file,
+            c.line,
+            platform=c.platform,
+        )
+        g.add_entity(e)
+        contains(wh(c.platform), e.id, _CFG)
+    for ns in model.namespaces:
+        if ns.platform == "sql":
+            continue
+        kind = K.DATABASE if ns.kind == "database" else K.SCHEMA
+        e = _e(
+            kind,
+            "warehouse",
+            f"{ns.platform}/{ns.name}",
+            ns.file,
+            ns.line,
+            platform=ns.platform,
+        )
+        g.add_entity(e)
+        contains(wh(ns.platform), e.id, _CFG)
+    # table/view parents: schema-qualified names nest under their schema
+    schema_ids = {
+        ns.name: f"schema:warehouse:{ns.platform}/{ns.name}"
+        for ns in model.namespaces
+        if ns.kind == "schema" and ns.platform != "sql"
+    }
+    for t in model.tables:
+        if t.platform == "sql":
+            continue
+        e = _e(
+            K.TABLE,
+            "warehouse",
+            f"{t.platform}/{t.name}",
+            t.file,
+            t.line,
+            platform=t.platform,
+            external=str(t.external).lower(),
+        )
+        g.add_entity(e)
+        parent = schema_ids.get(t.name.rpartition(".")[0], wh(t.platform))
+        contains(parent, e.id, _CFG)
+    for v in model.views:
+        if v.platform == "sql":
+            continue
+        e = _e(
+            K.VIEW,
+            "warehouse",
+            f"{v.platform}/{v.name}",
+            v.file,
+            v.line,
+            platform=v.platform,
+            materialized=str(v.materialized).lower(),
+        )
+        g.add_entity(e)
+        contains(wh(v.platform), e.id, _STA if v.file else _DER)
+        # view -> base-table edges (name match on the table's last segment)
+        for base in v.tables_read:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.READS_FROM,
+                            evidence_kind=_STA,
+                        )
+                    )
+    for q in model.queries:
+        if q.platform == "sql":
+            continue
+        e = _e(K.QUERY, "warehouse", q.name, q.file, q.line, platform=q.platform)
+        g.add_entity(e)
+        for base in q.tables_read:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.READS_FROM,
+                            evidence_kind=_STA,
+                        )
+                    )
+        for base in q.tables_written:
+            for t in model.tables:
+                if t.platform == "sql":
+                    continue
+                if t.name == base or t.name.rpartition(".")[2] == base:
+                    g.add_relationship(
+                        Relationship(
+                            src=e.id,
+                            dst=f"table:warehouse:{t.platform}/{t.name}",
+                            kind=R.WRITES_TO,
+                            evidence_kind=_STA,
+                        )
+                    )
+
+    # Vendor objects the shared model doesn't carry (stage/pipe/stream/
+    # task/role) - emitted by the vendor model so graph consumers see them.
+    from forge_doctor_data.analyzers.snowflake_model import snowflake_model
+
+    sf = snowflake_model(ctx)
+    if sf.has_evidence:
+        _SNOW_KINDS = {
+            "stage": K.STORAGE_LOCATION,
+            "stream": K.STREAM,
+            "pipe": K.TASK,
+            "task": K.TASK,
+            "role": K.PRINCIPAL,
+            "grant": K.PRINCIPAL,
+        }
+        for obj in sf.objects:
+            ent_kind = _SNOW_KINDS.get(obj.kind)
+            if ent_kind is None:
+                continue
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"snowflake/{obj.kind}:{obj.name}",
+                obj.file,
+                obj.line,
+                platform="snowflake",
+            )
+            g.add_entity(e)
+            contains(wh("snowflake"), e.id, _STA if obj.source == "sql" else _CFG)
+            # pipe: its embedded COPY INTO target becomes a WRITES_TO edge
+            if obj.kind == "pipe":
+                targets = {
+                    copy.target
+                    for copy in sf.copies
+                    if copy.file == obj.file and copy.line == obj.line and copy.target
+                }
+                for t in model.tables:
+                    if t.platform == "snowflake" and t.name in targets:
+                        g.add_relationship(
+                            Relationship(
+                                src=e.id,
+                                dst=f"table:warehouse:{t.platform}/{t.name}",
+                                kind=R.WRITES_TO,
+                                evidence_kind=_STA,
+                            )
+                        )
+            # stream ... ON TABLE -> READS_FROM
+            if obj.kind == "stream":
+                for t in model.tables:
+                    if t.platform == "snowflake" and t.name in {
+                        obj.attr("on_table"),
+                        obj.attr("table"),
+                    } - {""}:
+                        g.add_relationship(
+                            Relationship(
+                                src=e.id,
+                                dst=f"table:warehouse:{t.platform}/{t.name}",
+                                kind=R.READS_FROM,
+                                evidence_kind=_STA,
+                            )
+                        )
+
+    # BigQuery vendor objects the shared model doesn't carry
+    # (reservation/capacity/connection/routine/job/access grants).
+    from forge_doctor_data.analyzers.bigquery_model import bigquery_model
+
+    bq = bigquery_model(ctx)
+    if bq.has_evidence:
+        _BQ_KINDS = {
+            "reservation": K.WAREHOUSE_COMPUTE,
+            "capacity": K.WAREHOUSE_COMPUTE,
+            "assignment": K.WAREHOUSE_COMPUTE,
+            "bi_reservation": K.WAREHOUSE_COMPUTE,
+            "connection": K.INFRASTRUCTURE_RESOURCE,
+            "routine": K.COMPUTE_JOB,
+            "job": K.QUERY,
+            "transfer": K.TASK,
+            "dataset_access": K.PRINCIPAL,
+            "data_exchange": K.CATALOG,
+            "listing": K.CATALOG,
+            "biglake_catalog": K.CATALOG,
+            "biglake_database": K.DATABASE,
+        }
+        for bq_obj in bq.objects:
+            ent_kind = _BQ_KINDS.get(bq_obj.kind)
+            if ent_kind is None:
+                continue
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"bigquery/{bq_obj.kind}:{bq_obj.name}",
+                bq_obj.file,
+                bq_obj.line,
+                platform="bigquery",
+            )
+            g.add_entity(e)
+            contains(wh("bigquery"), e.id, _STA if bq_obj.source == "sql" else _CFG)
+        # materialized views already land via model.views -> READS_FROM;
+        # dataset access grants view a dataset CONTAINment.
+
+    # Redshift vendor objects (datashares, param/subnet groups, schedules,
+    # endpoint/accessory resources) the shared model doesn't carry.
+    from forge_doctor_data.analyzers.redshift_model import redshift_model
+
+    rs = redshift_model(ctx)
+    if rs.has_evidence:
+        _RS_KINDS = {
+            "datashare": K.CATALOG,
+            "datashare_authz": K.PRINCIPAL,
+            "datashare_consumer": K.PRINCIPAL,
+            "iam_roles": K.PRINCIPAL,
+            "auth_profile": K.PRINCIPAL,
+            "routine": K.COMPUTE_JOB,
+        }
+        for rs_obj in rs.objects:
+            ent_kind = _RS_KINDS.get(rs_obj.kind, K.INFRASTRUCTURE_RESOURCE)
+            e = _e(
+                ent_kind,
+                "warehouse",
+                f"redshift/{rs_obj.kind}:{rs_obj.name}",
+                rs_obj.file,
+                rs_obj.line,
+                platform="redshift",
+            )
+            g.add_entity(e)
+            contains(wh("redshift"), e.id, _STA if rs_obj.source == "sql" else _CFG)
+
+
+def _dbt(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """dbt transformation layer (spec 216).
+
+    Models become ``dbt_model`` entities; ``ref()`` edges READS_FROM the
+    referenced model, ``source()`` edges READS_FROM the source relation,
+    and each materialized model WRITES_TO its output relation. Output and
+    source entities link to warehouse entities when a vendor adapter
+    (213-215) already declared the same name — the tail-name match is a
+    documented heuristic, not schema resolution.
+    """
+    from forge_doctor_data.analyzers.dbt_model import dbt_model
+
+    model = dbt_model(ctx)
+    if not model.has_evidence:
+        return
+
+    def tail(name: str) -> str:
+        return name.rpartition(".")[2].lower()
+
+    warehouse_tails = {
+        tail(e.id.rpartition(":")[2]): e.id for e in g.entities() if e.kind == K.TABLE
+    }
+
+    def relation_id(name: str, view: bool) -> str:
+        """Link to a warehouse entity when one claims the same tail."""
+        hit = warehouse_tails.get(tail(name))
+        if hit is not None:
+            return hit
+        return f"{'view' if view else 'table'}:dbt:{name}"
+
+    def ensure(kind: K, name: str, **kw: Any) -> Entity:
+        e = _e(kind, "dbt", name, kw.pop("file", None), kw.pop("line", None), **kw)
+        g.add_entity(e)
+        return e
+
+    model_ids = {
+        m.name: ensure(
+            K.DBT_MODEL, m.name, file=m.file, materialized=m.materialized or "unknown"
+        ).id
+        for m in model.models
+    }
+    for m in model.models:
+        mid = model_ids[m.name]
+        if m.materialized != "ephemeral":
+            is_view = m.materialized == "view"
+            rid = relation_id(m.name, is_view)
+            if g.entity(rid) is None:
+                ensure(K.VIEW if is_view else K.TABLE, m.name)
+            g.add_relationship(Relationship(src=mid, dst=rid, kind=R.WRITES_TO, evidence_kind=_STA))
+        for ref in m.refs:
+            rid = f"dbt_model:dbt:{ref}"
+            if g.entity(rid) is not None:
+                g.add_relationship(
+                    Relationship(src=mid, dst=rid, kind=R.READS_FROM, evidence_kind=_STA)
+                )
+        for src in m.sources_used:
+            sid = warehouse_tails.get(tail(src)) or f"dataset:dbt:{src}"
+            if g.entity(sid) is None:
+                ensure(K.DATASET, src)
+            g.add_relationship(
+                Relationship(src=mid, dst=sid, kind=R.READS_FROM, evidence_kind=_STA)
+            )
+    for s in model.sources:
+        if g.entity(f"dataset:dbt:{s.name}") is None and tail(s.name) not in warehouse_tails:
+            ensure(K.DATASET, s.name, file=s.file)
+
+
+def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Data contracts (spec 217).
+
+    Contract files become ``data_contract`` entities; each schema object
+    governs the relation naming it — tail-matched against existing
+    TABLE/VIEW/DATASET entities across domains, else a
+    ``table:datacontract:<name>`` placeholder is emitted. Declared
+    field families land as ``field.<name>`` attrs on the governed
+    relation so ``diff --semantic`` surfaces per-field evolution
+    (add/remove/type change) with blast radius to consumers.
+    """
+    from forge_doctor_data.analyzers.datacontract_model import datacontract_model
+
+    model = datacontract_model(ctx)
+    if not model.has_evidence:
+        return
+
+    # datacontract slaProperties/servicelevels names -> canonical attrs
+    _SLA_ATTR = {
+        "availability": "sla_availability",
+        "latency": "sla_latency",
+        "freshness": "sla_freshness",
+        "throughput": "sla_throughput",
+        "error_rate": "sla_error_rate",
+        "errorrate": "sla_error_rate",
+        "recoverypointobjective": "rpo",
+        "recoverytimeobjective": "rto",
+        "rpo": "rpo",
+        "rto": "rto",
+    }
+
+    def tail(name: str) -> str:
+        return name.rpartition(".")[2].lower()
+
+    relations = [e for e in g.entities() if e.kind in {K.TABLE, K.VIEW, K.DATASET}]
+
+    for c in model.contracts:
+        cid = g.add_entity(
+            _e(
+                K.DATA_CONTRACT,
+                "datacontract",
+                c.id,
+                c.file,
+                format=c.format,
+                owner=c.owner,
+            )
+        ).id
+        for obj in c.objects:
+            attrs = {f"field.{f.name}": f.type for f in obj.fields}
+            attrs["contract"] = c.id
+            if c.owner:
+                attrs["owner"] = c.owner
+            # Declared service levels land on the governed entity so
+            # `extract_objectives` / `slo budgets` can budget paths —
+            # canonical sla_* names, rpo/rto passthrough.
+            for prop, val in c.sla.items():
+                key = _SLA_ATTR.get(prop.lower(), f"sla_{prop.lower()}")
+                attrs[key] = val
+            hits = [e for e in relations if tail(e.identifier) == tail(obj.name)]
+            if not hits:
+                placeholder = g.add_entity(_e(K.TABLE, "datacontract", obj.name, c.file))
+                relations.append(placeholder)
+                hits = [placeholder]
+            for hit in hits:
+                g.add_entity(
+                    Entity(
+                        kind=hit.kind,
+                        domain=hit.domain,
+                        identifier=hit.identifier,
+                        file=c.file,
+                        attrs=tuple(sorted(attrs.items())),
+                    )
+                )
+                g.add_relationship(
+                    Relationship(src=cid, dst=hit.id, kind=R.GOVERNS, evidence_kind=_CFG)
+                )
+
+
+def _trino(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Trino catalogs + three-part SQL refs (spec 218).
+
+    Each catalog file becomes a ``catalog:trino:<name>`` entity carrying
+    the connector type; three-part SQL references whose first part names
+    a declared catalog become ``table:trino:<catalog.schema.table>``
+    entities with ``catalog CONTAINS table`` edges. Refs to unknown
+    catalogs are skipped (TRINO005 reports them as findings instead of
+    fabricating entities).
+    """
+    from forge_doctor_data.analyzers.trino_model import trino_model
+
+    model = trino_model(ctx)
+    if not model.has_evidence:
+        return
+    cat_ids: dict[str, str] = {}
+    for c in model.catalogs:
+        cat_ids[c.name.lower()] = g.add_entity(
+            _e(K.CATALOG, "trino", c.name, c.file, connector=c.connector)
+        ).id
+    for r in model.refs:
+        src = cat_ids.get(r.catalog.lower())
+        if src is None:
+            continue
+        tid = g.add_entity(_e(K.TABLE, "trino", r.name, r.file, r.line)).id
+        g.add_relationship(Relationship(src=src, dst=tid, kind=R.CONTAINS, evidence_kind=_STA))
+
+
+def _analytical(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Real-time OLAP tables/datasources (spec 219).
+
+    Each discovered table becomes ``table:<engine>:<name>`` carrying
+    the engine family + key surface; Pinot schema files become
+    ``schema:pinot:<name>`` entities. No edges beyond containment-free
+    entities — engines don't expose catalog nesting in this evidence.
+    """
+    from forge_doctor_data.analyzers.analytical_model import analytical_model
+
+    model = analytical_model(ctx)
+    if not model.has_evidence:
+        return
+    for t in model.tables:
+        g.add_entity(
+            _e(
+                K.TABLE,
+                t.engine,
+                t.name,
+                t.file,
+                t.line,
+                kind=t.kind,
+                table_engine=t.table_engine or t.table_type,
+            )
+        )
+    for s in model.pinot_schemas:
+        g.add_entity(
+            _e(
+                K.SCHEMA,
+                "pinot",
+                s.name,
+                s.file,
+                dims=str(len(s.dims)),
+                metrics=str(len(s.metrics)),
+            )
+        )
+
+
+def _search(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Search-platform entities (spec 220).
+
+    Indices/templates become ``table:search:<name>`` (a searchable
+    relation), TF domains become ``service:search:<name>``, and index
+    patterns on templates link template -> covered pattern-targets are
+    left to findings (no fabricating covered edges).
+    """
+    from forge_doctor_data.analyzers.search_model import search_model
+
+    model = search_model(ctx)
+    if not model.has_evidence:
+        return
+    for i in model.indices:
+        g.add_entity(
+            _e(
+                K.TABLE,
+                "search",
+                i.name,
+                i.file,
+                kind=i.kind,
+                vendor=i.vendor,
+                replicas=i.replicas or "-",
+            )
+        )
+    for d in model.domains:
+        g.add_entity(
+            _e(
+                K.INFRASTRUCTURE_RESOURCE,
+                "search",
+                d.name,
+                d.file,
+                d.line,
+                vendor=d.vendor,
+            )
+        )
+
+
+def _catalog_meta(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Declared-catalog datasets (spec 221).
+
+    Cataloged datasets become ``dataset:metadata:<qualified>`` entities
+    carrying vendor/env/owner counts; declared upstream lineage becomes
+    ``READS_FROM`` edges only when both endpoints resolve to datasets
+    in the same export batch (never fabricating detected-side entities).
+    """
+    from forge_doctor_data.analyzers.metadata_model import metadata_model
+
+    model = metadata_model(ctx)
+    if not model.has_evidence:
+        return
+    ids: dict[str, str] = {}
+    for d in model.datasets:
+        ident = d.qualified or d.urn
+        ids[d.name.lower()] = g.add_entity(
+            _e(
+                K.DATASET,
+                "metadata",
+                ident,
+                d.file,
+                vendor=d.vendor,
+                env=d.environment or "-",
+                owners=str(len(d.owners)),
+            )
+        ).id
+    for d in model.datasets:
+        dst = ids.get(d.name.lower())
+        for up in d.upstreams:
+            src = ids.get(up.lower())
+            if src and dst:
+                g.add_relationship(
+                    Relationship(
+                        src=src,
+                        dst=dst,
+                        kind=R.READS_FROM,
+                        evidence_kind=_OBS,
+                    )
+                )
+
+
+def _iceberg(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.iceberg_model import iceberg_model
+
+    model = iceberg_model(ctx)
+    impls = _catalog_impls(ctx)
+    # The model claims tables under ANY registered catalog name; for the
+    # graph we keep them unless the catalog's impl is positively
+    # non-iceberg (demonstrable identity only, same rule as SQL refs).
+    for name, ev in model.tables.items():
+        head = name.partition(".")[0]
+        if "." in name and head in impls and _non_iceberg(impls, head):
+            continue
+        g.add_entity(_e(K.TABLE, "iceberg", name, ev.file, ev.line))
+    for name in model.catalog_names:
+        if not _non_iceberg(impls, name):
+            g.add_entity(_e(K.CATALOG, "iceberg", name))
+    # catalog.<table> prefix match: catalog GOVERNS table (inferred join).
+    for name in model.tables:
+        for cat in model.catalog_names:
+            if _non_iceberg(impls, cat):
+                continue
+            if name.startswith(f"{cat}.") and g.entity(f"table:iceberg:{name}"):
+                g.add_relationship(
+                    Relationship(
+                        src=f"catalog:iceberg:{cat}",
+                        dst=f"table:iceberg:{name}",
+                        kind=R.GOVERNS,
+                        evidence_kind=_DER,
+                    )
+                )
+
+
+def _parquet(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.parquet_model import parquet_model
+
+    # Only on-disk ``file`` evidence carries an identity (its repo-relative
+    # path); reader/writer evidence is a call-site, not a location.
+    for e in parquet_model(ctx).by_kind("file"):
+        dataset = _e(K.DATASET, "parquet", e.name, e.file, e.line, evidence="on_disk")
+        g.add_entity(dataset)
+        parent = Path(e.name).parent.as_posix()
+        if parent and parent != ".":
+            loc = _e(K.STORAGE_LOCATION, "parquet", parent)
+            g.add_entity(loc)
+            g.add_relationship(
+                Relationship(src=dataset.id, dst=loc.id, kind=R.STORED_IN, evidence_kind=_OBS)
+            )
+
+
+def _terraform(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.terraform_model import terraform_model
+
+    for res in terraform_model(ctx).resources:
+        rtype = res.labels[0] if res.labels else ""
+        # Infra entities are namespaced by the provider's cloud so a
+        # google_* resource never lands under the aws domain. Providers
+        # outside the three clouds keep the historic "aws" bucket (spec
+        # 233: cross-cloud attribution, unchanged for other vendors).
+        cloud = _TF_CLOUD_DOMAINS.get(rtype.split("_")[0], "aws")
+        infra = _e(
+            K.INFRASTRUCTURE_RESOURCE,
+            cloud,
+            res.address,
+            res.file,
+            res.line,
+            type=res.labels[0] if res.labels else "",
+        )
+        g.add_entity(infra)
+        mapping = _TF_TYPED.get(res.labels[0] if res.labels else "")
+        if not mapping:
+            continue
+        kind, domain = mapping
+        # SFN machines are named by the TF label in stepfunctions_model -
+        # use the same key so both adapters converge on one entity.
+        name = (
+            res.labels[-1]
+            if res.labels[0] == "aws_sfn_state_machine"
+            else str(
+                res.attrs.get("name")
+                or res.attrs.get("function_name")
+                or res.attrs.get("bucket")
+                or res.attrs.get("cluster_identifier")
+                or res.attrs.get("cluster_name")
+                or res.attrs.get("dataset_id")
+                or res.labels[-1]
+            )
+        )
+        # Version-ish attributes feed semantic diffs and what-if checks;
+        # copy only keys that exist so attrs stay evidence-backed.
+        version_attrs = {
+            k: str(res.attrs[k])
+            for k in (
+                "glue_version",
+                "runtime",
+                "engine_version",
+                "release_label",
+                "format_version",
+                "spark_version",
+            )
+            if k in res.attrs
+        }
+        typed = _e(kind, domain, name, res.file, res.line, producer="terraform", **version_attrs)
+        g.add_entity(typed)
+        g.add_relationship(
+            Relationship(src=infra.id, dst=typed.id, kind=R.DEFINES, evidence_kind=_CFG)
+        )
+
+
+def _azure(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Azure structural edges (spec 233).
+
+    The ``_terraform`` adapter already emits the typed entities; this one
+    adds only edges whose endpoints are explicit in the Terraform model —
+    containment between parents and declared children, never invented
+    flow edges.
+    """
+    from forge_doctor_data.analyzers.azure_model import azure_model
+
+    model = azure_model(ctx)
+    if not model.has_evidence:
+        return
+
+    def _contains(parent: str, child: str, file: Path | None = None) -> None:
+        if g.entity(parent) and g.entity(child):
+            g.add_relationship(
+                Relationship(src=parent, dst=child, kind=R.CONTAINS, evidence_kind=_CFG)
+            )
+
+    for acc in model.adls_accounts:
+        for fs in acc.filesystems:
+            _contains(f"storage_location:adls:{acc.name}", f"storage_location:adls:{fs}")
+    for ns in model.eventhub_namespaces:
+        ns_id = f"stream:eventhubs:{ns.name}"
+        for hub in model.eventhubs:
+            # namespace may be a bare name or a ref like
+            # azurerm_eventhub_namespace.<label>.name
+            ref = hub.namespace
+            ref_label = ""
+            if ref.startswith("azurerm_eventhub_namespace."):
+                ref_label = ref.split(".")[1]
+            if (
+                ref == ns.name
+                or ref_label == ns.resource
+                or (ref == "" and len(model.eventhub_namespaces) == 1)
+            ):
+                _contains(ns_id, f"stream:eventhubs:{hub.name}")
+    for ws in model.synapse_workspaces:
+        ws_id = f"warehouse:synapse:{ws.name}"
+        for pool in ws.sql_pools:
+            _contains(ws_id, f"warehouse_compute:synapse:{pool}")
+        for pool in ws.spark_pools:
+            _contains(ws_id, f"compute_job:synapse:{pool}")
+    for factory in model.adf_factories:
+        for pipe in factory.pipelines:
+            _contains(f"workflow:adf:{factory.name}", f"workflow:adf:{pipe}")
+
+
+def _gcp(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """GCP structural edges (spec 233): lake CONTAINS zone, subscription
+    CONSUMES topic — endpoints resolvable from Terraform evidence only."""
+    from forge_doctor_data.analyzers.gcp_model import gcp_model
+
+    model = gcp_model(ctx)
+    if not model.has_evidence:
+        return
+    for lake in model.dataplex_lakes:
+        for zone in lake.zones:
+            lake_id = f"catalog:dataplex:{lake.name}"
+            zone_id = f"catalog:dataplex:{zone}"
+            if g.entity(lake_id) and g.entity(zone_id):
+                g.add_relationship(
+                    Relationship(src=lake_id, dst=zone_id, kind=R.CONTAINS, evidence_kind=_CFG)
+                )
+    for sub in model.pubsub_subscriptions:
+        # subscription.topic may be a ref (google_pubsub_topic.x.id) or a
+        # bare topic name — resolve the entity id from either form.
+        topic_name = sub.topic
+        if topic_name.startswith("google_pubsub_topic."):
+            label = topic_name.split(".")[1]
+            owner = next((t for t in model.pubsub_topics if t.resource == label), None)
+            topic_name = owner.name if owner else ""
+        topic_id = f"stream:pubsub:{topic_name}"
+        sub_id = f"stream:pubsub:{sub.name}"
+        if not g.entity(topic_id):
+            continue
+        if g.entity(sub_id):
+            g.add_relationship(
+                Relationship(src=sub_id, dst=topic_id, kind=R.CONSUMES, evidence_kind=_CFG)
+            )
+
+
+def _lakeformation(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    from forge_doctor_data.analyzers.lakeformation_model import lakeformation_model
+
+    model = lakeformation_model(ctx)
+    for grant in model.grants:
+        if not grant.principal:
+            continue
+        principal = _e(K.PRINCIPAL, "lakeformation", grant.principal, grant.file, grant.line)
+        g.add_entity(principal)
+        # Grant target -> canonical entity: catalog on database/table kinds,
+        # storage_location on registered s3 arns.
+        dst: Entity | None = None
+        if grant.resource_kind in ("database", "table", "columns"):
+            name = grant.resource_name.split(".")[0] or grant.resource_name
+            dst = _e(K.CATALOG, "glue", name, grant.file, grant.line)
+        elif grant.resource_kind == "data_location":
+            dst = _e(K.STORAGE_LOCATION, "s3", grant.resource_name)
+        elif grant.resource_kind == "catalog":
+            dst = _e(K.CATALOG, "glue", grant.resource_name or "account")
+        if dst is not None:
+            g.add_entity(dst)
+            g.add_relationship(
+                Relationship(
+                    src=principal.id,
+                    dst=dst.id,
+                    kind=R.GOVERNS,
+                    evidence_kind=_CFG,
+                    attrs=(("permissions", "+".join(grant.permissions)),),
+                )
+            )
+    for loc in model.data_locations:
+        g.add_entity(
+            _e(
+                K.STORAGE_LOCATION,
+                "lakeformation",
+                loc.arn,
+                loc.file,
+                loc.line,
+                registered="true",
+            )
+        )
+    for link in model.resource_links:
+        link_e = _e(K.CATALOG, "lakeformation", link.name, link.file, link.line)
+        g.add_entity(link_e)
+        if link.target_catalog:
+            remote = _e(K.CATALOG, "glue", f"{link.target_catalog}:{link.target_database}")
+            g.add_entity(remote)
+            g.add_relationship(
+                Relationship(
+                    src=link_e.id,
+                    dst=remote.id,
+                    kind=R.DEPENDS_ON,
+                    evidence_kind=_CFG,
+                    attrs=(("resource_link", "true"),),
+                )
+            )
+
+
+def _platforms(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """EMR / Databricks compute + Delta tables/ops as canonical entities."""
+    from forge_doctor_data.analyzers.databricks_model import databricks_model
+    from forge_doctor_data.analyzers.delta_model import delta_model
+    from forge_doctor_data.analyzers.emr_model import emr_model
+
+    emr = emr_model(ctx)
+    for c in emr.clusters:
+        g.add_entity(
+            _e(K.COMPUTE_JOB, "emr", c.name, c.file, c.line, release=c.release, kind="ec2")
+        )
+    for app in emr.serverless_apps:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "emr",
+                app.name,
+                app.file,
+                app.line,
+                release=app.release,
+                kind="serverless",
+            )
+        )
+    for vc in emr.eks_clusters:
+        g.add_entity(_e(K.COMPUTE_JOB, "emr", vc.name, vc.file, vc.line, kind="eks"))
+
+    dbx = databricks_model(ctx)
+    for j in dbx.jobs:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", j.name, j.file, j.line, kind="job"))
+    for dc in dbx.clusters:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "databricks",
+                dc.name,
+                dc.file,
+                dc.line,
+                dbr=dc.dbr_version,
+                kind="job_cluster" if dc.is_job_cluster else "cluster",
+            )
+        )
+    for w in dbx.warehouses:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", w.name, w.file, w.line, kind="sql_warehouse"))
+    for p in dbx.pipelines:
+        g.add_entity(_e(K.COMPUTE_JOB, "databricks", p.name, p.file, p.line, kind="pipeline"))
+    for uc in dbx.uc_objects:
+        kind = (
+            K.PRINCIPAL
+            if uc.kind == "storage_credential"
+            else K.STORAGE_LOCATION
+            if uc.kind in ("external_location", "volume")
+            else K.CATALOG
+        )
+        g.add_entity(_e(kind, "databricks", uc.name, uc.file, uc.line, uc_kind=uc.kind))
+
+    delta = delta_model(ctx)
+    for tname in sorted(delta.tables):
+        g.add_entity(_e(K.TABLE, "delta", tname))
+    for op in delta.ops:
+        q = _e(K.QUERY, "delta", f"{op.file.as_posix()}:{op.line}", op.file, op.line, op=op.op)
+        g.add_entity(q)
+        if op.target:
+            t = _e(K.TABLE, "delta", op.target)
+            g.add_entity(t)
+            rel = R.WRITES if op.op not in ("optimize", "vacuum") else R.DEPENDS_ON
+            g.add_relationship(Relationship(src=q.id, dst=t.id, kind=rel, evidence_kind=_STA))
+
+
+def _streaming_bus(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Kafka/Kinesis/Flink model entities + consumer/EFO edges.
+
+    Topic/stream entities converge with ``_streaming`` endpoint entities
+    by canonical id (``stream:kafka:<topic>``, ``stream:kinesis:<name>``).
+    """
+    from forge_doctor_data.analyzers.flink_model import flink_model
+    from forge_doctor_data.analyzers.kafka_model import kafka_model
+    from forge_doctor_data.analyzers.kinesis_model import kinesis_model
+
+    km = kafka_model(ctx)
+    for c in km.clusters:
+        g.add_entity(_e(K.STREAM, "kafka", c.name, c.file, c.line, producer=c.source))
+    for t in km.topics:
+        g.add_entity(_e(K.STREAM, "kafka", t.name, t.file, t.line, partitions=str(t.partitions)))
+    for grp in sorted(km.consumer_groups):
+        pe = _e(K.PRINCIPAL, "kafka", f"group:{grp}")
+        g.add_entity(pe)
+        for topic in sorted(km.subscribed_topics):
+            tid = f"stream:kafka:{topic}"
+            if any(e.id == tid for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=pe.id, dst=tid, kind=R.CONSUMES, evidence_kind=_STA)
+                )
+
+    kn = kinesis_model(ctx)
+    for s in kn.streams:
+        g.add_entity(_e(K.STREAM, "kinesis", s.name, s.file, s.line, producer=s.source))
+    for cons in kn.consumers:
+        pe = _e(K.PRINCIPAL, "kinesis", str(cons["name"]), cons["file"], cons["line"])
+        g.add_entity(pe)
+        # resolve stream_arn "aws_kinesis_stream.<label>.arn" → stream name
+        arn = str(cons.get("stream_arn") or "")
+        m = re.match(r"aws_kinesis_stream\.([\w-]+)", arn)
+        target = ""
+        if m:
+            for s in kn.streams:
+                if s.tf_label == m.group(1):
+                    target = s.name
+        elif arn:
+            target = arn.rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+        if target:
+            tid = f"stream:kinesis:{target}"
+            if any(e.id == tid for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=pe.id, dst=tid, kind=R.CONSUMES, evidence_kind=_CFG)
+                )
+
+    fm = flink_model(ctx)
+    for j in fm.jobs:
+        g.add_entity(_e(K.COMPUTE_JOB, "flink", j.name, j.file, j.line, producer=j.source))
+
+
+def _serverless(ctx: ProjectContext, g: DataPlatformGraph) -> None:
+    """Lambda/Athena model entities + trigger/destination edges."""
+    from forge_doctor_data.analyzers.athena_model import athena_model
+    from forge_doctor_data.analyzers.lambda_model import lambda_model
+
+    lam = lambda_model(ctx)
+    for fn in lam.functions:
+        g.add_entity(
+            _e(
+                K.COMPUTE_JOB,
+                "lambda",
+                fn.name,
+                fn.file,
+                fn.line,
+                runtime=fn.runtime,
+                producer=fn.source,
+                # The lambda model already knows whether a DLQ is configured;
+                # mark it so REL007 can distinguish absent from unevidenced.
+                dlq="true" if fn.dlq else "none",
+            )
+        )
+    _DEST_KINDS = {
+        "sns": K.STREAM,
+        "sqs": K.STREAM,
+        "states": K.WORKFLOW,
+        "lambda": K.COMPUTE_JOB,
+        "events": K.STREAM,
+    }
+
+    # resolve a function reference (name, TF label, or CFN logical id)
+    def _fn_id(ref: str) -> str:
+        for fn in lam.functions:
+            if fn.matches(ref):
+                return f"compute_job:lambda:{fn.name}"
+        return f"compute_job:lambda:{ref}" if ref else ""
+
+    for src in lam.event_sources:
+        fn_id = _fn_id(src.function)
+        src_e = _e(
+            K.STREAM,
+            src.kind,
+            src.detail or f"{src.kind}:{src.file.as_posix()}:{src.line}",
+            src.file,
+            src.line,
+        )
+        g.add_entity(src_e)
+        if fn_id and any(e.id == fn_id for e in g.entities()):
+            g.add_relationship(
+                Relationship(src=src_e.id, dst=fn_id, kind=R.TRIGGERS, evidence_kind=_CFG)
+            )
+    for dest in lam.destinations:
+        fn_id = _fn_id(dest.function)
+        if not any(e.id == fn_id for e in g.entities()):
+            continue
+        for label, arn in (("on_success", dest.on_success), ("on_failure", dest.on_failure)):
+            if not arn:
+                continue
+            svc = arn.split(":")[2] if arn.count(":") >= 3 else ""
+            kind = _DEST_KINDS.get(svc)
+            if kind is None:
+                continue
+            ident = arn.rsplit(":", 1)[-1].rsplit("/", 1)[-1] or arn
+            domain = "stepfunctions" if svc == "states" else svc
+            tgt = _e(kind, domain, ident, dest.file, dest.line)
+            g.add_entity(tgt)
+            g.add_relationship(
+                Relationship(
+                    src=fn_id,
+                    dst=tgt.id,
+                    kind=R.INVOKES,
+                    evidence_kind=_CFG,
+                    attrs=(("destination", label),),
+                )
+            )
+
+    athena = athena_model(ctx)
+    for w in athena.workgroups:
+        g.add_entity(_e(K.COMPUTE_JOB, "athena", w.name, w.file, w.line, engine=w.engine_version))
+    for q in athena.named_queries:
+        qe = _e(K.QUERY, "athena", q.name, q.file, q.line)
+        g.add_entity(qe)
+        if q.workgroup:
+            tail = q.workgroup.rsplit(".", 1)[-1]
+            wg_id = f"compute_job:athena:{tail}"
+            if any(e.id == wg_id for e in g.entities()):
+                g.add_relationship(
+                    Relationship(src=qe.id, dst=wg_id, kind=R.DEPENDS_ON, evidence_kind=_CFG)
+                )
+    for c in athena.catalogs:
+        g.add_entity(_e(K.CATALOG, "athena", c.name, c.file, c.line, type=c.type))
+    for d in athena.databases:
+        g.add_entity(_e(K.CATALOG, "glue", d))
+
+
+def build_platform_graph(ctx: ProjectContext) -> DataPlatformGraph:
+    """Fuse every domain model into one canonical graph (memoized)."""
+    cached = getattr(ctx, _CACHE_ATTR, None)
+    if cached is not None:
+        return cast(DataPlatformGraph, cached)
+    graph = DataPlatformGraph()
+    for adapter in (
+        _airflow,
+        _controlm,
+        _stepfunctions,
+        _streaming,
+        _graph_intel,
+        _dynamodb,
+        _neptune,
+        _lakeformation,
+        _platforms,
+        _streaming_bus,
+        _serverless,
+        _sql,
+        _warehouse,
+        _dbt,
+        _contracts,
+        _trino,
+        _analytical,
+        _search,
+        _catalog_meta,
+        _iceberg,
+        _parquet,
+        _terraform,
+        _azure,
+        _gcp,
+    ):
+        adapter(ctx, graph)
+    setattr(ctx, _CACHE_ATTR, graph)
+    return graph
+
+
+# Impact direction per relationship kind (blast-radius policy - lives in
+# the consumer layer, not the graph core).
+#
+# - Dependency-oriented edges point dependent -> dependency, so a changed
+#   *target* impacts dependents via INBOUND traversal: DEPENDS_ON (task b
+#   depends on task a - changing a breaks b), READS (reader depends on
+#   the table it reads), CONSUMES, STORED_IN (dataset depends on its
+#   location).
+# - Flow/containment edges carry impact OUTBOUND only: INVOKES (workflow
+#   -> its tasks), DEFINES (infra -> defined platform entity), GOVERNS
+#   (catalog -> table), TRIGGERS.
+# - Data-flow edges (WRITES, PRODUCES) carry impact BOTH ways: a changed
+#   table affects the jobs writing it; a changed writer affects the data
+#   downstream readers consume.
+_IMPACT_INBOUND_ONLY = {R.DEPENDS_ON, R.READS, R.READS_FROM, R.CONSUMES, R.STORED_IN}
+_IMPACT_OUTBOUND_ONLY = {R.INVOKES, R.DEFINES, R.GOVERNS, R.TRIGGERS, R.CONTAINS}
+
+
+def impact_reachable(graph: DataPlatformGraph, entity_id: str) -> set[str]:
+    """Entities impacted if ``entity_id`` changes, following each edge in
+    its impact direction - not plain structural reachability."""
+    seen: set[str] = set()
+    frontier = [entity_id]
+    while frontier:
+        cur = frontier.pop()
+        if cur in seen:
+            continue
+        seen.add(cur)
+        out_hits = {r.dst for r in graph.outbound(cur) if r.kind not in _IMPACT_INBOUND_ONLY}
+        in_hits = {r.src for r in graph.inbound(cur) if r.kind not in _IMPACT_OUTBOUND_ONLY}
+        frontier.extend((out_hits | in_hits) - seen)
+    return seen - {entity_id}

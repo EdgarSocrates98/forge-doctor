@@ -7,19 +7,19 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.decisions import advise
-from forge_doctor.core.diagnosis import FindingCluster, PromotionLevel
-from forge_doctor.core.fixes import SAFE, FixAction
-from forge_doctor.core.models import CheckResult, Confidence, Severity
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.decisions import advise
+from forge_doctor_data.core.diagnosis import FindingCluster, PromotionLevel
+from forge_doctor_data.core.fixes import SAFE, FixAction
+from forge_doctor_data.core.models import CheckResult, Confidence, Severity
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.remediation import RemediationPlan
+from forge_doctor_data.core.remediation import RemediationPlan
 
 runner = CliRunner()
 

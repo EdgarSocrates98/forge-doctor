@@ -1,12 +1,12 @@
 # Public API & stability contract
 
-Forge Doctor exposes a small, deliberately narrow SDK surface via
-`forge_doctor.api`. Everything listed in `api.__all__` follows the
+Forge Doctor Data exposes a small, deliberately narrow SDK surface via
+`forge_doctor_data.api`. Everything listed in `api.__all__` follows the
 package's semver; everything else is internal and may change without
 notice.
 
 ```python
-import forge_doctor.api as fd
+import forge_doctor_data.api as fd
 
 report = fd.scan("./my-project")  # ScanReport
 graph = fd.platform_graph("./my-project")  # DataPlatformGraph
@@ -46,18 +46,18 @@ plans = fd.migrate_plans("./p")
 
 ## JSON contracts
 
-`forge-doctor schema contracts` lists the published JSON Schemas;
-`forge-doctor schema contracts <name>` dumps one:
+`forge-doctor-data schema contracts` lists the published JSON Schemas;
+`forge-doctor-data schema contracts <name>` dumps one:
 
 - `scan-report` — `scan -f json` / `diff` JSON payloads
-- `policy-pack` — `.forge-doctor/policy/*` files
+- `policy-pack` — `.forge-doctor-data/policy/*` files
 - `lab-expected` — `labs/**/expected.json` ground truth
 - `golden-snapshot` — `golden/*/expected/*.json` snapshots
 
 ## Author SDK
 
-`forge_doctor.api` is for *consumers* of results. Plugin *authors* use
-`forge_doctor.sdk` instead — the semver-bound surface for writing checks
+`forge_doctor_data.api` is for *consumers* of results. Plugin *authors* use
+`forge_doctor_data.sdk` instead — the semver-bound surface for writing checks
 (`Check`, `CheckBase`, `CheckResult`, `Severity`, `PluginDescriptor`,
 `ProjectContext`, `CURRENT_API_VERSION`, `ENTRY_POINT_GROUP`).
 `sdk.__all__` is pinned by tests; see `docs/plugins.md`.
@@ -68,4 +68,4 @@ plans = fd.migrate_plans("./p")
 - Deterministic: identical inputs → identical findings, graph, plans.
 - Non-destructive: `migrate_plans` and `what_if` are advisory; nothing
   writes back to the scanned project (scan cache lives in
-  `.forge-doctor/` and is the only write).
+  `.forge-doctor-data/` and is the only write).

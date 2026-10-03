@@ -27,6 +27,6 @@ verdicts — never from a single domain.
   source assumptions; PLAT006 table-format/consumer mismatch;
   PLAT007 stream sink side-effect idempotency.
 - Findings list contributing facts (orchestration/compute/sink planes).
-- `forge-doctor platform findings` CLI; same checks run under `scan`.
+- `forge-doctor-data platform findings` CLI; same checks run under `scan`.
 - Tests: true positive, prerequisite-absent FP, unknown capability,
   missing relationship, insertion-order determinism.

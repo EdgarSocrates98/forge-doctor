@@ -13,23 +13,23 @@ and schema compatibility.
 
 ## Files changed
 
-- `src/forge_doctor/core/migration_v2.py` — **new**: concept registry;
+- `src/forge_doctor_data/core/migration_v2.py` — **new**: concept registry;
   `map_service` → `MigrationConcept` (`MappingKind` direct /
   approximate / redesign_required / no_equivalent / unknown,
   `Lossiness`, `SemanticChange`, capability gaps, missing evidence);
   `assess_readiness` → `MigrationReadiness` (ready / partial /
   blocked / insufficient_evidence); `detect_runtime_sources`.
-- `src/forge_doctor/core/sql_portability.py` — **new**: dialect
+- `src/forge_doctor_data/core/sql_portability.py` — **new**: dialect
   registry + `SQLPORT001`-`SQLPORT007` findings (source-exclusive
   functions, joins, DDL shapes, transaction semantics).
-- `src/forge_doctor/core/schema_compat.py` — **new**: normalized
+- `src/forge_doctor_data/core/schema_compat.py` — **new**: normalized
   type-family mapping with dialect-specific nested shapes;
   classifications direct / coerced / lossy / incompatible / unknown.
-- `src/forge_doctor/core/crossmigration.py` — additive plan fields
+- `src/forge_doctor_data/core/crossmigration.py` — additive plan fields
   `concepts`, `readiness`, `sql_findings`; concept mapping per entity
   map; azure/gcp/aws `_ECOSYSTEM` targets; `.sql` files scanned when
   both dialects known.
-- `src/forge_doctor/cli/whatif.py` — `migrate explain`; plan and
+- `src/forge_doctor_data/cli/whatif.py` — `migrate explain`; plan and
   explain JSON output normalize enums to values.
 - `docs/checks.md` — SQLPORT findings documented beside MIGR.
 - `tests/unit/test_migration_v2.py` — **new**, 34 tests.

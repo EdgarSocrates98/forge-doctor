@@ -53,7 +53,7 @@
 - `pytest tests` — 1110 passed
 - `mypy src` — 131 files, clean
 - `ruff check` / `ruff format --check` — clean
-- `forge-doctor knowledge verify` — all packs ok
+- `forge-doctor-data knowledge verify` — all packs ok
 - CLI smoke: `athena inspect`, `lambda inspect`, `stepfunctions inspect`
   render workgroup/catalog/queries, functions/triggers, and JSONPath +
   map detail; PLAT010/PLAT011 fire on the fixture.

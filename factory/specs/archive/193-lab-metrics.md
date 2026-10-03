@@ -5,8 +5,8 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_lab.py -x -q
-  - python -m forge_doctor lab metrics
-  - python -m forge_doctor lab metrics --json
+  - python -m forge_doctor_data lab metrics
+  - python -m forge_doctor_data lab metrics --json
 ---
 
 # Roadmap-2 Phase 2 - Quality Metrics
@@ -28,7 +28,7 @@ detected, zero false positives" instead of "seems good".
   root-cause recall. `None` (rendered `-`) when the denominator is 0.
 - FP candidates = undeclared, un-allowed findings at WARNING+;
   INFO anchors describe surface and never count.
-- `forge-doctor lab metrics [--labs dir] [--json]`.
+- `forge-doctor-data lab metrics [--labs dir] [--json]`.
 - Tests for: perfect run (100/100/0), missed → recall drop,
   forbidden hit → FPR, defaults merging, zero-denominator → None/0.
 

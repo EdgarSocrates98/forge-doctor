@@ -63,7 +63,7 @@ human gate.
 - `pytest tests/unit/test_neptune_model.py tests/unit/test_neptune_queries.py tests/unit/checks/test_neptune.py tests/unit/adversarial/test_neptune.py tests/unit/test_connected_data.py -q`: 85 passed
 - `pytest -x -q`: 954 passed
 - `mypy src`: 108 files clean; `ruff check src tests`: clean
-- `forge-doctor knowledge verify`: all packs ok
+- `forge-doctor-data knowledge verify`: all packs ok
 - Smoke: `neptune inspect|queries|ingest|compatibility|explain`,
   `data-model inspect`, `platform blast-radius` on a multi-domain
   fixture — all render expected facts/findings.

@@ -5,16 +5,16 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_whatif.py tests/unit/adversarial/test_whatif.py -x -q
-  - python -m forge_doctor what-if --change glue-version=5.0 <fixture>
-  - python -m forge_doctor migrate plan <fixture>
-  - python -m forge_doctor knowledge verify
+  - python -m forge_doctor_data what-if --change glue-version=5.0 <fixture>
+  - python -m forge_doctor_data migrate plan <fixture>
+  - python -m forge_doctor_data knowledge verify
 ---
 
 # Phase 10 - What-If + Migration Intelligence
 
 ## Context
 
-Final phase of the ten-phase Forge Doctor program. Uses the platform
+Final phase of the ten-phase Forge Doctor Data program. Uses the platform
 graph, capability engine, architecture contract, and domain packs to
 simulate changes without executing anything. No what-if or migration
 planning existed before.
@@ -37,7 +37,7 @@ planning existed before.
   - `parquet-to-delta` / `parquet-to-iceberg` (parquet writers/files)
   - `streaming-modernize` (queries lacking checkpoint/stable trigger)
   - `lambda-runtime-upgrade` (functions on eol runtimes)
-- `forge-doctor what-if --change ...` and `forge-doctor migrate plan`
+- `forge-doctor-data what-if --change ...` and `forge-doctor-data migrate plan`
   CLIs; plans are advisory, never executed.
 - Missing pack facts yield UNKNOWN entries, never invented answers.
 - Unit + adversarial tests: unknown-version honesty, spoofed

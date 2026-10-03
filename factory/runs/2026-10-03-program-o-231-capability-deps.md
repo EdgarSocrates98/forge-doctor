@@ -12,18 +12,18 @@ dependency edges in the capability subgraph.
 
 ## Files changed
 
-- `src/forge_doctor/core/capabilities.py` — `_Entry` gained
+- `src/forge_doctor_data/core/capabilities.py` — `_Entry` gained
   `requires`, `requires_any`, `alternatives`, `incompatible_with`,
   `specializes`, `introduced_in`, `deprecated_in`, `removed_in`,
   `replacement`; public `dependencies()` accessor.
-- `src/forge_doctor/core/capability_deps.py` — **new**: DFS evaluator
+- `src/forge_doctor_data/core/capability_deps.py` — **new**: DFS evaluator
   producing `DependencyEvaluation` (status, lifecycle, readiness,
   blocked_path, alternatives, incompatibles, cycles, missing),
   `CapabilityReadiness` (READY/PARTIAL/BLOCKED/UNKNOWN), cycle
   detection, `requires_any` group satisfaction.
-- `src/forge_doctor/core/capability_graph.py` — `DEPENDS_ON` edges for
+- `src/forge_doctor_data/core/capability_graph.py` — `DEPENDS_ON` edges for
   `requires`/`alternatives`/`specializes`/`replacement`.
-- `src/forge_doctor/cli/capabilities.py` — `capabilities explain`
+- `src/forge_doctor_data/cli/capabilities.py` — `capabilities explain`
   prints lifecycle, readiness, blocked path, alternatives.
 - Knowledge packs — dependency declarations added to `dynamodb`
   (LSI→GSI etc.), `trino`, `search`.

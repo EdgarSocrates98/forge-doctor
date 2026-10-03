@@ -5,13 +5,13 @@ The canonical vocabulary every adapter, contract, and doc derives from.
 verified against it by tests, so the two cannot drift.
 
 ```bash
-forge-doctor ontology                # print the vocabulary
-forge-doctor ontology -f json        # stable machine-readable shape
-forge-doctor ontology validate .     # conformance-check a project's graph
-forge-doctor ontology platform       # implementations -> vendor-neutral kinds
-forge-doctor ontology platform glue  # one implementation in detail
-forge-doctor ontology workloads      # workload intents + serving platform kinds
-forge-doctor ontology access-patterns
+forge-doctor-data ontology                # print the vocabulary
+forge-doctor-data ontology -f json        # stable machine-readable shape
+forge-doctor-data ontology validate .     # conformance-check a project's graph
+forge-doctor-data ontology platform       # implementations -> vendor-neutral kinds
+forge-doctor-data ontology platform glue  # one implementation in detail
+forge-doctor-data ontology workloads      # workload intents + serving platform kinds
+forge-doctor-data ontology access-patterns
 ```
 
 The first six sections are the *vocabulary* (spec 225). The sections from

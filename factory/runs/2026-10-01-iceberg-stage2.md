@@ -15,7 +15,7 @@
   classification across all evidence sources).
 - New checks ICE020, ICE021, ICE022, ICE023, ICE024, ICE025 (feature floors
   driven by `knowledge/iceberg/spec.json`, schema_version 2).
-- `forge-doctor iceberg merge` + `iceberg files` subcommands.
+- `forge-doctor-data iceberg merge` + `iceberg files` subcommands.
 - New inbox specs written for the remaining platform phases:
   130-emr-doctor, 131-databricks-doctor, 132-platform-capability,
   133-lakeformation-deep.

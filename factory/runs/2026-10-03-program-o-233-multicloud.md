@@ -12,26 +12,26 @@ detection only from committed artifacts, hermetic per §13.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/azure_model.py` — **new**: ADLS account/
+- `src/forge_doctor_data/analyzers/azure_model.py` — **new**: ADLS account/
   filesystem (HNS, `storage_account_id` ownership), Event Hubs
   namespace+hub, Synapse workspace, ADF factory, Purview, Fabric
   capacity, Function App — file/line provenance throughout.
-- `src/forge_doctor/analyzers/gcp_model.py` — **new**: GCS bucket,
+- `src/forge_doctor_data/analyzers/gcp_model.py` — **new**: GCS bucket,
   Dataflow job, Dataproc cluster, Pub/Sub topic+subscription,
   Composer env, Dataplex lake (zone→lake refs), Cloud Function.
-- `src/forge_doctor/checks/azure.py` / `checks/gcp.py` — **new**:
+- `src/forge_doctor_data/checks/azure.py` / `checks/gcp.py` — **new**:
   `AZ000`/`GCP000` INFO surface anchors + WARNING checks (HNS missing,
   short hub retention, bucket force-destroy, Dataflow cancel, Pub/Sub
   no-DLQ).
-- `src/forge_doctor/analyzers/platform_graph_builder.py` —
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` —
   `_terraform` derives cloud domain from provider prefix (was
   hardcoded `aws`; AWS entity IDs unchanged); `_TF_TYPED` gained
   azurerm/google types; `_azure`/`_gcp` adapters emit CONTAINS +
   Pub/Sub→Dataflow `TRIGGERS`, Dataflow→BigQuery `WRITES`,
   ref-form attribute resolution via `resource` labels.
-- `src/forge_doctor/analyzers/abstractions.py` — canonical tuple
+- `src/forge_doctor_data/analyzers/abstractions.py` — canonical tuple
   gained `orchestrator`; azurerm/google resource mappings.
-- `src/forge_doctor/analyzers/runtime_evidence.py` — five offline
+- `src/forge_doctor_data/analyzers/runtime_evidence.py` — five offline
   export adapters (Dataflow metrics, Pub/Sub backlog, Synapse query
   export, Event Hubs metrics, Fabric pipeline export), appended after
   existing adapters to preserve match priority.

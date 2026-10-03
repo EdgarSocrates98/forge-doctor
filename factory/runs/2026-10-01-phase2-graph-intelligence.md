@@ -30,8 +30,8 @@ Phase 2 of 4. Specs staged to `active/`; review is a human gate.
   high fan-out, late filtering, repeated pattern); extensions GRAPH026
   (full-graph starts) and GRAPH030 (mixed paradigms). No ERROR severity;
   no cost claims without runtime evidence.
-- `cli/graph.py` — `forge-doctor graph inspect|schema|traversals`.
-  The pre-existing `forge-doctor graph <path> --format` dump
+- `cli/graph.py` — `forge-doctor-data graph inspect|schema|traversals`.
+  The pre-existing `forge-doctor-data graph <path> --format` dump
   (project-intelligence graph) is preserved via a fallback group and
   remains reachable explicitly as `graph project`.
 - `knowledge/graph/` — property-graph, rdf, modeling, algorithms
@@ -58,7 +58,7 @@ Phase 2 of 4. Specs staged to `active/`; review is a human gate.
 
 - Spec 174 names `cli/graph.py` + `graph inspect|schema`; spec 175 adds
   `graph traversals` — implemented as a `graph` group with a fallback
-  preserving the pre-existing `forge-doctor graph <path>` dump
+  preserving the pre-existing `forge-doctor-data graph <path>` dump
   (documented deviation; the prompt's `graph-data` sketch is superseded
   by the spec contract).
 - Spec 174 requires `tests/unit/adversarial/test_graph.py` — used that

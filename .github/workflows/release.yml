@@ -4,8 +4,8 @@ name: release
 # Flow: tag vX.Y.Z → run this workflow → build → GitHub Release → PyPI.
 #
 # PyPI publishing uses Trusted Publishing (OIDC) — no long-lived API token.
-# Maintainer setup (one-time, on pypi.org): project forge-doctor →
-# Publishing → add workflow release.yml for repo EdgarSocrates98/forge-doctor.
+# Maintainer setup (one-time, on pypi.org): project forge-doctor-data →
+# Publishing → add workflow release.yml for repo EdgarSocrates98/forge-doctor-data.
 # The pypi-publish action then mints a short-lived token and uploads PEP 740
 # attestations linking artifacts to this workflow run.
 

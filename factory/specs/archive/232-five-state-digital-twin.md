@@ -40,9 +40,9 @@ Phase 3 formalizes state-tagged facts and state-vs-state drift.
   implemented bigint → SCHEMA_DRIFT.
 - Temporal twin: `TwinSnapshot` (timestamp, state summaries, graph,
   capabilities, findings, runtime, drift) integrated with history.py.
-- CLI: `forge-doctor twin diff <snapshot-a> <snapshot-b>` — entity
+- CLI: `forge-doctor-data twin diff <snapshot-a> <snapshot-b>` — entity
   added/removed, relationship changed, capability changed, drift
-  introduced/resolved; `forge-doctor twin explain <entity>` — shows the
+  introduced/resolved; `forge-doctor-data twin explain <entity>` — shows the
   entity across all five states.
 - What-if produces a HypotheticalState without mutating the current
   twin.

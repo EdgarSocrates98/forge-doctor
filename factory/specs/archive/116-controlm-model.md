@@ -65,7 +65,7 @@ URLs in code.
   value NEVER in output (V3).
 
 ## Command (`cli/controlm.py`, `controlm` typer group)
-- `forge-doctor controlm inspect [path]` — Rich summary: definition files,
+- `forge-doctor-data controlm inspect [path]` — Rich summary: definition files,
   folders, jobs by type, events produced/consumed/unmatched, calendars,
   site standards, CLI/API refs, deploy descriptors, risks (runs CTM checks).
 - Bare `controlm` prints usage hint, exit 2. Works on empty repos.

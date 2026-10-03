@@ -5,15 +5,15 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_platforms.py tests/unit/adversarial/test_platforms.py -x -q
-  - python -m forge_doctor emr inspect <fixture>
-  - python -m forge_doctor knowledge verify
+  - python -m forge_doctor_data emr inspect <fixture>
+  - python -m forge_doctor_data knowledge verify
 ---
 
 # Phase 7 - EMR + Databricks + Delta Deep Intelligence
 
 ## Context
 
-Phase 7 of the ten-phase Forge Doctor program: deepen compute/runtime/table
+Phase 7 of the ten-phase Forge Doctor Data program: deepen compute/runtime/table
 intelligence. Existing surface: streaming/delta endpoint detection inside
 `streaming_model`, Iceberg ops via `iceberg_model`, LF model from Phase 6.
 No first-class EMR, Databricks, or Delta models existed.

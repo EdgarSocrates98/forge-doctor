@@ -11,7 +11,7 @@ verification:
 
 # Program P — Phase 1: Query Execution Model (prompt_evo_step8 §Phase 1)
 
-Evolves Forge Doctor from "I understand architecture" to "I understand
+Evolves Forge Doctor Data from "I understand architecture" to "I understand
 how this architecture behaves during execution". Depends on the runtime
 evidence layer (existing `core/runtime_evidence.py` + adapters).
 

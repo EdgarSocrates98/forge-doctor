@@ -1,13 +1,13 @@
 # Contributing
 
-Thanks for helping improve Forge Doctor. The bar: simple > useful > correct >
+Thanks for helping improve Forge Doctor Data. The bar: simple > useful > correct >
 extensible. No speculative abstractions.
 
 ## Setup
 
 ```bash
-git clone https://github.com/EdgarSocrates98/forge-doctor
-cd forge-doctor
+git clone https://github.com/EdgarSocrates98/forge-doctor-data
+cd forge-doctor-data
 poetry install
 poetry run pytest
 poetry run ruff check .
@@ -21,7 +21,7 @@ Everything must be green before opening a PR.
 1. Pick a stable id from the category prefix (`REP`, `PY`, `DEP`, `GIT`,
    `SPARK`, `AWS`) — ids are public API and never change meaning.
 2. Implement the `Check` protocol in the right module under
-   `src/forge_doctor/checks/`:
+   `src/forge_doctor_data/checks/`:
 
    ```python
    @dataclass(frozen=True)
@@ -40,7 +40,7 @@ Everything must be green before opening a PR.
 4. Add tests under `tests/unit/checks/` (use `tmp_path` fixtures — never scan
    the real repo in unit tests).
 5. Document the rule in `docs/checks.md`: severity, description, why it
-   matters, **when it is OK**, recommendation. Forge Doctor educates — say when
+   matters, **when it is OK**, recommendation. Forge Doctor Data educates — say when
    a flagged pattern is acceptable.
 6. Verify: `poetry run pytest && poetry run ruff check . && poetry run mypy`.
 
@@ -56,18 +56,18 @@ Everything must be green before opening a PR.
 ## Beyond checks
 
 - **Knowledge packs** — version facts (runtimes, compat changes, error
-  signatures) live in `src/forge_doctor/knowledge/`; a pack ships schema
-  version + `verified_at` + sources. `forge-doctor knowledge verify` must
+  signatures) live in `src/forge_doctor_data/knowledge/`; a pack ships schema
+  version + `verified_at` + sources. `forge-doctor-data knowledge verify` must
   pass; the engine code does not change when a version goes EOL.
 - **Lab scenarios** — add a dir under `labs/<domain>/` with a fixture
-  project plus `expected.json` ground truth; `forge-doctor lab run` and
+  project plus `expected.json` ground truth; `forge-doctor-data lab run` and
   `lab metrics` measure precision/recall against it.
 - **Golden repos** — add a realistic mini-repo under `golden/repos/` and
-  regenerate its snapshot with `forge-doctor golden update`; review the
+  regenerate its snapshot with `forge-doctor-data golden update`; review the
   snapshot diff like code.
 - **Policy packs** — org rules are declarative YAML/JSON in
-  `.forge-doctor/policy/`; see the existing packs and
-  `forge-doctor policy validate`.
+  `.forge-doctor-data/policy/`; see the existing packs and
+  `forge-doctor-data policy validate`.
 
 ## Tests
 

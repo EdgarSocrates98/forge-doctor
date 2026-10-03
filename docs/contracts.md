@@ -1,6 +1,6 @@
 # Forge Ecosystem Contracts
 
-Forge Doctor is the deterministic evidence engine of the Forge family.
+Forge Doctor Data is the deterministic evidence engine of the Forge family.
 Downstream tools (Spark Forge, API Forge, and future members) consume its
 outputs without rescanning. This page is the interop contract.
 
@@ -23,7 +23,7 @@ outputs without rescanning. This page is the interop contract.
 
 ## The contracts
 
-`forge-doctor contracts list` lists them; `forge-doctor schema
+`forge-doctor-data contracts list` lists them; `forge-doctor-data schema
 contracts <name>` dumps the JSON Schema (draft 2020-12).
 
 | name | artifact |
@@ -42,8 +42,8 @@ contracts <name>` dumps the JSON Schema (draft 2020-12).
 ## The handoff bundle
 
 ```bash
-forge-doctor export . --format handoff -o bundle.json
-forge-doctor contracts verify bundle.json
+forge-doctor-data export . --format handoff -o bundle.json
+forge-doctor-data contracts verify bundle.json
 ```
 
 Shape (stable keys, deterministic ordering):
@@ -53,7 +53,7 @@ Shape (stable keys, deterministic ordering):
   "contract": "handoff-bundle",
   "contract_version": 1,
   "schema_version": "3.0",
-  "tool": {"name": "forge-doctor", "version": "…"},
+  "tool": {"name": "forge-doctor-data", "version": "…"},
   "project": {"name": "…", "root": "…"},
   "summary": {"passed": 0, "info": 0, "warnings": 0, "errors": 0},
   "results": [ …findings sorted by (check_id, fingerprint)… ],
@@ -69,7 +69,7 @@ remediation candidates without rescanning.
 
 ## Verifying bundles
 
-`forge-doctor contracts verify <bundle> [--contract <name>]` validates
+`forge-doctor-data contracts verify <bundle> [--contract <name>]` validates
 an artifact against the published contract — `<bundle>` may be a file
 path or `-` for stdin (the default when omitted). The validator covers
 `type`/`required`/`properties`/`items`/`enum`/`const`/`oneOf`/
@@ -82,5 +82,5 @@ tests.
 
 - Contracts describe what the engine already emits — no new runtime
   behavior is invented for the contract's sake.
-- No shared package yet: contracts live in `forge_doctor.core.schemas`
+- No shared package yet: contracts live in `forge_doctor_data.core.schemas`
   until a second Forge tool exists to pin cross-repo requirements.

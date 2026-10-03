@@ -17,7 +17,7 @@ before/after (findings, metrics, file stats) — never in production.
 
 ## Acceptance Criteria
 
-- `forge-doctor lab experiment <scenario> --hypothesis <name>`:
+- `forge-doctor-data lab experiment <scenario> --hypothesis <name>`:
   copies the scenario fixture, applies a deterministic named transform
   (e.g. `bump-glue-version`, `partition-data`, `add-checkpoint`,
   `increase-trigger-interval`), rescans, and reports a before/after

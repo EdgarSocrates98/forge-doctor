@@ -31,7 +31,7 @@
 - `pytest -x -q` — 721 passed (+13)
 - `mypy src` — 93 files clean
 - `ruff check src tests` — clean
-- E2E smoke: `forge-doctor diagnose job.log --path <fixture>` prints LAKE-E004
+- E2E smoke: `forge-doctor-data diagnose job.log --path <fixture>` prints LAKE-E004
   with fix hints + the correlation line.
 
 ## Open questions / notes

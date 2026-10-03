@@ -1,4 +1,4 @@
-from forge_doctor.core.models import CheckResult, Severity, Summary
+from forge_doctor_data.core.models import CheckResult, Severity, Summary
 
 
 def _result(severity: Severity) -> CheckResult:

@@ -18,10 +18,10 @@ jobs still run Glue 4", "which Iceberg v1 tables block migration",
 
 ## Acceptance Criteria
 
-- `forge-doctor fleet <manifest>` — manifest is a YAML/JSON file listing
+- `forge-doctor-data fleet <manifest>` — manifest is a YAML/JSON file listing
   repo paths (or a parent dir scanned via workspace discovery); builds
   the merged estate platform graph (reuses `WorkspaceModel` scaling).
-- `forge-doctor fleet query` — deterministic estate queries over the
+- `forge-doctor-data fleet query` — deterministic estate queries over the
   merged graph + models, e.g.:
   - `runtimes` — entity counts by platform/version (glue_version, dbr…)
   - `capability <id>` — which entities satisfy/violate a capability

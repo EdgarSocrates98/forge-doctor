@@ -30,7 +30,7 @@ CFN `AWS::StepFunctions::StateMachine` DefinitionString.
   without TimeoutSeconds (INFO), SFN020 Distributed Map (`"ItemProcessor"`
   or `"ItemReader"` + `ProcessorMode "DISTRIBUTED"`) inside an EXPRESS
   machine (WARNING). why/when_ok/fix each.
-- `cli/stepfunctions.py`: `forge-doctor stepfunctions inspect [path]` -
+- `cli/stepfunctions.py`: `forge-doctor-data stepfunctions inspect [path]` -
   machines, type, states by type, integrations, retry/catch presence,
   risks (severity-sorted).
 - `knowledge/stepfunctions/integrations.json` - service-integration arn

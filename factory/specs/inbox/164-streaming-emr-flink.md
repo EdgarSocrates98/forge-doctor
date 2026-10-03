@@ -20,7 +20,7 @@ and Kafka clients; Flink is the first-class non-Spark engine.
   text-scan facts): `StreamExecutionEnvironment`/`enableCheckpointing`/
   `getCheckpointConfig`, `env.fromSource`, `KeyedProcessFunction`,
   windows, state backend config, parallelism, sinks, exactly-once
-  markers. `cli/flink.py` `forge-doctor flink inspect`.
+  markers. `cli/flink.py` `forge-doctor-data flink inspect`.
 - EMR: streaming_workload flag on the EMR model when an EMR-flavored
   project contains streaming evidence (depends on 130 EMR model if
   built; degrade gracefully when absent).

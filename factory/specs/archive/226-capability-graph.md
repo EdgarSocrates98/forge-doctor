@@ -28,7 +28,7 @@ reporting explainable end to end.
   ids (graph ids), producing models/domains, and matched rule ids —
   populated from the same evidence the evaluator already reads (no
   fabricated provenance; `unknown` rows state the missing evidence).
-- `forge-doctor capabilities graph <path>` — renders the capability →
+- `forge-doctor-data capabilities graph <path>` — renders the capability →
   evidence subgraph: capability nodes linked to platform/entity nodes
   with edge kinds drawn from the ontology vocabulary; deterministic
   ordering; `--format json` emits the subgraph (stable shape added to

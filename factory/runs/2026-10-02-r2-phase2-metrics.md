@@ -36,5 +36,5 @@
 - `pytest tests/unit/test_lab.py tests/unit/adversarial/test_lab.py` →
   25 passed (4 new metrics tests incl. forbidden-hit FPR, defaults
   merging, zero-denominator)
-- `forge_doctor lab metrics` + `--json` verified
+- `forge_doctor_data lab metrics` + `--json` verified
 - Full suite: 1221 passed; mypy 144 files clean; ruff/format clean.

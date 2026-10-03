@@ -4,7 +4,7 @@ Date: 2026-10-03 · Spec: `factory/specs/active/246-capacity-saturation-intellig
 
 ## Delivered
 
-- `src/forge_doctor/core/capacity.py`
+- `src/forge_doctor_data/core/capacity.py`
   - `CapacityDimension` — CPU / MEMORY / CONCURRENCY / SLOTS /
     WAREHOUSE_LOAD / SHARDS / PARTITIONS / EXECUTORS / WORKERS /
     THROUGHPUT / STORAGE / REQUEST_RATE / QUEUE.
@@ -26,13 +26,13 @@ Date: 2026-10-03 · Spec: `factory/specs/active/246-capacity-saturation-intellig
     increasing, CAP007 low headroom (<20%) on critical workloads.
     Unthresholded-but-observed dimensions emit an INFO "unverifiable"
     note under the dimension's finding id.
-- `src/forge_doctor/knowledge/capacity/` — packs for snowflake,
+- `src/forge_doctor_data/knowledge/capacity/` — packs for snowflake,
   bigquery, redshift, trino: documented queue field semantics (original
   units preserved) + saturation ratio cutoffs where the platform
   documents them.
 - `runtime capacity` CLI (under the existing `runtime` group): signals +
   trends + findings, `--json`; ASCII-only output.
-- `src/forge_doctor/analyzers/execution_adapters.py` — the Snowflake
+- `src/forge_doctor_data/analyzers/execution_adapters.py` — the Snowflake
   adapter now parses `start_time`/`end_time` (real QUERY_HISTORY
   fields); without timestamps no temporal trend was possible.
 - Lab harness: `expected_capacity_signals`

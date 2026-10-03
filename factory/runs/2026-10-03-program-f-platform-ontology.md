@@ -14,16 +14,16 @@ families — plus conformance enforcement.
 
 ## Files changed
 
-- `src/forge_doctor/core/ontology.py` — **new**: `Term` registry,
+- `src/forge_doctor_data/core/ontology.py` — **new**: `Term` registry,
   definitions for all 16 `EntityKind` + 11 `RelKind` + 5 `EvidenceKind`
   members, 17 evidence domains (imported from `incremental.py`), 28
   producer domains, runtime-derived capability families, `vocabulary()`
   (stable JSON shape), `validate_graph()`.
-- `src/forge_doctor/cli/misc.py` — `ontology` group: bare `ontology`
+- `src/forge_doctor_data/cli/misc.py` — `ontology` group: bare `ontology`
   prints the vocabulary (`-f json`), `ontology validate <path>` checks
   graph conformance.
-- `src/forge_doctor/cli/__init__.py` — `ontology` panel membership.
-- `src/forge_doctor/core/schemas.py` — `platform-graph` contract pins
+- `src/forge_doctor_data/cli/__init__.py` — `ontology` panel membership.
+- `src/forge_doctor_data/core/schemas.py` — `platform-graph` contract pins
   `kind`/`evidence_kind` `enum`s to the ontology vocabulary.
 - `docs/ontology.md` — **new**: vocabulary tables + versioning rules.
 - `tests/unit/test_ontology.py` — **new**, 13 tests.

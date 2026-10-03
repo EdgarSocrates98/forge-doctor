@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.schema import diff_schemas, parse_schema
+from forge_doctor_data.core.schema import diff_schemas, parse_schema
 
 
 def test_avro_parse(tmp_path: Path):

@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.cost_drivers import CostDriver, CostDriverKind, CostFinding
-from forge_doctor.core.models import Confidence, Severity
-from forge_doctor.core.optimize_v2 import (
+from forge_doctor_data.core.cost_drivers import CostDriver, CostDriverKind, CostFinding
+from forge_doctor_data.core.models import Confidence, Severity
+from forge_doctor_data.core.optimize_v2 import (
     GuardrailStatus,
     Objective,
     OptimizationFamily,
     opportunities,
     opportunity_facts,
 )
-from forge_doctor.core.performance import PerformanceFinding, PerformanceSignal, SignalFamily
-from forge_doctor.core.physical_design import PhysicalDesign
-from forge_doctor.core.reliability import (
+from forge_doctor_data.core.performance import PerformanceFinding, PerformanceSignal, SignalFamily
+from forge_doctor_data.core.physical_design import PhysicalDesign
+from forge_doctor_data.core.reliability import (
     EvidenceState,
     Mechanism,
     ObjectiveMetric,
@@ -94,7 +94,7 @@ def test_guardrail_review_when_objective_protected() -> None:
         scope="events",
         source="contract",
     )
-    from forge_doctor.core.optimize_v2 import _opp
+    from forge_doctor_data.core.optimize_v2 import _opp
 
     o = _opp(
         family=OptimizationFamily.STREAM_TRIGGER,
@@ -110,8 +110,8 @@ def test_guardrail_review_when_objective_protected() -> None:
 
 
 def test_guardrail_blocked_via_capability() -> None:
-    from forge_doctor.core.capabilities import CapabilityRegistry
-    from forge_doctor.core.optimize_v2 import _opp
+    from forge_doctor_data.core.capabilities import CapabilityRegistry
+    from forge_doctor_data.core.optimize_v2 import _opp
 
     reg = CapabilityRegistry()
     pack = {

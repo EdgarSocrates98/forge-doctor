@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.dynamodb import (
+from forge_doctor_data.checks.dynamodb import (
     GlobalMrecTransactions,
     GlobalMrscTransactions,
     GlobalRegionRouting,
@@ -15,8 +15,8 @@ from forge_doctor.checks.dynamodb import (
     StreamNoIdempotency,
     StreamRecoveryMismatch,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

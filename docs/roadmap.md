@@ -12,28 +12,28 @@ v0.1 is a small, excellent foundation — not the whole diagram.
 - Baselines: `scan --save-baseline` / `--baseline` (`NEW` markers, `is_new`
   in JSON, exit code counts only new findings).
 - `--format html` self-contained reports, `--output`, `--no-color`.
-- `forge-doctor init` scaffolding, `forge-doctor info` stats.
+- `forge-doctor-data init` scaffolding, `forge-doctor-data info` stats.
 - `--watch` re-scan loop, shell completion, Rich tables/panels throughout.
 
 ## v0.4 — engine v2 & integrations — shipped
 - **Finding Model v2**: `confidence`, `fingerprint`, `tags`, `docs_uri`,
   `evidence`, `source`, `fixable`, `column`/`end_line`/`end_column` on
   `CheckResult` + serialized in JSON/SARIF.
-- **Knowledge packs** (`forge_doctor/knowledge/`): Glue versions +
+- **Knowledge packs** (`forge_doctor_data/knowledge/`): Glue versions +
   compatibility matrix (through Glue 6.0), Spark runtime map, Python
   compatibility — version facts evolve without engine changes.
 - **SARIF 2.1.0** (`--format sarif`) for GitHub Code Scanning; composite
   action in `action.yml` uploads it automatically.
 - **`--format agent`**: compact `{id, sev, loc, fp}` bundle for LLM/agent
   consumers; `explain <ID> --json` for on-demand rule metadata.
-- **`forge-doctor diff`**: report-vs-report, file-vs-ref, and
+- **`forge-doctor-data diff`**: report-vs-report, file-vs-ref, and
   `diff base...head` git ranges via temporary worktrees.
-- **`forge-doctor compatibility`**: detected environment + migration-risk
+- **`forge-doctor-data compatibility`**: detected environment + migration-risk
   matrix (`--from`/`--to`).
-- **`forge-doctor workspace`**: monorepo project discovery.
+- **`forge-doctor-data workspace`**: monorepo project discovery.
 - **Profiles**: `default|strict|security|spark-performance|glue-migration|production`.
 - **Pre-commit**: `.pre-commit-hooks.yaml` + `--files` filtering.
-- **Plugin trust model**: `--no-plugins`, `[tool.forge-doctor.plugins].allow`,
+- **Plugin trust model**: `--no-plugins`, `[tool.forge-doctor-data.plugins].allow`,
   findings stamped with their plugin `source`.
 - **Spark AST v2**: alias/symbol tracking (`import ... as`, `df = spark.read...`,
   chained receivers) — findings carry receiver confidence; SPARK006 now pairs
@@ -54,10 +54,10 @@ Engine:
 - **Semantic index** — one `ast.parse` per file feeds Spark, Glue, lineage
   and `trace`; imports, call sites with literal args, assignment chains,
   enclosing symbols.
-- **Incremental cache** — sha256-keyed per-file facts in `.forge-doctor/`;
-  `--cache/--no-cache`, `forge-doctor cache` group, `--watch` via
+- **Incremental cache** — sha256-keyed per-file facts in `.forge-doctor-data/`;
+  `--cache/--no-cache`, `forge-doctor-data cache` group, `--watch` via
   `watchfiles` (polling fallback).
-- **Policy-as-code** — `[tool.forge-doctor.policy]` rule overrides,
+- **Policy-as-code** — `[tool.forge-doctor-data.policy]` rule overrides,
   expiring/scoped/owned suppressions, `suppressions` audit, POLICY001/002.
 - **Plugin SDK v2** — `PluginIdentity`/`PluginDescriptor`, api_version
   gating, `plugins list|validate|doctor`; `cli/` modularized into a package.
@@ -120,14 +120,14 @@ Reliability & trust:
   risk class for PR review.
 - **Policy packs** (`policy list|eval|validate`) — org-declared
   forbid/require rules.
-- **Public API** (`forge_doctor.api`) — stable SDK surface + JSON Schema
+- **Public API** (`forge_doctor_data.api`) — stable SDK surface + JSON Schema
   contracts (`schema contracts`); see `docs/api.md`.
 - **v1.0 readiness** — `docs/release.md` checklist; tagging remains a
   human decision.
 
 ## Roadmap-3 — extensible operational platform (in progress)
 
-- **P1 Plugin SDK & ecosystem** — shipped: `forge_doctor.sdk` stable
+- **P1 Plugin SDK & ecosystem** — shipped: `forge_doctor_data.sdk` stable
   surface, `plugins init|lock|verify|install`, strict trust mode.
 - **P2 Enterprise governance** — shipped: pack `extends` layering,
   `require_approval` + `POLICY011`, `approved_by` on suppressions,
@@ -206,7 +206,7 @@ of the semantic models (invariant V11), not as engine changes.
   AQE off, repeated actions across files, `count()` for logging only.
 - Databricks / Airflow / dbt / EMR categories (AST-first where possible).
 - Security adapters instead of homegrown scanners: OSV-Scanner/pip-audit
-  (`forge-doctor security --engine osv`), `zizmor` for workflows.
+  (`forge-doctor-data security --engine osv`), `zizmor` for workflows.
 - Safe autofix — only after baselines prove stable: deterministic transforms,
   always `--dry-run` first.
 - Tree-sitter for Scala/Java/Shell later; Python stays on `ast`.

@@ -52,7 +52,7 @@ SQL portability analysis.
   `MigrationReadiness` — READY, PARTIAL, BLOCKED,
   INSUFFICIENT_EVIDENCE; unknown budget (known_count, unknown_count,
   unknowns, required_evidence).
-- `forge-doctor migrate explain <plan>` — why mapped / why approximate
+- `forge-doctor-data migrate explain <plan>` — why mapped / why approximate
   / which capability missing / which source evidence proves it.
 - Deep scenarios: Redshift→Snowflake/BigQuery, BigQuery→Snowflake,
   Snowflake→BigQuery, Glue→Databricks, EMR→Databricks, Delta→Iceberg,

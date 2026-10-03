@@ -7,15 +7,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.athena_model import athena_model
-from forge_doctor.analyzers.lambda_model import lambda_model
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.analyzers.stepfunctions_model import stepfunctions_model
-from forge_doctor.checks.platform_rules import RULES
-from forge_doctor.checks.serverless import CHECKS
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.crossdomain import rule_context
-from forge_doctor.core.models import Severity
+from forge_doctor_data.analyzers.athena_model import athena_model
+from forge_doctor_data.analyzers.lambda_model import lambda_model
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.analyzers.stepfunctions_model import stepfunctions_model
+from forge_doctor_data.checks.platform_rules import RULES
+from forge_doctor_data.checks.serverless import CHECKS
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.crossdomain import rule_context
+from forge_doctor_data.core.models import Severity
 
 
 def _write(root: Path, rel: str, text: str) -> None:

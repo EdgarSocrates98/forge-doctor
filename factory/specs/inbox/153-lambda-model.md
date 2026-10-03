@@ -26,4 +26,4 @@ SAM `AWS::Serverless::Function`, serverless.yml, handler detection in
   vs detected caller (SFN task) mismatch, LAMBDA030 ephemeral storage
   small while /tmp usage detected in code (INFO), LAMBDA090 VPC config
   with no private-resource evidence (INFO).
-- `forge-doctor lambda inspect` command.
+- `forge-doctor-data lambda inspect` command.

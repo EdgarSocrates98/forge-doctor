@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.execution_adapters import (
+from forge_doctor_data.analyzers.execution_adapters import (
     EXECUTION_ADAPTERS,
     ingest_executions,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionStage,
     ExecutionStatus,
     QueryExecution,

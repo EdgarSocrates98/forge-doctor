@@ -24,7 +24,7 @@
   streaming, stepfunctions, parquet, terraform, airflow, control-m, iceberg —
   satisfies "Registration + docs + CHANGELOG" criteria.
 - All model/builder modules named by the specs exist under
-  `src/forge_doctor/analyzers/` and `src/forge_doctor/cli/`.
+  `src/forge_doctor_data/analyzers/` and `src/forge_doctor_data/cli/`.
 
 ## Flag
 - **spec 110** (`cache-semantic-signature`): verification lists

@@ -21,7 +21,7 @@ MANUAL_ONLY forever — never auto-applied.
 - `core/fixes.py` — `FixAction` model: `{check_id, file, transform,
   class}` where `class in {safe, review, manual}`; a registry mapping
   check ids to deterministic transforms.
-- `forge-doctor fix <path>` — **dry-run by default** (prints diffs);
+- `forge-doctor-data fix <path>` — **dry-run by default** (prints diffs);
   `--apply` writes only `safe` transforms; `--apply --class review`
   also applies review-tier; `manual` never applies (prints guidance).
 - Ship 3+ real safe transforms, e.g.: add `requires-python` to

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli import app
+from forge_doctor_data.cli import app
 
 runner = CliRunner()
 
@@ -28,7 +28,7 @@ def test_emit_multiple_formats(tmp_path: Path):
     assert sarif.exists() and json_out.exists()
     payload = json.loads(json_out.read_text(encoding="utf-8"))
     assert payload["schema_version"] == "3.0"
-    assert payload["tool"]["name"] == "forge-doctor"
+    assert payload["tool"]["name"] == "forge-doctor-data"
 
 
 def test_emit_rejects_two_stdout_targets(tmp_path: Path):
@@ -54,8 +54,8 @@ def test_doctor(tmp_path: Path):
 
 def test_suppressions_command(tmp_path: Path):
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.forge-doctor]\n"
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[tool.forge-doctor-data]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "SPARK001"\nreason = "legacy"\nowner = "team"\n',
         encoding="utf-8",
     )

@@ -1,4 +1,4 @@
-from forge_doctor.core.knowledge import (
+from forge_doctor_data.core.knowledge import (
     glue_current,
     glue_migration_changes,
     glue_status,

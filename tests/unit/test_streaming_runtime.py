@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.runtime_evidence import ingest_artifact
-from forge_doctor.analyzers.streaming_runtime import diagnose_progress, parse_progress
-from forge_doctor.core.delivery import derive_delivery
+from forge_doctor_data.analyzers.runtime_evidence import ingest_artifact
+from forge_doctor_data.analyzers.streaming_runtime import diagnose_progress, parse_progress
+from forge_doctor_data.core.delivery import derive_delivery
 
 
 def _progress(batch: int, **over) -> dict:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.core.change_correlation import (
+from forge_doctor_data.core.change_correlation import (
     ChangeClass,
     ChangeEvent,
     CorrelationConfidence,
@@ -19,19 +19,19 @@ from forge_doctor.core.change_correlation import (
     plan_fingerprint,
     shape_delta,
 )
-from forge_doctor.core.execution_history import SubjectKind, build_series
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_history import SubjectKind, build_series
+from forge_doctor_data.core.execution_model import (
     ExecutionStage,
     ExecutionStatus,
     QueryExecution,
     StageKind,
 )
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
 )
-from forge_doctor.core.semantic_diff import EntityChange, SemanticDiff
+from forge_doctor_data.core.semantic_diff import EntityChange, SemanticDiff
 
 HOUR = 3_600_000.0
 BASE = 1_700_000_000_000.0  # fixed epoch ms

@@ -7,12 +7,12 @@ from typing import Any
 
 import pytest
 
-from forge_doctor.core.capabilities import (
+from forge_doctor_data.core.capabilities import (
     CapabilityContext,
     CapabilityRegistry,
     CapabilityStatus,
 )
-from forge_doctor.core.capability_deps import (
+from forge_doctor_data.core.capability_deps import (
     CapabilityReadiness,
     CapabilityRel,
     LifecycleStatus,
@@ -23,7 +23,7 @@ from forge_doctor.core.capability_deps import (
     lifecycle_status,
     workload_requirements,
 )
-from forge_doctor.core.platform_ontology import WorkloadIntent
+from forge_doctor_data.core.platform_ontology import WorkloadIntent
 
 SRC = "https://example.com/docs"
 

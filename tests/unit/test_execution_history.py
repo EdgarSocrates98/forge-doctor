@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.execution_history import (
+from forge_doctor_data.core.execution_history import (
     BaselineWindow,
     BaselineWindowKind,
     HistoryRetention,
@@ -20,11 +20,11 @@ from forge_doctor.core.execution_history import (
     record_executions,
     sample_from,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )
-from forge_doctor.core.trends import (
+from forge_doctor_data.core.trends import (
     MetricBaseline,
     TrendDirection,
     mad,
@@ -34,7 +34,7 @@ from forge_doctor.core.trends import (
     series_from,
     trend_direction,
 )
-from forge_doctor.core.twin_states import TwinFact, TwinState
+from forge_doctor_data.core.twin_states import TwinFact, TwinState
 
 
 def _ex(
@@ -202,10 +202,10 @@ def test_experiment_history_isolated(tmp_path: Path) -> None:
 
 
 def test_bad_snapshot_rejected(tmp_path: Path) -> None:
-    bad = tmp_path / ".forge-doctor" / "execution-history"
+    bad = tmp_path / ".forge-doctor-data" / "execution-history"
     bad.mkdir(parents=True)
     (bad / "x.jsonl").write_text('{"header": {"format": "other"}}\n')
-    from forge_doctor.core.execution_history import read_snapshot
+    from forge_doctor_data.core.execution_history import read_snapshot
 
     with pytest.raises(ValueError):
         list(read_snapshot(bad / "x.jsonl"))

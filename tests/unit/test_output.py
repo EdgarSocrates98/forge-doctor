@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
-from forge_doctor.output.json_renderer import render_json
-from forge_doctor.output.summary import exit_code
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.output.json_renderer import render_json
+from forge_doctor_data.output.summary import exit_code
 
 
 def _report(*severities: Severity) -> ScanReport:

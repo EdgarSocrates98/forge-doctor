@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.graph_model import graph_model
-from forge_doctor.checks.graph import CHECKS
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.analyzers.graph_model import graph_model
+from forge_doctor_data.checks.graph import CHECKS
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

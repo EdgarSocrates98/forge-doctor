@@ -84,10 +84,10 @@ Roughly linear; the Spark eventlog cost is per-event JSON parsing.
 
 ## Files
 
-- `src/forge_doctor/core/experiments_v2.py` (new)
-- `src/forge_doctor/core/lab.py`, `src/forge_doctor/cli/lab.py`
-- `src/forge_doctor/core/performance.py`, `src/forge_doctor/core/reliability.py`
-- `src/forge_doctor/analyzers/platform_graph_builder.py`
+- `src/forge_doctor_data/core/experiments_v2.py` (new)
+- `src/forge_doctor_data/core/lab.py`, `src/forge_doctor_data/cli/lab.py`
+- `src/forge_doctor_data/core/performance.py`, `src/forge_doctor_data/core/reliability.py`
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py`
 - `tests/unit/test_experiments_v2.py` (new)
 - `labs/{performance,execution,cost,optimization}/**` (11 scenarios)
 - `docs/checks.md`

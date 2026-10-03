@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.dynamodb_model import dynamodb_model
-from forge_doctor.checks.dynamodb import (
+from forge_doctor_data.analyzers.dynamodb_model import dynamodb_model
+from forge_doctor_data.checks.dynamodb import (
     ConstantPKLiteral,
     ScanOnLatencyPath,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -135,7 +135,7 @@ def test_constant_pk_ignores_reads(tmp_path: Path) -> None:
 
 def test_no_error_severity_except_mrsc(tmp_path: Path) -> None:
     """Only DDBGT003 may emit ERROR (registry-proven unsupported)."""
-    from forge_doctor.checks.dynamodb import CHECKS
+    from forge_doctor_data.checks.dynamodb import CHECKS
 
     ctx = make_context(
         tmp_path,

@@ -17,7 +17,7 @@ Date: 2026-10-02 · Agent: claude · Result: built, awaiting review
   - Both schemas rewritten to match; `README` example restored to
     `"3.0"` (the Phase-9 "fix" to `"1.0"` was itself a regression —
     caught by the CI smoke assert that already pinned `3.0`).
-- `forge_doctor.api.SCAN_SCHEMA_VERSION` — re-export of
+- `forge_doctor_data.api.SCAN_SCHEMA_VERSION` — re-export of
   `JSON_SCHEMA_VERSION`; `__all__` extended. Docstrings + `docs/api.md`
   now state the two-contract model explicitly.
 - `tests/unit/test_api.py` — mini JSON-Schema validator (type/required/

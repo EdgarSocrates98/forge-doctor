@@ -14,14 +14,14 @@ verification:
 # Context
 `prompt_evo_streaming.md` sub-cycle 9 of 10. Runtime evidence arrives
 as user-exported JSON: `StreamingQueryProgress` snapshots, lag exports.
-Forge Doctor never calls AWS/Spark APIs — snapshots only.
+Forge Doctor Data never calls AWS/Spark APIs — snapshots only.
 
 # Acceptance Criteria
 - `StreamingProgressModel`: parse `StreamingQueryProgress`-shaped JSON
   (single object or batch array): inputRowsPerSecond,
   processedRowsPerSecond, batchDuration, stateOperators (numRowsTotal/
   memoryUsedBytes), sources endOffset/latestOffset, sink numOutputRows.
-- `forge-doctor streaming progress <file.json>` renders a
+- `forge-doctor-data streaming progress <file.json>` renders a
   diagnose-style report: rates, backlog trend across an ordered batch,
   state growth, findings.
 - `StreamingLagModel`: source/processing/sink/end-to-end lag slots from
@@ -31,7 +31,7 @@ Forge Doctor never calls AWS/Spark APIs — snapshots only.
   rate (INFO), STREAM123 batchDuration exceeds trigger interval
   (WARNING), STREAM030-state-growth variant for observed monotonic
   stateRows increase (WARNING — runtime evidence).
-- `forge-doctor streaming cost .` — cost-driver inventory (always-on
+- `forge-doctor-data streaming cost .` — cost-driver inventory (always-on
   compute, trigger frequency, state size, partitions, workers, shards);
   drivers only, no invented prices.
 - knowledge pack: `knowledge/streaming/progress_fields.json`.

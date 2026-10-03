@@ -38,7 +38,7 @@ semantics must live in the versioned packs, not hardcoded Python.
 - Cycle detection — deterministic, reported, never infinite recursion.
 - Lifecycle semantics: introduced_in/deprecated_in/removed_in/
   replacement → CLI-visible available|deprecated|removed|unknown.
-- `forge-doctor capabilities explain <capability>` — Capability/Status/
+- `forge-doctor-data capabilities explain <capability>` — Capability/Status/
   Because-chain/Replacement output shape.
 - `CapabilityReadiness` — READY, PARTIAL, BLOCKED, UNKNOWN.
 - Workload→capability mapping: WorkloadIntent → RequiredCapabilities

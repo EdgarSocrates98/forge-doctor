@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.project_info import collect_info
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.project_info import collect_info
 
 
 def test_collect_info_counts_files_and_lines(tmp_path: Path):

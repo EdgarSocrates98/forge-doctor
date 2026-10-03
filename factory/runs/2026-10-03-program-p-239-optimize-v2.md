@@ -12,7 +12,7 @@ specs 235–238 — extends `core/optimize.py` (v1 untouched) with
 
 ## Files changed
 
-- `src/forge_doctor/core/optimize_v2.py` — **new**: `Objective` (6),
+- `src/forge_doctor_data/core/optimize_v2.py` — **new**: `Objective` (6),
   `OptimizationFamily` (14), `GuardrailStatus` (clear/review/blocked/
   not_applicable), `ExperimentPlan`, `OptimizationOpportunity`,
   `opportunities()` mapping PERF/COST/REL/PHY evidence onto families,
@@ -21,7 +21,7 @@ specs 235–238 — extends `core/optimize.py` (v1 untouched) with
   objectives → REVIEW), capability-gate via
   `capability_deps.evaluate_dependencies` (→ BLOCKED),
   `opportunity_facts()` → HYPOTHETICAL `TwinFact`s.
-- `src/forge_doctor/cli/optimize.py` — `optimize` becomes a Typer
+- `src/forge_doctor_data/cli/optimize.py` — `optimize` becomes a Typer
   group; bare invocation keeps the v1 listing (`--path` option now),
   plus `optimize inspect` / `optimize explain <OPP-id>`.
 - `tests/unit/test_optimize_v2.py` — **new**, 12 tests.

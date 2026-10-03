@@ -6,10 +6,10 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import EvidenceKind
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import EvidenceKind
 
 runner = CliRunner()
 
@@ -320,7 +320,7 @@ def test_blast_radius_semantic_direction(tmp_path: Path) -> None:
         },
     )
     g = build_platform_graph(ctx)
-    from forge_doctor.analyzers.platform_graph_builder import impact_reachable
+    from forge_doctor_data.analyzers.platform_graph_builder import impact_reachable
 
     assert "task:airflow:load" in impact_reachable(g, "task:airflow:extract")
     assert "task:airflow:extract" not in impact_reachable(g, "task:airflow:load")
@@ -329,7 +329,7 @@ def test_blast_radius_semantic_direction(tmp_path: Path) -> None:
 def test_blast_radius_table_to_writer_and_reader(tmp_path: Path) -> None:
     """A changed table impacts readers (inbound READS) and writers
     (inbound WRITES) - data-flow edges carry impact both ways."""
-    from forge_doctor.analyzers.platform_graph_builder import impact_reachable
+    from forge_doctor_data.analyzers.platform_graph_builder import impact_reachable
 
     ctx = make_context(
         tmp_path,

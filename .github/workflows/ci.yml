@@ -64,20 +64,20 @@ jobs:
 
       - name: Install wheel
         shell: bash
-        run: python -m pip install dist/forge_doctor-*.whl
+        run: python -m pip install dist/forge_doctor_data-*.whl
 
       - name: CLI smoke
         shell: bash
         run: |
-          forge-doctor --version
-          forge-doctor doctor .
-          forge-doctor scan tests/sample_projects/clean_python_project \
+          forge-doctor-data --version
+          forge-doctor-data doctor .
+          forge-doctor-data scan tests/sample_projects/clean_python_project \
             --format json --show-root -o smoke-report.json || test $? -le 1
-          python -c "import json,sys; d=json.load(open('smoke-report.json')); assert d['schema_version']=='3.0'; assert d['tool']['name']=='forge-doctor'; assert set(d['summary'])>={'passed','info','warnings','errors'}; assert isinstance(d['project']['name'],str); print('smoke ok:', len(d['results']), 'results')"
-          forge-doctor schema contracts
-          forge-doctor schema contracts scan-report | python -c "import json,sys; s=json.load(sys.stdin); assert 'results' in s['required']"
-          forge-doctor explain SPARK001 >/dev/null
-          forge-doctor checks >/dev/null
+          python -c "import json,sys; d=json.load(open('smoke-report.json')); assert d['schema_version']=='3.0'; assert d['tool']['name']=='forge-doctor-data'; assert set(d['summary'])>={'passed','info','warnings','errors'}; assert isinstance(d['project']['name'],str); print('smoke ok:', len(d['results']), 'results')"
+          forge-doctor-data schema contracts
+          forge-doctor-data schema contracts scan-report | python -c "import json,sys; s=json.load(sys.stdin); assert 'results' in s['required']"
+          forge-doctor-data explain SPARK001 >/dev/null
+          forge-doctor-data checks >/dev/null
 
   extras-smoke:
     name: extras smoke (watch/lsp/schemas)
@@ -95,8 +95,8 @@ jobs:
       - name: Boot optional integrations
         run: |
           python -c "import watchfiles, yaml; from pygls.lsp.server import LanguageServer; LanguageServer('fd','1'); yaml.safe_load('a: 1'); print('extras ok')"
-          forge-doctor --version
-          printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}\n' | forge-doctor mcp --root . | head -1
+          forge-doctor-data --version
+          printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}\n' | forge-doctor-data mcp --root . | head -1
 
   dogfood:
     name: dogfood (this repo, local action)
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # SARIF disabled: the action installs its own checkout ($GITHUB_ACTION_PATH).
-      - name: Forge Doctor on forge-doctor
+      - name: Forge Doctor Data on forge-doctor-data
         uses: ./
         with:
           path: .

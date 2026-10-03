@@ -8,9 +8,9 @@ aspirational.
 import re
 from pathlib import Path
 
-import forge_doctor.api as api
-from forge_doctor.cli import app
-from forge_doctor.cli.common import _build_registry
+import forge_doctor_data.api as api
+from forge_doctor_data.cli import app
+from forge_doctor_data.cli.common import _build_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 README = (ROOT / "README.md").read_text(encoding="utf-8")

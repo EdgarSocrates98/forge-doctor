@@ -18,8 +18,8 @@ Changelog dates 0.7.0 ahead of publish.
 - New `extras-smoke` job: pip install '.[watch,lsp,schemas]' then minimal
   import/boot checks (import watchfiles path in watch loop, pygls server
   constructs, yaml schema parse works).
-- `forge_doctor.__version__` = single-source via
-  importlib.metadata.version("forge-doctor") with fallback for
+- `forge_doctor_data.__version__` = single-source via
+  importlib.metadata.version("forge-doctor-data") with fallback for
   src-tree-without-install.
 - CHANGELOG: 0.7.0 entry stays under a future-date heading corrected to
   [Unreleased] style until real publish (match repo convention).

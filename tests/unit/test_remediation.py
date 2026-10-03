@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.diagnosis import cluster_findings
-from forge_doctor.core.models import CheckResult, Severity
-from forge_doctor.core.remediation import plan_remediation, remediation_entries
-from forge_doctor.core.runtime_evidence import (
+from forge_doctor_data.core.diagnosis import cluster_findings
+from forge_doctor_data.core.models import CheckResult, Severity
+from forge_doctor_data.core.remediation import plan_remediation, remediation_entries
+from forge_doctor_data.core.runtime_evidence import (
     ExecutionMetric,
     ExecutionThroughput,
     RuntimeEvidenceModel,

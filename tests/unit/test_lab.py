@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.lab import (
+from forge_doctor_data.core.lab import (
     discover_scenarios,
     load_ground_truth,
     parse_finding_expectation,
@@ -215,8 +215,8 @@ def test_lab_run_named_filter(tmp_path: Path) -> None:
 
 
 def test_metrics_perfect_run(tmp_path: Path) -> None:
-    from forge_doctor.core.lab import run_lab
-    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+    from forge_doctor_data.core.lab import run_lab
+    from forge_doctor_data.core.metrics import compute_metrics, forbidden_declarations
 
     _scenario(
         tmp_path,
@@ -239,8 +239,8 @@ def test_metrics_perfect_run(tmp_path: Path) -> None:
 
 
 def test_metrics_missed_finding_drops_recall(tmp_path: Path) -> None:
-    from forge_doctor.core.lab import run_lab
-    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+    from forge_doctor_data.core.lab import run_lab
+    from forge_doctor_data.core.metrics import compute_metrics, forbidden_declarations
 
     _scenario(
         tmp_path,
@@ -255,8 +255,8 @@ def test_metrics_missed_finding_drops_recall(tmp_path: Path) -> None:
 
 
 def test_metrics_forbidden_hit_and_defaults(tmp_path: Path) -> None:
-    from forge_doctor.core.lab import run_lab
-    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+    from forge_doctor_data.core.lab import run_lab
+    from forge_doctor_data.core.metrics import compute_metrics, forbidden_declarations
 
     # lab-level allowlist: REP002 is benign noise, never an FP
     (tmp_path / "_defaults.json").write_text(
@@ -275,8 +275,8 @@ def test_metrics_forbidden_hit_and_defaults(tmp_path: Path) -> None:
 
 
 def test_metrics_none_when_no_denominator(tmp_path: Path) -> None:
-    from forge_doctor.core.lab import run_lab
-    from forge_doctor.core.metrics import compute_metrics, forbidden_declarations
+    from forge_doctor_data.core.lab import run_lab
+    from forge_doctor_data.core.metrics import compute_metrics, forbidden_declarations
 
     _scenario(tmp_path, "empty", {}, {"a.tf": "locals {}\n"})
     lab = run_lab(tmp_path)

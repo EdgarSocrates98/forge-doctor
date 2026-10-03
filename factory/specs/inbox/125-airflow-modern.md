@@ -26,7 +26,7 @@ event-driven scheduling (`AssetWatcher`), dynamic task mapping
   literal list).
 - Sensors: polling candidate for event-driven (AIR080 — s3/file sensor with
   tight poke_interval), synchronous sensors count (AIR044).
-- `forge-doctor airflow assets <path>` — asset graph + unmatched.
+- `forge-doctor-data airflow assets <path>` — asset graph + unmatched.
 
 # Constraints
 - Dataset→Asset rename handled (both recognized; Asset canonical).

@@ -2,7 +2,7 @@
   <img src="docs/assets/logo.png" alt="Forge Doctor Data" width="440">
 </p>
 
-# Forge Doctor
+# Forge Doctor Data
 
 Deterministic diagnostics for data engineering projects. One command inspects
 your repository, Python environment, packaging, dependencies, git hygiene,
@@ -13,14 +13,14 @@ PySpark code, and local AWS setup — no daemons, no network calls, no AI.
 Data projects drift: a `collect()` slips into a hot path, `requirements.txt`
 and `poetry.lock` start coexisting, a `.env` gets committed, the Python in the
 venv no longer matches `requires-python`. These failures are cheap to catch and
-expensive to debug. Forge Doctor is a fast, offline, deterministic sensor that
+expensive to debug. Forge Doctor Data is a fast, offline, deterministic sensor that
 surfaces them with file:line precision — and explains when each pattern is
 actually fine.
 
 ## Installation
 
 ```bash
-pipx install forge-doctor
+pipx install forge-doctor-data
 ```
 
 New here? Walk through [docs/getting-started.md](docs/getting-started.md) —
@@ -29,152 +29,152 @@ install to a gated CI scan in five steps.
 Or from source:
 
 ```bash
-git clone https://github.com/EdgarSocrates98/forge-doctor
-cd forge-doctor
+git clone https://github.com/EdgarSocrates98/forge-doctor-data
+cd forge-doctor-data
 pipx install .
 ```
 
 ## Usage
 
 ```bash
-forge-doctor scan .                 # full scan
-forge-doctor scan . --check spark   # one category
-forge-doctor scan . --ignore SPARK001
-forge-doctor scan . --format json   # stable machine-readable contract
-forge-doctor scan . --format html   # self-contained shareable report
-forge-doctor scan . --format sarif  # GitHub Code Scanning
-forge-doctor scan . --format agent  # compact bundle for agent consumers
-forge-doctor scan . --quiet         # only problems
-forge-doctor scan . --fail-on warning
-forge-doctor scan . --profile security   # severity profile
-forge-doctor scan . --files a.py b.py    # only these files (pre-commit)
-forge-doctor scan . --no-plugins         # skip external plugins
-forge-doctor scan . --watch         # re-scan on every file change
-forge-doctor scan . --save-baseline .fd-baseline.json
-forge-doctor scan . --baseline .fd-baseline.json   # only NEW findings fail
-forge-doctor scan . --baseline .fd.json --new-only # just the new ones
-forge-doctor scan . --save-baseline main       # named: .forge-doctor/baselines/main.json
-forge-doctor scan . --baseline main --new-only # per-branch baselines
-forge-doctor scan . --evidence-out audit/      # dated audit bundle (report+suppressions+packs)
-forge-doctor scan . --record --keep 30         # append a history snapshot, prune to 30
-forge-doctor history .              # recorded snapshots
-forge-doctor history diff --last    # new/resolved findings, entity+capability+drift deltas
-forge-doctor history trend          # finding counts over the series + debt trajectory
-forge-doctor diff old.json new.json     # diff two saved reports
-forge-doctor diff HEAD~1...HEAD         # diff across git refs
-forge-doctor compatibility --to 6.0     # Glue env + migration risks
-forge-doctor migrate glue --from 3.0 --to 4.0  # migration intelligence
-forge-doctor workspace .                # discover projects in a monorepo
-forge-doctor workspace scan --path .    # scan every nested project
-forge-doctor workspace inspect .        # cross-repo graph links (defines/implements/invokes)
-forge-doctor fleet inspect fleet.yml    # manifest-driven estate graph over many repos
-forge-doctor fleet query fleet.yml runtimes|dependents|findings|capability
-forge-doctor fleet report fleet.yml     # estate census + findings roll-up
-forge-doctor fleet portfolio fleet.yml  # platforms, duplication, complexity — facts not scores
-forge-doctor fleet regressions fleet.yml # regression dimensions shared across repos
-forge-doctor diff base...head --semantic  # entity diff + blast radius + capability/migration intel
-forge-doctor remediate .              # deterministic fix plans per finding/root cause
-forge-doctor fix .                    # preview/apply safety-classified text fixes
-forge-doctor root-cause .             # correlate findings into causal clusters
-forge-doctor runtime inspect .        # offline runtime evidence (exported artifacts)
-forge-doctor architecture drift .     # drift vs .forge-doctor/contract.yml
-forge-doctor contract validate .      # verify a platform contract file
-forge-doctor capabilities list .      # platform capability registry report
-forge-doctor capabilities graph .     # capability→evidence provenance subgraph
-forge-doctor twin inspect .           # digital twin: graph + invariant report
-forge-doctor twin export .            # deterministic twin snapshot artifact
-forge-doctor advise .                 # ranked, cited actions (decision intelligence)
-forge-doctor optimize .               # ranked optimization candidates + validation commands
-forge-doctor what-if . --change glue-version=5.1   # hypothetical-change evaluation
-forge-doctor what-if . --change platform=bigquery  # cross-platform re-target evaluation
-forge-doctor migrate plan .           # named deterministic migration plans
-forge-doctor migrate plan . --from snowflake --to bigquery  # cross-platform plan
-forge-doctor policy list .            # organization policy packs
-forge-doctor policy report .          # compliance: violations + suppression audit
-forge-doctor lab run                  # Forge Lab scenario suites + ground truth
-forge-doctor incident inspect         # incident windows over recorded runtime history
-forge-doctor reliability path .       # critical paths over data-flow edges + segment coverage
-forge-doctor golden run               # golden-repo snapshot regression
-forge-doctor bench run .              # performance & scale benchmark
-forge-doctor schema contracts         # JSON Schemas for output artifacts
-forge-doctor ontology                 # canonical vocabulary (entity/rel kinds, planes)
-forge-doctor ontology validate .      # graph conformance vs the vocabulary
-forge-doctor snowflake inspect .      # Snowflake warehouse model + vendor objects
-forge-doctor bigquery inspect .       # BigQuery datasets, partitions, slots, jobs
-forge-doctor redshift inspect .       # Redshift clusters, dist/sort keys, WLM, datashares
-forge-doctor dbt inspect .            # dbt models, sources, tests, ref/source lineage
-forge-doctor trino inspect .          # Trino catalogs, connectors, coordinator config, 3-part refs
-forge-doctor analytical inspect .     # ClickHouse/Pinot/Druid tables, engines, ingestion, indexes
-forge-doctor search inspect .         # OpenSearch/Elasticsearch templates, policies, domains
-forge-doctor catalog inspect .        # DataHub/OpenMetadata/Glue/Unity datasets, drift, recipes
-forge-doctor quality inspect .        # Deequ/GX/SodaCL/dbt suites, coverage, gate wiring
-forge-doctor cloud inspect .          # vendor-neutral multi-cloud abstraction view
-forge-doctor export . -f handoff      # portable bundle for downstream Forge tools
-forge-doctor contracts verify b.json  # validate a bundle against published contracts
-forge-doctor info                   # project stats, no checks
-forge-doctor init --name my-etl     # scaffold a new project
-forge-doctor repo                   # category shortcuts
-forge-doctor plugins                # built-in + external checks
-forge-doctor plugins init forge-doctor-x   # scaffold a plugin package
-forge-doctor plugins lock && forge-doctor plugins verify  # integrity pinning
-forge-doctor plugins install forge-doctor-x --dry-run     # pipx/pip wrapper
-forge-doctor checks                 # every rule id and title
-forge-doctor explain SPARK001       # why / when it's OK / how to fix
-forge-doctor explain SPARK001 --json    # rule metadata for agents
-forge-doctor trace SPARK001 src/job.py:42   # why this finding fired
-forge-doctor diagnose driver.log      # fingerprint log errors (offline)
-forge-doctor spark eventlog dir/      # executor loss, skew, spill, GC
-forge-doctor lineage                # static reads/writes graph
-forge-doctor schema diff old.avsc new.avsc  # breaking/compatible changes
-forge-doctor graph                  # project intelligence graph
-forge-doctor platform graph .       # canonical platform graph census (+ --json)
-forge-doctor platform blast-radius <entity> .  # semantic impact traversal
-forge-doctor suppressions           # audit governed exceptions
-forge-doctor iceberg inspect .      # Iceberg model summary (ops/maintenance/risks)
-forge-doctor iceberg merge .        # MERGE posture: source, ON cols, partition pruning
-forge-doctor iceberg files .        # write APIs + small-file risk
-forge-doctor iceberg compatibility  # runtime x Iceberg compat from the packs
-forge-doctor controlm inspect .     # Control-M workflows-as-code (folders/jobs/events/risks)
-forge-doctor airflow inspect .      # Airflow DAGs/tasks/sensors/providers + parse-time risks
-forge-doctor terraform inspect .    # providers/modules/backends/reference graph
-forge-doctor parquet inspect .      # Parquet dataset stats + codec/write risks
-forge-doctor stepfunctions inspect .# ASL machines: states, integrations, graph risks
-forge-doctor streaming inspect .    # streaming queries: source→sink, checkpoint, watermark
-forge-doctor streaming diagnose .   # progress-metrics diagnostics (rate/state/watermark)
-forge-doctor streaming semantics .  # derived delivery semantics per query
-forge-doctor dynamodb inspect .     # DynamoDB tables + access patterns
-forge-doctor neptune inspect .      # Neptune clusters + query shapes
-forge-doctor lakeformation inspect .# governance, cross-account shares, tag usage
-forge-doctor emr inspect .          # EMR EC2/Serverless/EKS deep model
-forge-doctor databricks inspect .   # jobs/clusters/DBR/UC + bundles
-forge-doctor delta inspect .        # Delta tables, ops, protocol features
-forge-doctor athena inspect .       # workgroups, queries, result locations
-forge-doctor lambda inspect .       # functions, triggers, runtimes, data-plane calls
-forge-doctor kafka inspect .        # MSK clusters/topics/consumer groups
-forge-doctor kinesis inspect .      # streams, EFO, Firehose
-forge-doctor flink inspect .        # Flink jobs, state, checkpoints, savepoints
-forge-doctor data-model inspect .   # cross-domain access-style inspection
-forge-doctor iac                    # IaC checks (Terraform/CloudFormation)
-forge-doctor cache                  # incremental-analysis stats
-forge-doctor sbom                   # CycloneDX 1.5 of the project
-forge-doctor knowledge verify       # pack freshness/provenance
-forge-doctor doctor                 # environment self-check
-forge-doctor mcp                    # JSON-RPC stdio server for agents
-forge-doctor lsp                    # editor diagnostics (pip install .[lsp])
-forge-doctor version
+forge-doctor-data scan .                 # full scan
+forge-doctor-data scan . --check spark   # one category
+forge-doctor-data scan . --ignore SPARK001
+forge-doctor-data scan . --format json   # stable machine-readable contract
+forge-doctor-data scan . --format html   # self-contained shareable report
+forge-doctor-data scan . --format sarif  # GitHub Code Scanning
+forge-doctor-data scan . --format agent  # compact bundle for agent consumers
+forge-doctor-data scan . --quiet         # only problems
+forge-doctor-data scan . --fail-on warning
+forge-doctor-data scan . --profile security   # severity profile
+forge-doctor-data scan . --files a.py b.py    # only these files (pre-commit)
+forge-doctor-data scan . --no-plugins         # skip external plugins
+forge-doctor-data scan . --watch         # re-scan on every file change
+forge-doctor-data scan . --save-baseline .fd-baseline.json
+forge-doctor-data scan . --baseline .fd-baseline.json   # only NEW findings fail
+forge-doctor-data scan . --baseline .fd.json --new-only # just the new ones
+forge-doctor-data scan . --save-baseline main       # named: .forge-doctor-data/baselines/main.json
+forge-doctor-data scan . --baseline main --new-only # per-branch baselines
+forge-doctor-data scan . --evidence-out audit/      # dated audit bundle (report+suppressions+packs)
+forge-doctor-data scan . --record --keep 30         # append a history snapshot, prune to 30
+forge-doctor-data history .              # recorded snapshots
+forge-doctor-data history diff --last    # new/resolved findings, entity+capability+drift deltas
+forge-doctor-data history trend          # finding counts over the series + debt trajectory
+forge-doctor-data diff old.json new.json     # diff two saved reports
+forge-doctor-data diff HEAD~1...HEAD         # diff across git refs
+forge-doctor-data compatibility --to 6.0     # Glue env + migration risks
+forge-doctor-data migrate glue --from 3.0 --to 4.0  # migration intelligence
+forge-doctor-data workspace .                # discover projects in a monorepo
+forge-doctor-data workspace scan --path .    # scan every nested project
+forge-doctor-data workspace inspect .        # cross-repo graph links (defines/implements/invokes)
+forge-doctor-data fleet inspect fleet.yml    # manifest-driven estate graph over many repos
+forge-doctor-data fleet query fleet.yml runtimes|dependents|findings|capability
+forge-doctor-data fleet report fleet.yml     # estate census + findings roll-up
+forge-doctor-data fleet portfolio fleet.yml  # platforms, duplication, complexity — facts not scores
+forge-doctor-data fleet regressions fleet.yml # regression dimensions shared across repos
+forge-doctor-data diff base...head --semantic  # entity diff + blast radius + capability/migration intel
+forge-doctor-data remediate .              # deterministic fix plans per finding/root cause
+forge-doctor-data fix .                    # preview/apply safety-classified text fixes
+forge-doctor-data root-cause .             # correlate findings into causal clusters
+forge-doctor-data runtime inspect .        # offline runtime evidence (exported artifacts)
+forge-doctor-data architecture drift .     # drift vs .forge-doctor-data/contract.yml
+forge-doctor-data contract validate .      # verify a platform contract file
+forge-doctor-data capabilities list .      # platform capability registry report
+forge-doctor-data capabilities graph .     # capability→evidence provenance subgraph
+forge-doctor-data twin inspect .           # digital twin: graph + invariant report
+forge-doctor-data twin export .            # deterministic twin snapshot artifact
+forge-doctor-data advise .                 # ranked, cited actions (decision intelligence)
+forge-doctor-data optimize .               # ranked optimization candidates + validation commands
+forge-doctor-data what-if . --change glue-version=5.1   # hypothetical-change evaluation
+forge-doctor-data what-if . --change platform=bigquery  # cross-platform re-target evaluation
+forge-doctor-data migrate plan .           # named deterministic migration plans
+forge-doctor-data migrate plan . --from snowflake --to bigquery  # cross-platform plan
+forge-doctor-data policy list .            # organization policy packs
+forge-doctor-data policy report .          # compliance: violations + suppression audit
+forge-doctor-data lab run                  # Forge Lab scenario suites + ground truth
+forge-doctor-data incident inspect         # incident windows over recorded runtime history
+forge-doctor-data reliability path .       # critical paths over data-flow edges + segment coverage
+forge-doctor-data golden run               # golden-repo snapshot regression
+forge-doctor-data bench run .              # performance & scale benchmark
+forge-doctor-data schema contracts         # JSON Schemas for output artifacts
+forge-doctor-data ontology                 # canonical vocabulary (entity/rel kinds, planes)
+forge-doctor-data ontology validate .      # graph conformance vs the vocabulary
+forge-doctor-data snowflake inspect .      # Snowflake warehouse model + vendor objects
+forge-doctor-data bigquery inspect .       # BigQuery datasets, partitions, slots, jobs
+forge-doctor-data redshift inspect .       # Redshift clusters, dist/sort keys, WLM, datashares
+forge-doctor-data dbt inspect .            # dbt models, sources, tests, ref/source lineage
+forge-doctor-data trino inspect .          # Trino catalogs, connectors, coordinator config, 3-part refs
+forge-doctor-data analytical inspect .     # ClickHouse/Pinot/Druid tables, engines, ingestion, indexes
+forge-doctor-data search inspect .         # OpenSearch/Elasticsearch templates, policies, domains
+forge-doctor-data catalog inspect .        # DataHub/OpenMetadata/Glue/Unity datasets, drift, recipes
+forge-doctor-data quality inspect .        # Deequ/GX/SodaCL/dbt suites, coverage, gate wiring
+forge-doctor-data cloud inspect .          # vendor-neutral multi-cloud abstraction view
+forge-doctor-data export . -f handoff      # portable bundle for downstream Forge tools
+forge-doctor-data contracts verify b.json  # validate a bundle against published contracts
+forge-doctor-data info                   # project stats, no checks
+forge-doctor-data init --name my-etl     # scaffold a new project
+forge-doctor-data repo                   # category shortcuts
+forge-doctor-data plugins                # built-in + external checks
+forge-doctor-data plugins init forge-doctor-data-x   # scaffold a plugin package
+forge-doctor-data plugins lock && forge-doctor-data plugins verify  # integrity pinning
+forge-doctor-data plugins install forge-doctor-data-x --dry-run     # pipx/pip wrapper
+forge-doctor-data checks                 # every rule id and title
+forge-doctor-data explain SPARK001       # why / when it's OK / how to fix
+forge-doctor-data explain SPARK001 --json    # rule metadata for agents
+forge-doctor-data trace SPARK001 src/job.py:42   # why this finding fired
+forge-doctor-data diagnose driver.log      # fingerprint log errors (offline)
+forge-doctor-data spark eventlog dir/      # executor loss, skew, spill, GC
+forge-doctor-data lineage                # static reads/writes graph
+forge-doctor-data schema diff old.avsc new.avsc  # breaking/compatible changes
+forge-doctor-data graph                  # project intelligence graph
+forge-doctor-data platform graph .       # canonical platform graph census (+ --json)
+forge-doctor-data platform blast-radius <entity> .  # semantic impact traversal
+forge-doctor-data suppressions           # audit governed exceptions
+forge-doctor-data iceberg inspect .      # Iceberg model summary (ops/maintenance/risks)
+forge-doctor-data iceberg merge .        # MERGE posture: source, ON cols, partition pruning
+forge-doctor-data iceberg files .        # write APIs + small-file risk
+forge-doctor-data iceberg compatibility  # runtime x Iceberg compat from the packs
+forge-doctor-data controlm inspect .     # Control-M workflows-as-code (folders/jobs/events/risks)
+forge-doctor-data airflow inspect .      # Airflow DAGs/tasks/sensors/providers + parse-time risks
+forge-doctor-data terraform inspect .    # providers/modules/backends/reference graph
+forge-doctor-data parquet inspect .      # Parquet dataset stats + codec/write risks
+forge-doctor-data stepfunctions inspect .# ASL machines: states, integrations, graph risks
+forge-doctor-data streaming inspect .    # streaming queries: source→sink, checkpoint, watermark
+forge-doctor-data streaming diagnose .   # progress-metrics diagnostics (rate/state/watermark)
+forge-doctor-data streaming semantics .  # derived delivery semantics per query
+forge-doctor-data dynamodb inspect .     # DynamoDB tables + access patterns
+forge-doctor-data neptune inspect .      # Neptune clusters + query shapes
+forge-doctor-data lakeformation inspect .# governance, cross-account shares, tag usage
+forge-doctor-data emr inspect .          # EMR EC2/Serverless/EKS deep model
+forge-doctor-data databricks inspect .   # jobs/clusters/DBR/UC + bundles
+forge-doctor-data delta inspect .        # Delta tables, ops, protocol features
+forge-doctor-data athena inspect .       # workgroups, queries, result locations
+forge-doctor-data lambda inspect .       # functions, triggers, runtimes, data-plane calls
+forge-doctor-data kafka inspect .        # MSK clusters/topics/consumer groups
+forge-doctor-data kinesis inspect .      # streams, EFO, Firehose
+forge-doctor-data flink inspect .        # Flink jobs, state, checkpoints, savepoints
+forge-doctor-data data-model inspect .   # cross-domain access-style inspection
+forge-doctor-data iac                    # IaC checks (Terraform/CloudFormation)
+forge-doctor-data cache                  # incremental-analysis stats
+forge-doctor-data sbom                   # CycloneDX 1.5 of the project
+forge-doctor-data knowledge verify       # pack freshness/provenance
+forge-doctor-data doctor                 # environment self-check
+forge-doctor-data mcp                    # JSON-RPC stdio server for agents
+forge-doctor-data lsp                    # editor diagnostics (pip install .[lsp])
+forge-doctor-data version
 ```
 
 One scan can emit several reports — `--emit` is repeatable and takes
 `FMT` (stdout) or `FMT:PATH`:
 
 ```bash
-forge-doctor scan . --emit text --emit sarif:report.sarif --emit html:report.html
+forge-doctor-data scan . --emit text --emit sarif:report.sarif --emit html:report.html
 ```
 
 ## Example output
 
 ```text
-╭─ Forge Doctor ───────────────────────╮
+╭─ Forge Doctor Data ───────────────────────╮
 │ Project  /home/me/etl                │
 │ Version  0.7.0                       │
 │  Checks  51                          │
@@ -206,14 +206,14 @@ a `NEW` marker and `--fail-on` only counts those, so pre-existing debt never
 breaks CI:
 
 ```bash
-forge-doctor scan . --save-baseline .forge-doctor-baseline.json
-forge-doctor scan . --baseline .forge-doctor-baseline.json --fail-on warning
+forge-doctor-data scan . --save-baseline .forge-doctor-data-baseline.json
+forge-doctor-data scan . --baseline .forge-doctor-data-baseline.json --fail-on warning
 ```
 
 ## HTML reports
 
 ```bash
-forge-doctor scan . --format html --output report.html
+forge-doctor-data scan . --format html --output report.html
 ```
 
 Produces a single self-contained HTML file — same content as the terminal
@@ -259,12 +259,12 @@ Full per-rule documentation (including *when it's OK*) lives in
 ## JSON output
 
 ```bash
-forge-doctor scan . --format json
+forge-doctor-data scan . --format json
 ```
 
 ```json
 {
-  "tool": {"name": "forge-doctor", "version": "0.7.0"},
+  "tool": {"name": "forge-doctor-data", "version": "0.7.0"},
   "schema_version": "3.0",
   "version": "0.7.0",
   "project": {"name": "etl"},
@@ -281,8 +281,8 @@ forge-doctor scan . --format json
 ```
 
 The JSON contract is stable and meant for CI, GitHub, and agent consumers —
-`forge-doctor schema contracts` emits the JSON Schemas for every public
-artifact, `forge-doctor contracts verify` validates artifacts against
+`forge-doctor-data schema contracts` emits the JSON Schemas for every public
+artifact, `forge-doctor-data contracts verify` validates artifacts against
 them, and [docs/api.md](docs/api.md) +
 [docs/contracts.md](docs/contracts.md) record the versioning and
 interop rules.
@@ -295,7 +295,7 @@ source plane (`static`/`config`/`observed_metadata`/`runtime`/`derived`).
 ## SARIF & GitHub Code Scanning
 
 ```bash
-forge-doctor scan . --format sarif -o forge-doctor.sarif
+forge-doctor-data scan . --format sarif -o forge-doctor-data.sarif
 ```
 
 SARIF 2.1.0 with rules, locations, snippets, `partialFingerprints` and
@@ -305,7 +305,7 @@ scans, and uploads SARIF in one step.
 
 ## Pre-commit
 
-[.pre-commit-hooks.yaml](.pre-commit-hooks.yaml) ships a `forge-doctor`
+[.pre-commit-hooks.yaml](.pre-commit-hooks.yaml) ships a `forge-doctor-data`
 hook; pre-commit feeds it the changed filenames via `--files`, so only the
 files under review produce findings.
 
@@ -318,23 +318,23 @@ files under review produce findings.
 ## Compatibility reports
 
 ```bash
-forge-doctor compatibility . --to 6.0
-forge-doctor migrate glue --from 4.0 --to 6.0
+forge-doctor-data compatibility . --to 6.0
+forge-doctor-data migrate glue --from 4.0 --to 6.0
 ```
 
 Detects the project's Glue/Spark/Python/Java/Iceberg environment and lists
 migration risks from bundled **knowledge packs**
-(`src/forge_doctor/knowledge/*/`), so version facts evolve without engine
+(`src/forge_doctor_data/knowledge/*/`), so version facts evolve without engine
 changes. `migrate glue` adds real signals: version pins in code, DynamicFrame
 usage, dependencies, and Terraform/CloudFormation pins.
 
 ## Runtime diagnosis
 
 ```bash
-forge-doctor diagnose driver.log       # known-error fingerprinting
-forge-doctor spark eventlog dir/       # executor loss, skew, spill, GC
-forge-doctor spark plan plan.txt       # pathological physical-plan operators
-forge-doctor spark logs executor.log   # signatures + runtime patterns
+forge-doctor-data diagnose driver.log       # known-error fingerprinting
+forge-doctor-data spark eventlog dir/       # executor loss, skew, spill, GC
+forge-doctor-data spark plan plan.txt       # pathological physical-plan operators
+forge-doctor-data spark logs executor.log   # signatures + runtime patterns
 ```
 
 Deterministic and offline: error signatures live in
@@ -343,11 +343,11 @@ Deterministic and offline: error signatures live in
 ## Data intelligence
 
 ```bash
-forge-doctor lineage                   # datasets read/written per job
-forge-doctor lineage --format openlineage
-forge-doctor schema diff old.avsc new.avsc
-forge-doctor schema diff HEAD~1...HEAD --path .
-forge-doctor graph --format mermaid    # jobs + datasets + infra + DAGs
+forge-doctor-data lineage                   # datasets read/written per job
+forge-doctor-data lineage --format openlineage
+forge-doctor-data schema diff old.avsc new.avsc
+forge-doctor-data schema diff HEAD~1...HEAD --path .
+forge-doctor-data graph --format mermaid    # jobs + datasets + infra + DAGs
 ```
 
 Static lineage and the intelligence graph are built from the shared semantic
@@ -358,23 +358,23 @@ and `trace`. No target code is ever imported or executed.
 
 `--cache` (default on locally, **off in CI** unless explicit) stores
 per-file analysis facts in the platform user cache
-(`%LOCALAPPDATA%\forge-doctor\cache`, `~/Library/Caches/forge-doctor`,
-`$XDG_CACHE_HOME/forge-doctor`; override with `FORGE_DOCTOR_CACHE_DIR`) —
+(`%LOCALAPPDATA%\forge-doctor-data\cache`, `~/Library/Caches/forge-doctor-data`,
+`$XDG_CACHE_HOME/forge-doctor-data`; override with `FORGE_DOCTOR_DATA_CACHE_DIR`) —
 never inside the scanned repo, so a hostile checkout can't poison it.
 Entries are keyed by repo + tool + analyzer schema version and carry
 dependency provenance: editing a producer module re-analyzes its
-importers. `forge-doctor cache` shows stats; `cache clean` removes it.
+importers. `forge-doctor-data cache` shows stats; `cache clean` removes it.
 `--stats` reports per-check timings and cache hit rate on stderr.
 
 ```toml
-[tool.forge-doctor.policy]
+[tool.forge-doctor-data.policy]
 extends = "strict"          # base profile
-[tool.forge-doctor.policy.rules.SPARK001]
+[tool.forge-doctor-data.policy.rules.SPARK001]
 severity = "error"          # per-rule override
-[tool.forge-doctor.policy.rules.CI002]
+[tool.forge-doctor-data.policy.rules.CI002]
 enabled = false             # kill switch
 
-[[tool.forge-doctor.suppressions]]
+[[tool.forge-doctor-data.suppressions]]
 rule = "SPARK001"
 path = "src/legacy/**"      # glob-scoped
 reason = "migration in progress"
@@ -383,7 +383,7 @@ expires = "2026-12-31"      # past expiry reactivates the finding
 approved_by = "@sec-lead"   # governance sign-off (POLICY011 if a pack requires it)
 ```
 
-`forge-doctor suppressions` audits every exception as ACTIVE / EXPIRED /
+`forge-doctor-data suppressions` audits every exception as ACTIVE / EXPIRED /
 UNUSED with owner and approver; expired ones emit `POLICY001` warnings
 instead of suppressing. A policy pack with `require_approval: true`
 makes unapproved suppressions emit `POLICY011` findings — and packs can
@@ -391,7 +391,7 @@ makes unapproved suppressions emit `POLICY011` findings — and packs can
 
 ## Workspace
 
-`forge-doctor workspace --path <dir>` discovers nested `pyproject.toml`
+`forge-doctor-data workspace --path <dir>` discovers nested `pyproject.toml`
 projects; `workspace scan` runs each and aggregates with a project prefix;
 `workspace diff base...head` compares findings per subproject.
 
@@ -399,28 +399,28 @@ projects; `workspace scan` runs each and aggregates with a project prefix;
 
 `--format agent` emits a minimal `{id, sev, loc, fp}` per finding —
 built for LLM/agent consumers where every token counts; pair with
-`forge-doctor explain <ID> --json` for full rule metadata on demand.
+`forge-doctor-data explain <ID> --json` for full rule metadata on demand.
 
 ## Configuration
 
 Zero configuration works. Optional, in the scanned project's `pyproject.toml`:
 
 ```toml
-[tool.forge-doctor]
+[tool.forge-doctor-data]
 exclude = ["tests/fixtures/**"]
 ignore = ["SPARK001"]
 
 # Trust model: `trusted` gates BEFORE plugin code loads (distribution or
 # entry-point names only - check ids can't gate code that hasn't run).
 # `allow` additionally accepts check ids as a post-load filter.
-[tool.forge-doctor.plugins]
-trusted = ["forge-doctor-databricks"]
+[tool.forge-doctor-data.plugins]
+trusted = ["forge-doctor-data-databricks"]
 
 # Post-load per-check filter (requires the plugin to load first).
-[tool.forge-doctor.plugins.checks]
+[tool.forge-doctor-data.plugins.checks]
 enabled = ["DBX001", "DBX002"]
 
-[tool.forge-doctor.aws]
+[tool.forge-doctor-data.aws]
 ignore = ["AWS002"]
 ```
 
@@ -430,20 +430,20 @@ ignore = ["AWS002"]
 
 ## Integrations
 
-- **MCP** (`forge-doctor mcp [--root DIR]`): zero-dependency JSON-RPC
+- **MCP** (`forge-doctor-data mcp [--root DIR]`): zero-dependency JSON-RPC
   stdio server — `scan_project`, `explain_rule`, `check_compatibility`,
   `get_lineage`, `diagnose_log`, `diff_findings`, plus behavioral tools
   `get_execution_baseline`, `get_regressions`, `get_runtime_correlations`,
   `get_incident_explanation`, `get_critical_path`, `get_capacity_signals`,
-  `get_portfolio_summary`, and `forge-doctor://rules/ID` /
-  `forge-doctor://knowledge/D/N` resources. `--root` sandboxes every tool
+  `get_portfolio_summary`, and `forge-doctor-data://rules/ID` /
+  `forge-doctor-data://knowledge/D/N` resources. `--root` sandboxes every tool
   path argument to that tree.
-- **LSP** (`pipx inject forge-doctor pygls lsprotocol`, `forge-doctor lsp`):
+- **LSP** (`pipx inject forge-doctor-data pygls lsprotocol`, `forge-doctor-data lsp`):
   publishes diagnostics on open/change/save, using the workspace root and
   unsaved-buffer contents (debounced; clears resolved findings).
-- **SBOM** (`forge-doctor sbom`): CycloneDX 1.5 covering all locked
+- **SBOM** (`forge-doctor-data sbom`): CycloneDX 1.5 covering all locked
   dependencies (declared + transitive) with a dependency graph, plugins,
-  knowledge packs and forge-doctor itself; deterministic serial number.
+  knowledge packs and forge-doctor-data itself; deterministic serial number.
 
 ## Architecture
 
@@ -462,22 +462,22 @@ never see the terminal. See [docs/architecture.md](docs/architecture.md).
 
 ## Plugins
 
-External packages contribute checks via the `forge_doctor.checks` entry-point
-group — install with `pipx inject forge-doctor forge-doctor-<ext>`. A broken
+External packages contribute checks via the `forge_doctor_data.checks` entry-point
+group — install with `pipx inject forge-doctor-data forge-doctor-data-<ext>`. A broken
 plugin degrades to a warning, never a crash.
 
 Plugins run in-process with the same privileges as the CLI — treat them as
 trusted code. `--no-plugins` disables them per run;
-`[tool.forge-doctor.plugins].allow` restricts which ones may load.
+`[tool.forge-doctor-data.plugins].allow` restricts which ones may load.
 Plugin findings carry a `source` field naming their distribution.
 
 ## Development
 
 ```bash
-git clone https://github.com/EdgarSocrates98/forge-doctor
-cd forge-doctor
+git clone https://github.com/EdgarSocrates98/forge-doctor-data
+cd forge-doctor-data
 poetry install
-poetry run forge-doctor scan .
+poetry run forge-doctor-data scan .
 poetry run pytest
 poetry run ruff check .
 poetry run mypy

@@ -13,30 +13,30 @@ surfaces breaking schema changes inside `diff --semantic`.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/datacontract_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/datacontract_model.py` — **new**:
   `DataContractModel` (contracts with id/format/owner/objects+fields/
   sla/quality/servers/unsupported sections), `DetectedSchema`
   cross-domain schema map, `norm_family` type normalization.
-- `src/forge_doctor/checks/datacontract.py` — **new**: DCTR000 census,
+- `src/forge_doctor_data/checks/datacontract.py` — **new**: DCTR000 census,
   DCTR001 missing schema, DCTR002 prod server without SLA, DCTR003
   field type drift (evidence kind = detected schema's plane).
-- `src/forge_doctor/analyzers/platform_graph_builder.py` —
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` —
   `_contracts` adapter: `data_contract` entities, `GOVERNS` edges to
   tail-matched relations (or `table:datacontract:` placeholders), and
   `field.<name>` attrs merged onto the governed relation for diff
   granularity.
-- `src/forge_doctor/core/semantic_diff.py` — `EntityChange.breaking`,
+- `src/forge_doctor_data/core/semantic_diff.py` — `EntityChange.breaking`,
   `_type_relation` lattice (same/widened/narrowed/changed),
   `_field_breaks`, classify rules: breaking field changes and
   removed contracted relations are HIGH risk; `READS_FROM`/`WRITES_TO`
   added to impact sets so dbt lineage reaches blast radius.
-- `src/forge_doctor/cli/diff.py` — "Breaking contract changes"
+- `src/forge_doctor_data/cli/diff.py` — "Breaking contract changes"
   (DCTR004) section in text output + `contract_changes` array in JSON.
-- `src/forge_doctor/core/platform_graph.py`,
-  `src/forge_doctor/core/ontology.py`, `docs/ontology.md` —
+- `src/forge_doctor_data/core/platform_graph.py`,
+  `src/forge_doctor_data/core/ontology.py`, `docs/ontology.md` —
   `data_contract` entity kind + `datacontract` producer domain.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/core/incremental.py` — registrations
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` — registrations
   (`SQL | TERRAFORM | CONFIG | FILES`).
 - `docs/checks.md`, `CHANGELOG.md`.
 - `labs/datacontract/drifted-prod/` (DCTR002+DCTR003),

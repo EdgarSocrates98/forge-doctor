@@ -3,13 +3,13 @@
 import time
 from pathlib import Path
 
-from forge_doctor.core.execution_history import (
+from forge_doctor_data.core.execution_history import (
     baseline_for,
     build_series,
     iter_samples,
     record_executions,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )
@@ -49,7 +49,7 @@ def main() -> None:
         )
     # baseline over the full recorded history
     t0 = time.perf_counter()
-    from forge_doctor.core.execution_model import QueryExecution as Q
+    from forge_doctor_data.core.execution_model import QueryExecution as Q
 
     execs = [
         Q(

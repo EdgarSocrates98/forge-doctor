@@ -24,7 +24,7 @@ clusters into ordered, deterministic remediation plans — advisory only.
 - Chain plan for RC_STREAM_COMMITS orders: adjust streaming trigger →
   review output partitioning → compact data files → expire snapshots →
   re-run consumer metrics (with depends_on edges).
-- CLI: `forge-doctor remediate .` and `forge-doctor remediate
+- CLI: `forge-doctor-data remediate .` and `forge-doctor-data remediate
   --root-cause <id> .` (`--json`).
 - No automatic patch/commit/deploy/Terraform/migration. Output states
   this explicitly.

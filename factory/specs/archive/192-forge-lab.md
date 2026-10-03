@@ -5,8 +5,8 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_lab.py tests/unit/adversarial/test_lab.py -x -q
-  - python -m forge_doctor lab run
-  - python -m forge_doctor lab run --json
+  - python -m forge_doctor_data lab run
+  - python -m forge_doctor_data lab run --json
   - python -m pytest -q
 ---
 
@@ -14,7 +14,7 @@ verification:
 
 ## Context
 
-The first roadmap built detection surface. Roadmap-2 turns Forge Doctor
+The first roadmap built detection surface. Roadmap-2 turns Forge Doctor Data
 into a measurable product: prove precision/recall, block regressions,
 and keep honest evidence. Phase 1 builds the lab harness itself plus a
 seed corpus — later phases add metrics, golden repos, and perf budgets.

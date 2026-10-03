@@ -5,9 +5,9 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_policy_pack.py tests/unit/adversarial/test_policy_pack.py -x -q
-  - python -m forge_doctor policy list --path <repo>
-  - python -m forge_doctor policy eval --path <repo>
-  - python -m forge_doctor policy validate <pack.yml>
+  - python -m forge_doctor_data policy list --path <repo>
+  - python -m forge_doctor_data policy eval --path <repo>
+  - python -m forge_doctor_data policy validate <pack.yml>
 ---
 
 # Roadmap-2 Phase 7 - Organization Policy Packs
@@ -23,8 +23,8 @@ packs — not plugin code.
 
 - `core/policy_pack.py`: `PolicyPack{name, version, rules}`,
   `PolicyRule{id, severity, message, forbid|require, recommendation}`.
-- Discovery: `.forge-doctor/policy/*.yml|*.yaml|*.json`, root
-  `policy.yml`/`org-policy.yml`, plus `[tool.forge-doctor]
+- Discovery: `.forge-doctor-data/policy/*.yml|*.yaml|*.json`, root
+  `policy.yml`/`org-policy.yml`, plus `[tool.forge-doctor-data]
   policy_packs = [...]` paths.
 - Rule kinds:
   - `forbid.pattern` + `file_glob` — finding per matching line;
@@ -41,7 +41,7 @@ packs — not plugin code.
 - `checks/policy_pack.py` `OrgPolicyPacks` (id `POLICY010`, category
   `policy`) — runs all packs inside normal scans; findings carry the
   org rule ids so severity policy + suppressions govern them.
-- `forge-doctor policy list|eval [--format json]|validate <file>`.
+- `forge-doctor-data policy list|eval [--format json]|validate <file>`.
 - Mini-YAML extended to parse `- key: value` list-of-mapping items so
   packs work without PyYAML.
 - Tests: each rule kind, discovery paths, pyproject config, malformed

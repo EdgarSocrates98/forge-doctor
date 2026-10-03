@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.models import Severity
-from forge_doctor.core.spark_runtime import (
+from forge_doctor_data.core.models import Severity
+from forge_doctor_data.core.spark_runtime import (
     analyze_eventlog_text,
     analyze_log,
     analyze_plan_text,

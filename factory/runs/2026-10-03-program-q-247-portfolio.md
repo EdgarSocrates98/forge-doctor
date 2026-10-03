@@ -4,7 +4,7 @@ Date: 2026-10-03 · Spec: `factory/specs/active/247-platform-portfolio-intellige
 
 ## Delivered
 
-- `src/forge_doctor/core/portfolio.py`
+- `src/forge_doctor_data/core/portfolio.py`
   - `PlatformPortfolio` — platforms, workloads, logical_datasets,
     physical_representations, teams, environments, cost_drivers,
     reliability_signals, lifecycle map, criticality set, duplications,
@@ -26,7 +26,7 @@ Date: 2026-10-03 · Spec: `factory/specs/active/247-platform-portfolio-intellige
   - `RecurringPattern` + `recurring_patterns()` — a check id firing in
     >=2 repos is a candidate shared-capability signal.
   - `ValidatedOptimizationEvidence` + `record_/load_optimization_evidence`
-    — `.forge-doctor/optimization-evidence.jsonl`, scope field is
+    — `.forge-doctor-data/optimization-evidence.jsonl`, scope field is
     literally "project-local"; nothing generalizes globally.
 - `fleet portfolio` — portfolio facts + §7.2 answers (text/JSON).
 - `fleet regressions` — per-repo recorded history -> fingerprint series
@@ -56,7 +56,7 @@ Date: 2026-10-03 · Spec: `factory/specs/active/247-platform-portfolio-intellige
 - Platform lifecycle is UNKNOWN when neither capability nor runtime
   packs carry facts — "active" is never assumed.
 - Fleet regression aggregation keys on recorded fingerprints; a repo
-  with no `.forge-doctor/execution-history/` simply doesn't appear.
+  with no `.forge-doctor-data/execution-history/` simply doesn't appear.
 
 ## Validation
 

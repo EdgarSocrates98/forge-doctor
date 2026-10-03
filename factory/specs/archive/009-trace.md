@@ -1,6 +1,6 @@
 ---
 id: 009-trace
-title: forge-doctor trace CHECK_ID FILE:LINE
+title: forge-doctor-data trace CHECK_ID FILE:LINE
 agent: devin
 risk: low
 grill: completed

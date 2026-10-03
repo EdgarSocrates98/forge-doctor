@@ -7,7 +7,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
+from forge_doctor_data.cli.app import app
 
 _PACK = """
 pack: org-gov
@@ -23,11 +23,11 @@ rules:
 
 
 def _project(tmp_path: Path) -> Path:
-    (tmp_path / ".forge-doctor" / "policy").mkdir(parents=True)
-    (tmp_path / ".forge-doctor" / "policy" / "gov.yml").write_text(_PACK)
+    (tmp_path / ".forge-doctor-data" / "policy").mkdir(parents=True)
+    (tmp_path / ".forge-doctor-data" / "policy" / "gov.yml").write_text(_PACK)
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.forge-doctor]\n"
-        "[[tool.forge-doctor.suppressions]]\n"
+        "[tool.forge-doctor-data]\n"
+        "[[tool.forge-doctor-data.suppressions]]\n"
         'rule = "S3_001"\n'
         'owner = "alice"\n'
     )
@@ -76,7 +76,7 @@ def test_named_baseline_roundtrip_via_cli(tmp_path: Path) -> None:
     runner = CliRunner()
     save = runner.invoke(app, ["scan", str(tmp_path), "--save-baseline", "main", "--quiet"])
     assert save.exit_code == 0, save.stdout
-    baseline = tmp_path / ".forge-doctor" / "baselines" / "main.json"
+    baseline = tmp_path / ".forge-doctor-data" / "baselines" / "main.json"
     assert baseline.is_file()
     use = runner.invoke(app, ["scan", str(tmp_path), "--baseline", "main", "--new-only", "--quiet"])
     assert use.exit_code == 0, use.stdout

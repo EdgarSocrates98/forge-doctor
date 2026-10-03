@@ -14,30 +14,30 @@ decision (vendor named in messages).
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/search_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/search_model.py` — **new**:
   `SearchPlatformModel` (`SearchIndex`/`SearchPolicy`/`IngestPipeline`/
   `SearchDomain`/`ObservedRow`), compound-gated JSON attribution,
   `_field_types` mapping walker (leaf types, open nested objects,
   dynamic), Terraform domain scanner, observed-export scanner.
-- `src/forge_doctor/checks/search.py` — **new**: SRCH000 census,
+- `src/forge_doctor_data/checks/search.py` — **new**: SRCH000 census,
   SRCH001 prod-pattern template w/o replicas, SRCH002 wildcard/logs-*
   w/o ISM-ILM coverage, SRCH003 >5 open nested objects w/o
   `enabled:false`/`dynamic:false|strict`, SRCH004 TF domain w/o
   encrypt_at_rest/node_to_node_encryption.
-- `src/forge_doctor/cli/search.py` — **new**: `search inspect` prints
+- `src/forge_doctor_data/cli/search.py` — **new**: `search inspect` prints
   indices/templates, lifecycle policies, pipelines, TF domains,
   observed + unparsed rows.
-- `src/forge_doctor/knowledge/capabilities/search.json` — **new**:
+- `src/forge_doctor_data/knowledge/capabilities/search.json` — **new**:
   VECTOR_SEARCH_KNN per vendor (ES gated on `version >= 8.0`),
   LIFECYCLE_MANAGEMENT (ISM vs ILM), SERVERLESS_DEPLOYMENT,
   INGEST_PIPELINES.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — `_search`
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — `_search`
   adapter: `table:search:*` for indices/templates,
   `infrastructure_resource:search:*` for TF domains.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py` (`CONFIG | TERRAFORM | FILES`),
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md` (`search`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` (`CONFIG | TERRAFORM | FILES`),
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md` (`search`
   producer domain) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/search/prod-no-replicas/` (SRCH001–004 all fire),
@@ -94,7 +94,7 @@ decision (vendor named in messages).
 - Capability registry — pack loads clean; `VECTOR_SEARCH_KNN`
   evaluates SUPPORTED (opensearch / es 8.11), CONDITIONAL (es 7.17,
   absent version).
-- `forge-doctor search inspect labs/search/prod-no-replicas` renders
+- `forge-doctor-data search inspect labs/search/prod-no-replicas` renders
   templates, domains, encryption flags.
 - ruff format/check + mypy clean on touched files.
 

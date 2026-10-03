@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.lineage import build_lineage
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.lineage import build_lineage
 
 _SPARK_IMPORT = "from pyspark.sql import SparkSession\n\n"
 

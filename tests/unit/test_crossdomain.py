@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.checks.platform_rules import CHECKS, RULES, _PlatCheck
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.crossdomain import rule_context
-from forge_doctor.core.models import EvidenceKind, Severity
+from forge_doctor_data.checks.platform_rules import CHECKS, RULES, _PlatCheck
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.crossdomain import rule_context
+from forge_doctor_data.core.models import EvidenceKind, Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

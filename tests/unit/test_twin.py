@@ -7,16 +7,16 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.models import CheckResult, ScanReport, Severity
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.models import CheckResult, ScanReport, Severity
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.twin import build_twin, twin_snapshot, validate_twin
+from forge_doctor_data.core.twin import build_twin, twin_snapshot, validate_twin
 
 runner = CliRunner()
 

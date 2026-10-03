@@ -5,8 +5,8 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_bench.py tests/unit/adversarial/test_bench.py -x -q
-  - python -m forge_doctor bench run --files 200
-  - python -m forge_doctor bench run --files 200 --budget <file>
+  - python -m forge_doctor_data bench run --files 200
+  - python -m forge_doctor_data bench run --files 200 --budget <file>
 ---
 
 # Roadmap-2 Phase 4 - Performance & Scale Benchmark
@@ -29,7 +29,7 @@ machine-portable budgets.
   `graph_ms_per_1k_files`, `cold_ms_per_1k_files` — violations become
   `budget_failures` and a non-zero exit, never crashes on missing
   denominators.
-- `forge-doctor bench run [path|--files N --seed S] [--budget f.json]
+- `forge-doctor-data bench run [path|--files N --seed S] [--budget f.json]
   [--json]`; synthetic corpora go to a temp dir, never the project.
 - Tests: determinism, seed sensitivity, one-parse-per-file, budget
   pass/fail paths, zero-denominator honesty.

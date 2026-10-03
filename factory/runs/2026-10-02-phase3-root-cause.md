@@ -36,7 +36,7 @@ agent: devin
     POSSIBLE at the 2-node floor.
 - Spark adapter: per-stage `task_count` metric and `duration_ms`
   (Submission→Completion Time) — the signals the promotion rules need.
-- `cli/rootcause.py` — `forge-doctor root-cause . [--runtime artifact ...]`
+- `cli/rootcause.py` — `forge-doctor-data root-cause . [--runtime artifact ...]`
   (`--json`).
 
 ## Evidence policy

@@ -19,7 +19,7 @@
   requirement), TF003 unbounded `>=` ( `~>` counts as bounded), TF020
   local module, TF021 unpinned registry module, TF022 mutable git ref
   (none/`ref=main|...`), TF130 local backend.
-- `forge-doctor terraform inspect` — Terraform version / Providers (+alias)
+- `forge-doctor-data terraform inspect` — Terraform version / Providers (+alias)
   / Resources by domain / Modules local-vs-remote / State backend /
   reference count / severity-sorted findings. Verified live on a fixture.
 - `knowledge/terraform/{language,providers}.json` — feature floors

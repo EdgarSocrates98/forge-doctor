@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from forge_doctor.core.scaffold import _package_name, scaffold
+from forge_doctor_data.core.scaffold import _package_name, scaffold
 
 
 def test_scaffold_creates_skeleton(tmp_path: Path):

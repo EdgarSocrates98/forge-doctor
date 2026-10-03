@@ -21,7 +21,7 @@ deterministic evidence engine; its outputs must be portable.
 - `core/schemas.py` extended to the full interop set: `evidence`,
   `finding` (single-result), `capability-report`, `platform-graph`,
   `remediation-plan`, `handoff-bundle` — all in `schema contracts`.
-- `forge-doctor export --format handoff` — a portable JSON bundle for
+- `forge-doctor-data export --format handoff` — a portable JSON bundle for
   downstream Forge tools: `{tool, schema_version, project, results,
   graph, capabilities, plans}` with stable keys; deterministic ordering.
 - `contracts verify <bundle>` — validates a handoff bundle file against

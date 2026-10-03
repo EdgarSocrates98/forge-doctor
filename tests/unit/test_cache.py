@@ -2,13 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.cache import ScanCache
+from forge_doctor_data.core.cache import ScanCache
 
 
 @pytest.fixture(autouse=True)
 def _isolated_cache_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Point the user cache at tmp so tests never touch the real one."""
-    monkeypatch.setenv("FORGE_DOCTOR_CACHE_DIR", str(tmp_path / ".user-cache"))
+    monkeypatch.setenv("FORGE_DOCTOR_DATA_CACHE_DIR", str(tmp_path / ".user-cache"))
 
 
 def test_cache_round_trip(tmp_path: Path):
@@ -68,16 +68,16 @@ def test_cache_disabled_noop(tmp_path: Path):
 
 def test_cache_lives_outside_target(tmp_path: Path):
     """Cache poisoning guard: storage is the user cache dir, not the repo."""
-    from forge_doctor.core.cache import cache_root
+    from forge_doctor_data.core.cache import cache_root
 
     cache = ScanCache(tmp_path)
     assert cache.path == cache_root() / cache.path.name
-    assert ".forge-doctor" not in cache.path.parts
+    assert ".forge-doctor-data" not in cache.path.parts
 
 
 def test_in_project_cache_not_trusted(tmp_path: Path):
-    """A .forge-doctor/cache file inside the target is ignored, not loaded."""
-    legacy = tmp_path / ".forge-doctor" / "cache"
+    """A .forge-doctor-data/cache file inside the target is ignored, not loaded."""
+    legacy = tmp_path / ".forge-doctor-data" / "cache"
     legacy.mkdir(parents=True)
     (legacy / "scan-cache.json").write_text(
         '{"format": 2, "files": {"a.py": {"sha": "x", "facts": {"imports": []}}}}',
@@ -91,8 +91,8 @@ def test_in_project_cache_not_trusted(tmp_path: Path):
 
 def test_dep_change_invalidates_dependent(tmp_path: Path):
     """reader.py changes -> job.py's cached facts/buckets recompute."""
-    from forge_doctor.analyzers.index import project_index
-    from forge_doctor.core.context import ProjectContext, ScanOptions
+    from forge_doctor_data.analyzers.index import project_index
+    from forge_doctor_data.core.context import ProjectContext, ScanOptions
 
     # Explicit opt-in: the test exercises the cache, so it must not depend
     # on the CI auto-off default (use_cache=None -> off when CI=true).
@@ -136,8 +136,8 @@ def test_dep_change_invalidates_dependent(tmp_path: Path):
 def test_transitive_dep_semantics_invalidate(tmp_path: Path):
     """source -> reader -> job: changing source's semantics invalidates job
     even though reader.py's content (and sha) is unchanged."""
-    from forge_doctor.analyzers.index import project_index
-    from forge_doctor.core.context import ProjectContext, ScanOptions
+    from forge_doctor_data.analyzers.index import project_index
+    from forge_doctor_data.core.context import ProjectContext, ScanOptions
 
     options = ScanOptions(use_cache=True)
     (tmp_path / "source.py").write_text(
@@ -176,8 +176,8 @@ def test_transitive_dep_semantics_invalidate(tmp_path: Path):
 
 def test_dep_cosmetic_change_keeps_dependent_cached(tmp_path: Path):
     """Dep edit that doesn't move its export signature -> dependents still cached."""
-    from forge_doctor.analyzers.index import project_index
-    from forge_doctor.core.context import ProjectContext, ScanOptions
+    from forge_doctor_data.analyzers.index import project_index
+    from forge_doctor_data.core.context import ProjectContext, ScanOptions
 
     options = ScanOptions(use_cache=True)
     (tmp_path / "reader.py").write_text(
@@ -203,8 +203,8 @@ def test_dep_cosmetic_change_keeps_dependent_cached(tmp_path: Path):
 
 
 def test_ci_disables_cache_by_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    from forge_doctor.core.cache import scan_cache
-    from forge_doctor.core.context import ProjectContext, ScanOptions
+    from forge_doctor_data.core.cache import scan_cache
+    from forge_doctor_data.core.context import ProjectContext, ScanOptions
 
     monkeypatch.setenv("CI", "true")
     ctx = ProjectContext(root=tmp_path)  # use_cache unset

@@ -13,14 +13,14 @@ on. Validation reports; it never mutates.
 
 ## Files changed
 
-- `src/forge_doctor/core/twin.py` — **new**: `TwinViolation`,
+- `src/forge_doctor_data/core/twin.py` — **new**: `TwinViolation`,
   `AttrGap`, `TwinReport`, `validate_twin` (invariants I1–I5 +
   ontology producer-domain conformance folded in), `build_twin`,
   `twin_snapshot`.
-- `src/forge_doctor/cli/twin.py` — **new**: `twin inspect <path>`
+- `src/forge_doctor_data/cli/twin.py` — **new**: `twin inspect <path>`
   (text/json, exit 1 on hard violations) + `twin export <path>`
   (deterministic snapshot; stdout or `-o`).
-- `src/forge_doctor/cli/__init__.py` — module + panel registration
+- `src/forge_doctor_data/cli/__init__.py` — module + panel registration
   (Estate & change).
 - `tests/unit/test_twin.py` — **new**, 12 tests.
 - `README.md`, `CHANGELOG.md` — entries.

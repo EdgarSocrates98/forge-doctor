@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.core.context import ProjectContext
 
 
 @pytest.fixture

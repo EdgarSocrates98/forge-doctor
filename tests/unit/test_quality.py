@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.analyzers.quality_model import quality_model
-from forge_doctor.analyzers.sql_ast import SQLGLOT_AVAILABLE
-from forge_doctor.checks.quality import CHECKS
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.quality_model import quality_model
+from forge_doctor_data.analyzers.sql_ast import SQLGLOT_AVAILABLE
+from forge_doctor_data.checks.quality import CHECKS
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
 
 runner = CliRunner()
 needs_sqlglot = pytest.mark.skipif(not SQLGLOT_AVAILABLE, reason="sqlglot not installed")

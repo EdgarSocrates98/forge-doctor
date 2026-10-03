@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.capabilities import CapabilityStatus
-from forge_doctor.core.change_intel import (
+from forge_doctor_data.core.capabilities import CapabilityStatus
+from forge_doctor_data.core.change_intel import (
     analyze_change,
     capability_diff,
     migration_requirements,
     version_moves,
 )
-from forge_doctor.core.platform_graph import DataPlatformGraph, Entity, EntityKind
+from forge_doctor_data.core.platform_graph import DataPlatformGraph, Entity, EntityKind
 
 
 def _e(kind: EntityKind, domain: str, ident: str, file: str = "", **attrs: str) -> Entity:

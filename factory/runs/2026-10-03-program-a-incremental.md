@@ -16,28 +16,28 @@ work — the dependency index here is check→domain, not fact→entity.
 
 ## Files changed
 
-- `src/forge_doctor/core/incremental.py` — **new** (~400 lines):
+- `src/forge_doctor_data/core/incremental.py` — **new** (~400 lines):
   `EvidenceDomain` vocabulary (`FILES`, `PROJECT`, `ENV`, `GIT`, `HOST`,
   `PYTHON`, `RUNTIME`, `SQL`, `GRAPH`, `UNBOUNDED`, + one per analyzers
   module), `MODULE_DOMAINS` declared map covering every
-  `forge_doctor.checks.*` module, `classify_path`, `file_states`/
+  `forge_doctor_data.checks.*` module, `classify_path`, `file_states`/
   `detect_changes` (mtime+size), `IncrementalPlan` (rerun/reuse),
   `ResultStore` (versioned per-check results in the user cache dir),
   `result_to_stored`/`result_from_dict` symmetric round-trip.
-- `src/forge_doctor/plugins/protocol.py` — `CheckBase.evidence_domains`
+- `src/forge_doctor_data/plugins/protocol.py` — `CheckBase.evidence_domains`
   optional class attr (plugins can declare domains; `None` → module
   map → conservative `UNBOUNDED`).
-- `src/forge_doctor/core/runner.py` — `CheckRunner.run_incremental()`:
+- `src/forge_doctor_data/core/runner.py` — `CheckRunner.run_incremental()`:
   plans over selected checks, executes rerun set through the normal
   path, merges cached prior results (fingerprint-stable), records
   `runner.last_plan`/`runner.reused` for stats.
-- `src/forge_doctor/core/service.py` — `ScanRequest.incremental`;
+- `src/forge_doctor_data/core/service.py` — `ScanRequest.incremental`;
   service loads `ResultStore` when incremental or cache enabled,
   routes to `run_incremental`, saves fresh states+results post-scan.
-- `src/forge_doctor/cli/common.py` — `IncrementalOpt`, threading
+- `src/forge_doctor_data/cli/common.py` — `IncrementalOpt`, threading
   through `_ScanCli`/`_run_scan`, watch-loop incremental stats line
   (`incremental: N file(s) changed, X checks rerun, Y reused`).
-- `src/forge_doctor/cli/scan.py` — `--incremental` on `scan`.
+- `src/forge_doctor_data/cli/scan.py` — `--incremental` on `scan`.
 - `tests/unit/test_incremental.py` — **new**, 31 tests: domain
   coverage over all built-in check modules, path classification,
   change detection, plan rerun/reuse partitioning, store round-trip +
@@ -57,7 +57,7 @@ work — the dependency index here is check→domain, not fact→entity.
 - **Host reads stay behind `ProjectContext`** (hermetic boundary
   preserved): incremental adds no new ambient reads.
 - Store lives beside the existing AST/facts cache dir
-  (`FORGE_DOCTOR_CACHE_DIR` override honored); schema-versioned.
+  (`FORGE_DOCTOR_DATA_CACHE_DIR` override honored); schema-versioned.
 
 ## Tests / gates
 
@@ -68,7 +68,7 @@ work — the dependency index here is check→domain, not fact→entity.
 
 ## Dogfood
 
-`forge-doctor scan --incremental --cache --stats` on this repo:
+`forge-doctor-data scan --incremental --cache --stats` on this repo:
 cold run populates store; warm run reports
 `incremental: 0 file(s) changed, 31 checks rerun, 97 reused` —
 97 checks served from prior results, only always-run/unbounded rerun.

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.platform_graph import RelKind
-from forge_doctor.core.workspace import build_workspace_model, discover_repos
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.platform_graph import RelKind
+from forge_doctor_data.core.workspace import build_workspace_model, discover_repos
 
 _TF_JOB = """
 resource "aws_glue_job" "orders" {

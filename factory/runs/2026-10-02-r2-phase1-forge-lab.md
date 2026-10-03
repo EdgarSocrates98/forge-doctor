@@ -52,7 +52,7 @@ pack entries gate on attributes; expected status splits at the last
 
 - `pytest tests/unit/test_lab.py tests/unit/adversarial/test_lab.py` →
   21 passed
-- `forge_doctor lab run` → 10/10 scenarios pass (text + JSON verified)
+- `forge_doctor_data lab run` → 10/10 scenarios pass (text + JSON verified)
 - `pytest -q` → 1217 passed, 0 failed
 - `mypy src` → clean (143 files); `ruff check` + `ruff format` clean
 

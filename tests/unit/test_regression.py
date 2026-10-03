@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.execution_history import (
+from forge_doctor_data.core.execution_history import (
     SubjectKind,
     build_series,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )
-from forge_doctor.core.performance import RegressionClass
-from forge_doctor.core.regression import (
+from forge_doctor_data.core.performance import RegressionClass
+from forge_doctor_data.core.regression import (
     PersistenceClass,
     RegressionConfidence,
     RegressionDimension,

@@ -8,15 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from forge_doctor.checks.aws import (
+from forge_doctor_data.checks.aws import (
     CHECKS,
     AwsCli,
     AwsCredentials,
     AwsProfile,
     AwsRegion,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import CheckResult, Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import CheckResult, Severity
 
 SECRET = "AKIAFAKESECRET123"
 

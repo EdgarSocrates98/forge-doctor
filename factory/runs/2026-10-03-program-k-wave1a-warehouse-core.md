@@ -12,29 +12,29 @@ second (explicit roadmap constraint).
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/warehouse_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/warehouse_model.py` — **new**:
   `WarehouseProjectModel` (platforms, compute, namespaces, tables,
   views, queries, workload_management/security/sharing/costs surfaces).
   Terraform resource-kind normalization (`snowflake_*`,
   `google_bigquery_*`, `aws_redshift*`) + sqlglot DDL (`CREATE
   TABLE/VIEW/SCHEMA/DATABASE`, external/materialized variants).
   Empty model on non-warehouse projects — no false positives.
-- `src/forge_doctor/core/platform_graph.py` — new `EntityKind`
+- `src/forge_doctor_data/core/platform_graph.py` — new `EntityKind`
   (`warehouse`, `warehouse_compute`, `view`, `schema`) + `RelKind`
   (`CONTAINS`, `READS_FROM`, `WRITES_TO`).
-- `src/forge_doctor/core/ontology.py` + `docs/ontology.md` — term
+- `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md` — term
   definitions + `warehouse` producer domain (doc-sync test enforced).
-- `src/forge_doctor/analyzers/platform_graph_builder.py` —
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` —
   `_warehouse` adapter: warehouse→compute/namespace `CONTAINS`,
   schema→table `CONTAINS` (dotted names nest), view/query
   `READS_FROM`/`WRITES_TO` to matched tables. Impact policy: CONTAINS
   outbound-only, READS_FROM inbound-only, WRITES_TO both (like WRITES).
-- `src/forge_doctor/knowledge/capabilities/warehouse.json` — **new**
+- `src/forge_doctor_data/knowledge/capabilities/warehouse.json` — **new**
   pack: `SQL_QUERY` supported (definitional); `MATERIALIZED_VIEWS`,
   `TIME_TRAVEL`, `RESULT_CACHE`, `SHARING` honestly `unknown` pending
   vendor packs.
-- `src/forge_doctor/checks/warehouse.py` — **new**: WARE001/010/020/030.
-- `src/forge_doctor/checks/__init__.py`, `core/incremental.py`
+- `src/forge_doctor_data/checks/warehouse.py` — **new**: WARE001/010/020/030.
+- `src/forge_doctor_data/checks/__init__.py`, `core/incremental.py`
   (`warehouse: {TERRAFORM, SQL}`), `docs/checks.md`, `README`.
 - `labs/warehouse/redshift-cluster/` — **new** scenario + ground truth.
 - `tests/unit/test_warehouse.py` — **new**, 12 tests.

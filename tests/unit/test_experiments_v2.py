@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionScan,
     ExecutionStage,
     ExecutionStatus,
@@ -10,7 +10,7 @@ from forge_doctor.core.execution_model import (
     StageKind,
     derive_metrics,
 )
-from forge_doctor.core.experiments_v2 import (
+from forge_doctor_data.core.experiments_v2 import (
     WORKLOAD_KINDS,
     ExperimentPlanV2,
     ExperimentVerdict,

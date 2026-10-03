@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor.analyzers.neptune_explain import analyze_explain
-from forge_doctor.analyzers.neptune_queries import (
+from forge_doctor_data.analyzers.neptune_explain import analyze_explain
+from forge_doctor_data.analyzers.neptune_queries import (
     GremlinAnalyzer,
     OpenCypherAnalyzer,
     SPARQLAnalyzer,
     neptune_queries,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import EvidenceKind
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import EvidenceKind
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:

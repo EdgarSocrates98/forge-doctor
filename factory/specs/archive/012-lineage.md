@@ -1,6 +1,6 @@
 ---
 id: 012-lineage
-title: Static lineage — forge-doctor lineage
+title: Static lineage — forge-doctor-data lineage
 agent: devin
 risk: high
 grill: completed

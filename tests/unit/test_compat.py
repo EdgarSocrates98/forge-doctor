@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.compat import detect_environment, migration_risks
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.core.compat import detect_environment, migration_risks
+from forge_doctor_data.core.context import ProjectContext
 
 
 def test_detect_requires_python_and_pyspark(tmp_path: Path):

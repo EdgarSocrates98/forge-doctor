@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.fleet import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.fleet import (
     FleetManifestError,
     build_fleet_model,
     load_manifest,

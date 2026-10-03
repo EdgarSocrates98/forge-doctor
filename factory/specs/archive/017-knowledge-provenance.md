@@ -10,5 +10,5 @@ verification:
 
 # Acceptance Criteria
 - packs gain schema_version 2, pack_version, verified_at, sources[]
-- `forge-doctor knowledge list|info DOMAIN|verify` (verify = structure + staleness >90d warning)
+- `forge-doctor-data knowledge list|info DOMAIN|verify` (verify = structure + staleness >90d warning)
 - backward-compatible loaders for v1 packs

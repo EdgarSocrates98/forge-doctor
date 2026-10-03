@@ -31,7 +31,7 @@ canonical vocabulary every adapter, contract, and doc derives from.
   `RelKind` continue to be the runtime enums; the ontology module is
   the documented registry they conform to (no duplication of meaning —
   ontology validates/annotates, enums execute).
-- `forge-doctor ontology` — prints the vocabulary deterministically
+- `forge-doctor-data ontology` — prints the vocabulary deterministically
   (kinds, rels, planes, domains, families with definitions);
   `--format json` emits the same as a stable, documented shape.
 - Ontology conformance: a check (run inside `scan` or via

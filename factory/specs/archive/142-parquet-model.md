@@ -31,7 +31,7 @@ evidence (writers/readers/configs/options) plus on-disk `*.parquet` files
   config across files (INFO), PARQ040 dataset median file size below pack
   threshold (INFO), PARQ041 file count above pack threshold (INFO),
   PARQ042 size distribution skew (p95/median ratio over pack ratio, INFO).
-- `cli/parquet.py`: `forge-doctor parquet inspect [path]` - writers/
+- `cli/parquet.py`: `forge-doctor-data parquet inspect [path]` - writers/
   readers/compression/dataset stats/risks (reviewer's output shape).
 - `knowledge/parquet/format.json` - codecs list, thresholds
   (small_file_median_mb, excessive_files, size_skew_ratio), schema 2

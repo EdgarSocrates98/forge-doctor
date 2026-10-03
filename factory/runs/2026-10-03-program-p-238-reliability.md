@@ -12,7 +12,7 @@ REL001–REL010.
 
 ## Files changed
 
-- `src/forge_doctor/core/reliability.py` — **new**:
+- `src/forge_doctor_data/core/reliability.py` — **new**:
   `EvidenceState` (declared/observed/absent/unknown), `Mechanism`,
   `ReliabilityModel` (13 mechanisms incl. delivery),
   `extract_reliability`/`observe_reliability` (runtime upgrades only
@@ -24,9 +24,9 @@ REL001–REL010.
   (at_most/at_least/effectively/exactly_once_claimed/unknown — full
   path required for claimed), `rel_findings` REL001–010,
   `engine_delivery_notes` (pack accessor).
-- `src/forge_doctor/knowledge/reliability/engines.json` — **new**:
+- `src/forge_doctor_data/knowledge/reliability/engines.json` — **new**:
   delivery/checkpoint/dedup/dlq semantics per engine.
-- `src/forge_doctor/cli/runtime.py` — `runtime reliability <root>`
+- `src/forge_doctor_data/cli/runtime.py` — `runtime reliability <root>`
   command (optional `--artifact` for runtime upgrades).
 - `docs/checks.md` — REL### documented as runtime-scoped findings.
 - `tests/unit/test_reliability.py` — **new**, 15 tests.

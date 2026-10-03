@@ -5,7 +5,7 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_api.py tests/unit/test_docs.py -x -q
-  - python -m forge_doctor schema contracts scan-report
+  - python -m forge_doctor_data schema contracts scan-report
 ---
 
 # Roadmap-2 Phase 10 - v1.0 Release Hardening
@@ -24,7 +24,7 @@ the release decision needs a written pre-flight checklist.
   renderer output against the published schema.
 - `golden-snapshot` schema describes the real snapshot files
   (row arrays + graph object) — verified against committed fixtures.
-- `forge_doctor.api` exposes `SCAN_SCHEMA_VERSION` (scan contract,
+- `forge_doctor_data.api` exposes `SCAN_SCHEMA_VERSION` (scan contract,
   `"3.0"`) beside `SCHEMA_VERSION` (artifact family, `"1.0"`); docs and
   docstrings state the two-contract model accurately.
 - CI smoke asserts the contract shape and exercises

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.diagnosis import (
+from forge_doctor_data.core.diagnosis import (
     PromotionLevel,
     cluster_findings,
     promote_findings,
 )
-from forge_doctor.core.models import CheckResult, Confidence, Severity
-from forge_doctor.core.runtime_evidence import (
+from forge_doctor_data.core.models import CheckResult, Confidence, Severity
+from forge_doctor_data.core.runtime_evidence import (
     ExecutionMetric,
     ExecutionThroughput,
     ExecutionTiming,
@@ -141,7 +141,7 @@ def test_no_backlog_no_promotion() -> None:
 def test_domain_errors_possible_only() -> None:
     f = _finding("SPARK001", "collect() to driver")
     m = _spark_log()
-    from forge_doctor.core.runtime_evidence import ExecutionError
+    from forge_doctor_data.core.runtime_evidence import ExecutionError
 
     m.errors.append(ExecutionError(code="JobFailed", message="job 0 failed"))
     promos = promote_findings([f], [m])

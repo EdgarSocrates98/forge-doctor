@@ -1,7 +1,7 @@
 # Checks
 
 Every rule has a stable id (`--ignore <ID>`), a severity, and an honest
-"when it is OK" — Forge Doctor educates, it doesn't just complain.
+"when it is OK" — Forge Doctor Data educates, it doesn't just complain.
 
 ## Evidence kinds
 
@@ -229,7 +229,7 @@ Anchor: files importing `awsglue` or calling `client("glue")`.
 bundled Glue knowledge pack: EOL runtimes warn, aging ones inform.
 The pack currently tracks up to Glue 6.0 (Spark 4.1.1, Python 3.13,
 Java 17, Iceberg 1.11.0).
-**Fix:** migrate to a supported runtime — `forge-doctor compatibility`
+**Fix:** migrate to a supported runtime — `forge-doctor-data compatibility`
 shows the per-version risk matrix.
 
 ### GLUE003 — Job parameters · pass/info
@@ -364,7 +364,7 @@ single-partition write trap (static heuristic).
 deletion-vector/row-lineage properties below their format floor. Driven by
 `knowledge/iceberg/spec.json`.
 
-`forge-doctor iceberg inspect|maintenance|compatibility|merge|files`
+`forge-doctor-data iceberg inspect|maintenance|compatibility|merge|files`
 summarizes the same model without running a full scan.
 
 ## Control-M (ControlMModel — Automation API defs + ctm/API references)
@@ -406,7 +406,7 @@ Credential-shaped property (`*password*`, `*token*`, `*secret*`, ...) holds
 a literal value — the property NAME is reported, never the value.
 `%%VAR%%`/`${...}` references don't count.
 
-`forge-doctor controlm inspect` summarizes the same model without a scan.
+`forge-doctor-data controlm inspect` summarizes the same model without a scan.
 
 ## Airflow (AirflowModel — index-flagged files, one AST pass each)
 
@@ -451,7 +451,7 @@ No `timeout`/`execution_timeout` — can wait forever on a stuck dependency.
 `airflow.providers.<x>` imported but `apache-airflow-providers-<x>` absent
 from pyproject dependencies (skipped without a pyproject).
 
-`forge-doctor airflow inspect` summarizes the same model without a scan.
+`forge-doctor-data airflow inspect` summarizes the same model without a scan.
 
 ## Terraform (TerraformProjectModel — `.tf` block scan on hcl_lite)
 
@@ -486,7 +486,7 @@ Registry-shaped source (`namespace/name/provider`) with no `version`.
 ### TF130 — Local backend · warning
 `backend "local"` — no state locking or sharing.
 
-`forge-doctor terraform inspect` summarizes the same model without a scan.
+`forge-doctor-data terraform inspect` summarizes the same model without a scan.
 
 ## Parquet (ParquetProjectModel — code evidence + on-disk file stats)
 
@@ -516,7 +516,7 @@ File count above the pack `excessive_files` threshold.
 p95/median ratio over the pack `size_skew_ratio` — skewed keys or mixed
 writer configs.
 
-`forge-doctor parquet inspect` summarizes the same model without a scan.
+`forge-doctor-data parquet inspect` summarizes the same model without a scan.
 
 ## Step Functions (StepFunctionsModel — ASL + IaC definitions)
 
@@ -546,7 +546,7 @@ A `.sync` or `.waitForTaskToken` integration with no `TimeoutSeconds`.
 `ProcessorConfig.Mode "DISTRIBUTED"` inside a `type = "EXPRESS"` machine —
 Distributed Map requires Standard.
 
-`forge-doctor stepfunctions inspect` summarizes the same model without a
+`forge-doctor-data stepfunctions inspect` summarizes the same model without a
 scan.
 
 ## Streaming (StreamingProjectModel — platform-agnostic queries)
@@ -581,7 +581,7 @@ Watermark-required stateful ops (pack `needs_watermark`) with no
 Arbitrary per-batch code — idempotency and `batch_id` usage need manual
 verification.
 
-`forge-doctor streaming inspect` summarizes the same model without a
+`forge-doctor-data streaming inspect` summarizes the same model without a
 scan.
 
 ## Graph (GraphProjectModel — query files, call sites, bulk-load headers)
@@ -650,10 +650,10 @@ Extension: ≥3 traversals project-wide start unselectively.
 Extension: property-graph and RDF evidence in the same project (INFO)
 or same file (WARNING) with no explicit boundary.
 
-`forge-doctor graph inspect`, `graph schema`, and `graph traversals`
+`forge-doctor-data graph inspect`, `graph schema`, and `graph traversals`
 summarize the model without a scan. The pre-existing project
-intelligence dump remains available as `forge-doctor graph <path>`
-(unchanged) and `forge-doctor graph project`.
+intelligence dump remains available as `forge-doctor-data graph <path>`
+(unchanged) and `forge-doctor-data graph project`.
 
 ## DynamoDB (DynamoDBProjectModel — IaC tables + boto3 call sites)
 
@@ -716,7 +716,7 @@ UNSUPPORTED.
 ### DDBGT005 — Region routing strategy unclear · info
 Global table with no visible region pinning in code or providers.
 
-`forge-doctor dynamodb inspect|access-patterns|indexes|streams|
+`forge-doctor-data dynamodb inspect|access-patterns|indexes|streams|
 global-tables|capacity` summarize the model without a scan.
 
 ## Neptune (NeptuneProjectModel — IaC + client code + query shapes)
@@ -803,11 +803,11 @@ Algorithm-style usage with no Analytics evidence.
 DynamoDB stream consumer (no idempotency signal) plus graph writes —
 replayed records may double-apply mutations.
 
-`forge-doctor neptune inspect|schema|queries|ingest|explain|compatibility`
+`forge-doctor-data neptune inspect|schema|queries|ingest|explain|compatibility`
 summarize the model; `neptune explain|analyze-explain <file>` reads an
 exported explain/profile artifact offline (STATIC / OBSERVED_METADATA /
 RUNTIME classification, large-intermediate / broad-start / late-filter
-flags). `forge-doctor data-model inspect` reports the access-style
+flags). `forge-doctor-data data-model inspect` reports the access-style
 breakdown (key lookups vs bounded queries vs scans vs multi-hop
 traversals) as facts only — no platform recommendation.
 
@@ -872,12 +872,12 @@ A DISTRIBUTED Map whose ItemProcessor invokes a Lambda function is
 configured with `MaxConcurrency` above the function's
 `reserved_concurrent_executions` — items throttle instead of running.
 
-`forge-doctor platform findings` renders only this category; the same
-checks also run inside `forge-doctor scan` under `category=platform`.
+`forge-doctor-data platform findings` renders only this category; the same
+checks also run inside `forge-doctor-data scan` under `category=platform`.
 
 ## Runtime evidence (offline artifacts)
 
-`forge-doctor runtime inspect <artifact>` normalizes a user-exported
+`forge-doctor-data runtime inspect <artifact>` normalizes a user-exported
 runtime artifact into `RuntimeEvidenceModel` facts — executions,
 metrics, errors, timings, throughput, lag, retries, resource usage —
 without any cloud access. Auto-detected adapters:
@@ -914,7 +914,7 @@ identifiers (ARN, job name, query id, execution id) — never fuzzy.
 
 ## Root cause
 
-`forge-doctor root-cause . [--runtime artifact.json ...]` correlates scan
+`forge-doctor-data root-cause . [--runtime artifact.json ...]` correlates scan
 findings with runtime evidence:
 
 - **Promotions** — a `FindingPromotion` lifts a finding when runtime facts
@@ -934,7 +934,7 @@ findings with runtime evidence:
 
 ## Remediation planning
 
-`forge-doctor remediate . [--root-cause <id>]` prints deterministic
+`forge-doctor-data remediate . [--root-cause <id>]` prints deterministic
 `RemediationPlan`s from `knowledge/remediation/` packs: ordered actions
 with rationale, expected effect, per-action validation and `depends_on`
 edges, plus prerequisites, risks, validation steps and rollback notes.
@@ -944,7 +944,7 @@ without a remediation mapping produce no plan.
 
 ## Safe fixes
 
-`forge-doctor fix .` turns findings into **safety-classified** fix
+`forge-doctor-data fix .` turns findings into **safety-classified** fix
 proposals (`core/fixes.py`): `safe` transforms are pure, bounded,
 idempotent text edits (e.g. declare `requires-python` in pyproject,
 append ignore patterns to `.gitignore`, create a default `.gitignore`);
@@ -963,8 +963,8 @@ An optional `platform-contract.yml` at the project root declares the
 *desired* architecture (versioned schema: `contract_version`,
 `pipelines` with compute/storage/orchestration/sla/semantics/ownership/
 capabilities, `datasets`, `governance.allowed_dependencies`).
-`forge-doctor contract validate <file>` checks structure and schema
-version; `forge-doctor architecture drift .` (or a plain `scan` when a
+`forge-doctor-data contract validate <file>` checks structure and schema
+version; `forge-doctor-data architecture drift .` (or a plain `scan` when a
 contract exists) compares it against declared (Terraform), implemented
 (code), and runtime (`--runtime` artifacts) planes:
 
@@ -984,7 +984,7 @@ produces drift — unknown stays unknown.
 
 ## Lake Formation
 
-`forge-doctor lakeformation` builds a `LakeFormationProjectModel` from
+`forge-doctor-data lakeformation` builds a `LakeFormationProjectModel` from
 Terraform (`aws_lakeformation_*`, `aws_glue_catalog_*`, `aws_ram_*`,
 IAM policies naming `lakeformation:`/`glue:` actions), CloudFormation
 (`AWS::LakeFormation::*`, `AWS::Glue::*`, `AWS::RAM::*`), and boto3
@@ -1015,7 +1015,7 @@ links become `DEPENDS_ON` edges to the producer catalog.
 The EMR, Databricks, and Delta Lake sections below all belong to the
 `platforms` check category.
 
-`forge-doctor emr` builds an `EmrProjectModel` from Terraform
+`forge-doctor-data emr` builds an `EmrProjectModel` from Terraform
 (`aws_emr_cluster`, `aws_emrserverless_application`,
 `aws_emrcontainers_virtual_cluster`, `aws_emr_step`,
 `aws_emr_managed_scaling_policy`), CloudFormation (`AWS::EMR::*`,
@@ -1036,7 +1036,7 @@ failure actions. Commands: `emr inspect`, `emr findings`.
 
 ## Databricks
 
-`forge-doctor databricks` builds a `DatabricksProjectModel` from the
+`forge-doctor-data databricks` builds a `DatabricksProjectModel` from the
 `databricks_*` Terraform provider (jobs, clusters, SQL warehouses,
 pipelines, Unity Catalog objects, workspaces), `databricks.yml` asset
 bundles, and Python sdk/dbutils/notebook evidence — DBR versions,
@@ -1053,7 +1053,7 @@ coverage. Commands: `databricks inspect`, `databricks findings`.
 
 ## Delta Lake
 
-`forge-doctor delta` builds a `DeltaProjectModel` from SQL
+`forge-doctor-data delta` builds a `DeltaProjectModel` from SQL
 (`USING DELTA`, `MERGE INTO`, `UPDATE`, `DELETE`, `OPTIMIZE`,
 `VACUUM`, `RESTORE`, `CLUSTER BY`, `TBLPROPERTIES`), Python
 `DeltaTable`/`spark.sql` call-sites, `.format("delta")` reads/writes,
@@ -1075,7 +1075,7 @@ Delta feature's protocol floor).
 
 ## Athena
 
-`forge-doctor athena` builds an `AthenaProjectModel` from Terraform
+`forge-doctor-data athena` builds an `AthenaProjectModel` from Terraform
 (`aws_athena_workgroup`, `aws_athena_data_catalog`,
 `aws_athena_database`, `aws_athena_named_query`,
 `aws_athena_prepared_statement`), CloudFormation (`AWS::Athena::*`),
@@ -1094,7 +1094,7 @@ bytes-scanned cutoffs, and query operations. Commands:
 
 ## Lambda
 
-`forge-doctor lambda` builds a `LambdaProjectModel` from Terraform
+`forge-doctor-data lambda` builds a `LambdaProjectModel` from Terraform
 (`aws_lambda_function`, `aws_lambda_event_source_mapping`,
 `aws_lambda_permission`, `aws_lambda_function_event_invoke_config`,
 `aws_lambda_provisioned_concurrency_config`, `aws_lambda_layer_version`,
@@ -1197,7 +1197,7 @@ Knowledge packs: `streaming/delivery`, `kafka/config`,
 
 ## What-if + migration planning
 
-`forge-doctor what-if --change target=value .` simulates a property
+`forge-doctor-data what-if --change target=value .` simulates a property
 change without executing anything. Known targets:
 `glue-version`, `iceberg-format-version`, `databricks-runtime`,
 `lambda-runtime`, `emr-release`. The evaluation reports:
@@ -1213,7 +1213,7 @@ change without executing anything. Known targets:
   would violate (pre-drifted ARCH002)
 - **unknowns** — dimensions the packs don't cover
 
-`forge-doctor migrate plan .` enumerates applicable named paths:
+`forge-doctor-data migrate plan .` enumerates applicable named paths:
 
 - `glue-4-to-5`, `iceberg-v1-to-v2`, `databricks-runtime-upgrade`,
   `parquet-to-delta`, `parquet-to-iceberg`, `streaming-modernize`,
@@ -1244,7 +1244,7 @@ declared `expected.json` ground truth:
 }
 ```
 
-`forge-doctor lab run` executes the full engine per scenario and compares
+`forge-doctor-data lab run` executes the full engine per scenario and compares
 against truth — missed expectations and forbidden hits fail; detected
 but undeclared findings are reported as `extra` for FP analysis.
 Optional `runtime/` artifact dirs feed root-cause clustering, execution
@@ -1253,7 +1253,7 @@ exports) for signal and cost-driver ground truth, and the SLA /
 optimization-candidate categories. `lab list` / `lab report` / `--json`
 supported; exit code 1 on failure.
 
-`forge-doctor lab experiment` has two modes. With `--hypothesis`, a
+`forge-doctor-data lab experiment` has two modes. With `--hypothesis`, a
 named transform is applied to a scenario copy and findings are diffed.
 With `--before`/`--after`, two exported artifact bundles are compared on
 measured metrics; `--expect metric:op:value` declares expected effects
@@ -1262,7 +1262,7 @@ SUPPORTED, NOT_SUPPORTED, INCONCLUSIVE, CONSTRAINT_VIOLATED (protected
 constraints override benefits; unmeasured metrics are reported, never
 invented).
 
-`forge-doctor lab metrics` rolls the comparisons into quality numbers
+`forge-doctor-data lab metrics` rolls the comparisons into quality numbers
 per domain plus a TOTAL row:
 
 - **precision / recall / FPR** — FP candidates are undeclared
@@ -1284,9 +1284,9 @@ findings (with fingerprints), platform graph, root-cause clusters,
 remediation plans, migration plans — as sorted JSON snapshots.
 
 ```bash
-forge-doctor golden list            # corpus inventory
-forge-doctor golden run             # diff engine vs snapshots (CI gate)
-forge-doctor golden update          # regenerate — review diff, then commit
+forge-doctor-data golden list            # corpus inventory
+forge-doctor-data golden run             # diff engine vs snapshots (CI gate)
+forge-doctor-data golden update          # regenerate — review diff, then commit
 ```
 
 Any semantic regression surfaces as an add/remove diff per artifact.
@@ -1297,7 +1297,7 @@ evidence. Seed corpus: `airflow-glue-athena`, `databricks-delta`,
 
 ## Performance benchmark
 
-`forge-doctor bench run` measures the engine on a project — or a
+`forge-doctor-data bench run` measures the engine on a project — or a
 deterministic synthetic corpus (`--files N --seed S`):
 
 ```text
@@ -1317,7 +1317,7 @@ Budgets (`--budget b.json`) are portable ratios/counts, not wall clocks:
 
 ## Workspace intelligence
 
-`forge-doctor workspace inspect` merges per-repo platform graphs into a
+`forge-doctor-data workspace inspect` merges per-repo platform graphs into a
 `WorkspaceModel`: sibling sub-projects are discovered by marker files
 (`pyproject.toml`, `*.tf`, `databricks.yml`, `airflow.cfg`, `dags/`
 content — outermost marker dir wins), each repo's `DataPlatformGraph` is
@@ -1337,7 +1337,7 @@ Internal `task:*` targets and same-repo invocations are not links.
 
 ## Semantic diff
 
-`forge-doctor diff <base>...<head> --semantic` upgrades the findings
+`forge-doctor-data diff <base>...<head> --semantic` upgrades the findings
 diff into a PR-review report built on the platform graph:
 
 ```text
@@ -1367,8 +1367,8 @@ Terraform onto typed entities so a `4.0 → 5.0` bump registers as
 ### Organization policy packs
 
 Org rules are data, not code — drop `*.yml|*.yaml|*.json` files in
-`.forge-doctor/policy/` (or `policy.yml` / `org-policy.yml` at the
-root, or `[tool.forge-doctor] policy_packs = ["org.yml"]`):
+`.forge-doctor-data/policy/` (or `policy.yml` / `org-policy.yml` at the
+root, or `[tool.forge-doctor-data] policy_packs = ["org.yml"]`):
 
 ```yaml
 pack: org-security
@@ -1423,7 +1423,7 @@ packs, violations by rule, suppression audit), `policy validate <file>`.
 ### POLICY001 — Expired suppression · warning
 
 ### POLICY001 — Expired suppression · warning
-A `[[tool.forge-doctor.suppressions]]` entry past its `expires` date —
+A `[[tool.forge-doctor-data.suppressions]]` entry past its `expires` date —
 the underlying finding reactivates and this warning fires.
 
 ### POLICY002 — Unused suppression · info
@@ -1437,9 +1437,9 @@ invalid pack file — violations carry each rule's own id (`ORG###`).
 ### POLICY011 — Suppression lacks approval · warning
 A pack with `require_approval: true` was loaded and a configured
 suppression has no `approved_by`. Approvals live in
-`[[tool.forge-doctor.suppressions]]` — add `approved_by = "name"`.
+`[[tool.forge-doctor-data.suppressions]]` — add `approved_by = "name"`.
 
-See `forge-doctor suppressions` for the full audit.
+See `forge-doctor-data suppressions` for the full audit.
 
 ## Warehouse (vendor-neutral WarehouseProjectModel — Terraform + SQL evidence)
 
@@ -1477,7 +1477,7 @@ WAREHOUSE|STAGE|PIPE|STREAM|TASK`, `COPY INTO`, `CREATE [MATERIALIZED]
 VIEW`), Terraform `snowflake_*` resources (size, auto_suspend/resume,
 database, schema, stage, pipe, task, grants), and observed metadata
 exports (`SHOW`/`INFORMATION_SCHEMA` rows as JSON/CSV under
-`snowflake/`, `.forge-doctor/evidence/`, or `information_schema*`
+`snowflake/`, `.forge-doctor-data/evidence/`, or `information_schema*`
 names). A `.sql` file counts as Snowflake only when it carries a
 vendor-exclusive marker — non-Snowflake SQL never trips these rules.
 
@@ -1515,7 +1515,7 @@ MATERIALIZED VIEW|EXTERNAL TABLE|RESERVATION` with `PARTITION BY`,
 `google_biglake_*` resources (datasets, tables, reservations, capacity,
 dataset access/authorized views, connections), and observed
 `INFORMATION_SCHEMA` exports (tables, partitions, jobs-by-project) under
-`bigquery/` or `.forge-doctor/evidence/` (claimed only with a positive
+`bigquery/` or `.forge-doctor-data/evidence/` (claimed only with a positive
 BigQuery field signal — generic shared-dir rows stay unclaimed). A
 `.sql` file counts as BigQuery only when it carries a vendor-exclusive
 marker — `CLUSTER BY` alone is shared with Snowflake and does not
@@ -1561,7 +1561,7 @@ DISTSTYLE|DISTKEY|SORTKEY|ENCODE`, `CREATE EXTERNAL SCHEMA|TABLE`
 TO`, `IAM_ROLE`), Terraform `aws_redshift*` resources (clusters,
 serverless workgroups/namespaces, parameter/subnet groups, datashares),
 and observed `SVV_*`/`STL_*`/`STV_*` exports under `redshift/` or
-`.forge-doctor/evidence/` (claimed only with a positive Redshift field
+`.forge-doctor-data/evidence/` (claimed only with a positive Redshift field
 signal). `VACUUM`/`ANALYZE` alone are not markers — Postgres shares
 them, and the adversarial lab pins that. Findings grounded in STL/SVV
 exports carry `evidence_kind=observed_metadata`.
@@ -1686,7 +1686,7 @@ catalog, `connector.name=` is the attribution marker), `config.properties`
 (coordinator/worker flags, memory limits, spill keys,
 `resource-groups.config-file`), `node.properties`, `jvm.config`, plus
 authored SQL using `catalog.schema.table` three-part names and optional
-observed cluster exports (JSON under `trino/` or `.forge-doctor/evidence/`
+observed cluster exports (JSON under `trino/` or `.forge-doctor-data/evidence/`
 with `coordinator`/`nodeVersion`/`environment` fields). `.properties`
 parsing is a deterministic `key=value` + comments subset — no JVM. Plain
 `.properties` files and three-part SQL alone never attribute to Trino.
@@ -1733,7 +1733,7 @@ schema JSON (`schemaName` + `dimensionFieldSpecs`/`metricFieldSpecs`);
 Druid evidence is ingestion-spec JSON (`ingestionSpec`/`spec` +
 `dataSchema` + `ioConfig`). Observed metadata comes only from exported
 artifacts under `clickhouse/`/`pinot/`/`druid/` or
-`.forge-doctor/evidence/` with positive field signals. StarRocks/Doris
+`.forge-doctor-data/evidence/` with positive field signals. StarRocks/Doris
 deferred per spec — the model assumes no closed membership.
 
 ### CH000 — ClickHouse surface · info
@@ -1809,7 +1809,7 @@ elasticsearch) keys. Terraform `aws_opensearch_domain`/
 `aws_elasticsearch_domain`/`elasticsearch_domain`/`opensearch_domain`/
 `aws_opensearchserverless_collection`/`aws_elasticsearch_cluster` are
 domain surfaces. Observed cluster exports only under
-`opensearch/`/`elastic*/`/`.forge-doctor/evidence/` with cluster field
+`opensearch/`/`elastic*/`/`.forge-doctor-data/evidence/` with cluster field
 signals.
 
 ### SRCH000 — Search surface · pass/info
@@ -2025,7 +2025,7 @@ null-position defaults disagree.
 
 
 MIGR findings are not project-scan checks; they're emitted by
-`forge-doctor migrate plan --from <platform> --to <platform>` and
+`forge-doctor-data migrate plan --from <platform> --to <platform>` and
 `what-if --change platform=<target>` on the abstraction layer. The plan
 maps detected services through the spec-223 abstractions onto the
 target ecosystem, diffs the capability packs (lost / gained /
@@ -2049,7 +2049,7 @@ A consumer entity reads migrated assets but has no target link.
 ## Runtime performance (runtime-scoped — PERF###, PHY###)
 
 PERF/PHY findings are not project-scan checks; they are emitted by
-`forge-doctor runtime performance` over exported execution artifacts
+`forge-doctor-data runtime performance` over exported execution artifacts
 (`runtime executions` input) plus declared physical designs on the
 platform graph. Thresholds come from `knowledge/performance/` packs or
 explicit policy config — without a bound, a signal stays an
@@ -2094,7 +2094,7 @@ Same subject materialized in 4+ physical designs.
 
 ## Cost drivers (runtime-scoped — COST###)
 
-COST findings are emitted by `forge-doctor runtime cost` over exported
+COST findings are emitted by `forge-doctor-data runtime cost` over exported
 execution artifacts plus (with `--root`) entity evidence from the
 platform graph. They report technical driver units — bytes, slot-ms,
 credits, executor-ms — never prices; no monetary claim is made without
@@ -2118,7 +2118,7 @@ Avg bytes/file below the bound; requires an exported file count.
 
 ## Reliability & SLA (runtime-scoped — REL###)
 
-REL findings are emitted by `forge-doctor runtime reliability <root>`
+REL findings are emitted by `forge-doctor-data runtime reliability <root>`
 over declared config attrs plus optional runtime artifacts. Delivery
 semantics are composed per subject — exactly-once is never asserted
 without full-path evidence (retries + idempotency + dedup +

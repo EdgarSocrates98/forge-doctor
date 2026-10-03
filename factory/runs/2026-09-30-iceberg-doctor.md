@@ -1,7 +1,7 @@
 # Run: 2026-09-30 — Iceberg Doctor (spec 113, "0.8 Iceberg Intelligence")
 
 Driver: `prompt_fase2.md` — reviewer greenlit the Iceberg milestone:
-`IcebergProjectModel` + `forge-doctor iceberg` command group + compat packs.
+`IcebergProjectModel` + `forge-doctor-data iceberg` command group + compat packs.
 Spec 113 rewritten in place to match the fuller vision (the original thin
 ICE### spec was superseded before implementation).
 

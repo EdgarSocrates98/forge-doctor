@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.critical_path import (
+from forge_doctor_data.core.critical_path import (
     SLOCheckId,
     critical_paths,
     slo_budgets,
     slo_findings,
 )
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.reliability import ObjectiveMetric, ServiceObjective
+from forge_doctor_data.core.reliability import ObjectiveMetric, ServiceObjective
 
 
 def _ent(

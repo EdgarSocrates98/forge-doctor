@@ -25,11 +25,11 @@ approval semantics, compliance reporting, per-branch baselines.
   APPROVED/UNAPPROVED columns; policy pack can require approval
   (`require_approval = true`) making unapproved suppressions emit
   findings.
-- `forge-doctor policy report` — compliance report: packs evaluated,
+- `forge-doctor-data policy report` — compliance report: packs evaluated,
   violations by rule, suppression audit status, drift summary. text +
   JSON output.
 - Per-branch baselines: `--baseline` resolves
-  `.forge-doctor/baselines/<branch>.json` when given a name instead of a
+  `.forge-doctor-data/baselines/<branch>.json` when given a name instead of a
   path (`--baseline main`), so CI gates per branch/environment.
 - Evidence export: `scan --evidence-out <dir>` writes a dated evidence
   bundle (report + suppressions audit + packs used) for retention.

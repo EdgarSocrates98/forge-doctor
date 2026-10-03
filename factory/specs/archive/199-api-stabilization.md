@@ -5,8 +5,8 @@ agent: claude
 risk: low
 verification:
   - python -m pytest tests/unit/test_api.py -x -q
-  - python -m forge_doctor schema contracts
-  - python -c "import forge_doctor.api as fd; print(fd.SCHEMA_VERSION)"
+  - python -m forge_doctor_data schema contracts
+  - python -c "import forge_doctor_data.api as fd; print(fd.SCHEMA_VERSION)"
 ---
 
 # Roadmap-2 Phase 8 - Public API/SDK Stabilization
@@ -19,7 +19,7 @@ JSON outputs carry ad-hoc `schema_version` literals.
 
 ## Acceptance Criteria
 
-- `forge_doctor/api.py` — `__all__` is the semver-tracked public
+- `forge_doctor_data/api.py` — `__all__` is the semver-tracked public
   surface: `scan`, `platform_graph`, `capabilities_evaluate`,
   `what_if`, `migrate_plans`, `version`, `SCHEMA_VERSION`, plus the
   re-exported types `ScanReport`, `ScanOptions`, `DataPlatformGraph`.

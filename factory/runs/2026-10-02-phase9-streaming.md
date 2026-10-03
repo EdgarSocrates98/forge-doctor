@@ -72,7 +72,7 @@
 - `pytest -q` → 1172 passed, 0 failed
 - `mypy src` → clean (138 files)
 - `ruff check src tests` + `ruff format` → clean
-- `forge_doctor knowledge verify` → all packs ok (74)
+- `forge_doctor_data knowledge verify` → all packs ok (74)
 - CLI smoke: `kafka|kinesis|flink inspect`, `streaming diagnose`,
   `streaming semantics`, `platform graph` on a multi-bus fixture —
   entities converge (`stream:kafka:orders` from TF + SS), EFO→stream

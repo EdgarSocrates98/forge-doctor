@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.neptune_model import neptune_model
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.neptune_model import neptune_model
+from forge_doctor_data.core.context import ProjectContext
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -94,7 +94,7 @@ def test_dynamic_query_unresolved(tmp_path: Path) -> None:
 
 
 def test_malformed_query_surfaces_unparsed(tmp_path: Path) -> None:
-    from forge_doctor.analyzers.neptune_queries import neptune_queries
+    from forge_doctor_data.analyzers.neptune_queries import neptune_queries
 
     ctx = make_context(tmp_path, {"bad.cypher": "TOTALLY NOT CYPHER {{{\n"})
     assert neptune_queries(ctx).unparsed

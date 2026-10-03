@@ -14,7 +14,7 @@ jobs-history runtime adapter.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/bigquery_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/bigquery_model.py` — **new**:
   `BigQueryProjectModel` (datasets, tables w/ partition/cluster attrs,
   views + materialized views, reservations/capacity/assignments/BI
   Engine, connections, routines, jobs, transfers, dataset access /
@@ -22,31 +22,31 @@ jobs-history runtime adapter.
   (`command`/`create` kinds — OPTIONS/PARTITION BY DDL arrives as
   `Command` under the project's spark/generic parse), Terraform blocks
   (nested `time_partitioning`/`clustering`/`access.view` mined from the
-  block body), and `bigquery/` / `.forge-doctor/evidence/` /
+  block body), and `bigquery/` / `.forge-doctor-data/evidence/` /
   `information_schema*`/`jobs*` exports.
-- `src/forge_doctor/analyzers/warehouse_model.py` — `_from_bigquery`
+- `src/forge_doctor_data/analyzers/warehouse_model.py` — `_from_bigquery`
   merge: datasets→schemas, tables (partition attrs preserved), views,
   reservations/capacity→workload_management, queries, observed tables.
-- `src/forge_doctor/analyzers/runtime_evidence.py` —
+- `src/forge_doctor_data/analyzers/runtime_evidence.py` —
   `BigQueryJobsAdapter`: `INFORMATION_SCHEMA.JOBS` exports →
   `RuntimeEvidenceModel` (executions + bytes_processed/bytes_billed/
   slot_ms metrics + error_result).
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — BigQuery
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — BigQuery
   vendor objects emitted (reservation/capacity→warehouse_compute,
   connection→infrastructure_resource, routine→compute_job, job→query,
   transfer→task, dataset_access→principal, data_exchange/listing/
   biglake→catalog/database).
-- `src/forge_doctor/checks/bigquery.py` — **new**: BQ000 census anchor,
+- `src/forge_doctor_data/checks/bigquery.py` — **new**: BQ000 census anchor,
   BQ001 large unpartitioned observed table, BQ002 partitioned table
   queried without partition filter (authored=warning, observed
   jobs=error per spec default), BQ003 `SELECT *` cost risk, BQ004
   public access / undocumented authorized view, BQ005 materialized view
   over mutable base without `max_staleness`.
-- `src/forge_doctor/cli/bigquery.py` — **new**: `bigquery inspect`.
-- `src/forge_doctor/knowledge/capabilities/bigquery.json` — **new**
+- `src/forge_doctor_data/cli/bigquery.py` — **new**: `bigquery inspect`.
+- `src/forge_doctor_data/knowledge/capabilities/bigquery.json` — **new**
   pack: partitioning, clustering, BI Engine, slots/reservations, time
   travel, BigLake, DML quotas (conditional on workload type).
-- `src/forge_doctor/checks/__init__.py`, `cli/__init__.py`,
+- `src/forge_doctor_data/checks/__init__.py`, `cli/__init__.py`,
   `core/incremental.py` (`bigquery` domains), `docs/checks.md`,
   `README.md`.
 - `labs/bigquery/unpartitioned/` — positive (BQ001+BQ002+BQ003).
@@ -60,7 +60,7 @@ jobs-history runtime adapter.
   `CREATE RESERVATION|CAPACITY`, `WITH CONNECTION`, `NOT ENFORCED`,
   `biglake`. `CLUSTER BY` is deliberately *not* a marker — Snowflake
   uses it too; bare-cluster files stay honestly unclaimed.
-- **Shared evidence dirs need a field signal**: `.forge-doctor/
+- **Shared evidence dirs need a field signal**: `.forge-doctor-data/
   evidence/` rows claim for BigQuery only when fields intersect the BQ
   key set (`project_id`, `dataset_id`, `size_bytes`, `partition_id`,
   `total_bytes_*`, `job_id`, `statement_type`, `creation_time`, ...) —

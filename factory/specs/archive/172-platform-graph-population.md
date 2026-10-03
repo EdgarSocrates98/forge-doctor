@@ -28,9 +28,9 @@ Terraform resources → infrastructure_resource + DEFINES.
   `aws_sfn_state_machine` → the SFN machine it defines; Glue/EMR job
   names matching code entrypoints) — only deterministic joins, no fuzzy
   matching.
-- `cli/platform.py`: `forge-doctor platform graph .` — counts by
+- `cli/platform.py`: `forge-doctor-data platform graph .` — counts by
   entity/relationship kind; `--json` deterministic export;
-  `forge-doctor platform blast-radius <entity>` reachability listing.
+  `forge-doctor-data platform blast-radius <entity>` reachability listing.
 - Registration + docs + CHANGELOG.
 - Tests: adapters per domain, cross-domain join, CLI output, determinism.
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from forge_doctor.core.models import CheckResult, Severity
-from forge_doctor.integrations.lsp_server import (
+from forge_doctor_data.core.models import CheckResult, Severity
+from forge_doctor_data.integrations.lsp_server import (
     diagnostics_for_results,
     diagnostics_plan,
     finding_to_diagnostic,
@@ -25,7 +25,7 @@ def _finding(sev: Severity, line: int = 5, file: str | None = "job.py") -> Check
 
 def test_finding_to_diagnostic_shape():
     d = finding_to_diagnostic(_finding(Severity.ERROR))
-    assert d["source"] == "forge-doctor"
+    assert d["source"] == "forge-doctor-data"
     assert d["code"] == "SPARK001"
     assert d["severity"] == 1  # LSP Error
     assert d["range"]["start"] == {"line": 4, "character": 2}  # 0-based

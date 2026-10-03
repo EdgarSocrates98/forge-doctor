@@ -5,9 +5,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.contract import detect_drift, load_contract
-from forge_doctor.core.runtime_evidence import RuntimeEvidenceModel, RuntimeExecution
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.contract import detect_drift, load_contract
+from forge_doctor_data.core.runtime_evidence import RuntimeEvidenceModel, RuntimeExecution
 
 
 def _write(root: Path, rel: str, text: str) -> None:
@@ -40,7 +40,7 @@ def test_drift_without_contract_is_empty(tmp_path: Path) -> None:
     ctx = ProjectContext(root=tmp_path)
     assert ctx.contract is None
     # contract=None -> drift API is not invoked; guard the check anyway
-    from forge_doctor.checks.architecture import CHECKS
+    from forge_doctor_data.checks.architecture import CHECKS
 
     for chk in CHECKS:
         assert chk.run(ctx) == []

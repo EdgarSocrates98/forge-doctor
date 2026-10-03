@@ -19,7 +19,7 @@ Plus `knowledge/errors/controlm/` families consumed by `diagnose`.
 - SLA checks: CTM040 endpoint disconnected from chain, CTM042 critical
   service without SLA definition, CTM043 schedule makes SLA mathematically
   risky (window × dependency depth), CTM045 long chain without SLA.
-- `forge-doctor controlm sla <path>` — per-service critical path + risks
+- `forge-doctor-data controlm sla <path>` — per-service critical path + risks
   (reviewer's example shape).
 - Expand `knowledge/errors/controlm.json` into `knowledge/errors/controlm/`
   per-family packs (agent ping, OSCOMPSTAT, deploy validation, SLA delay,

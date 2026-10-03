@@ -12,7 +12,7 @@ classification, physical-design extraction, and PHY findings.
 
 ## Files changed
 
-- `src/forge_doctor/core/performance.py` — **new**: `SignalFamily`
+- `src/forge_doctor_data/core/performance.py` — **new**: `SignalFamily`
   (12 cross-engine families), `PerformanceSignal`,
   `SkewSignal`/`skew_signals` (real distributions only, n>=4),
   `QueuePressure`, `PerfPolicy` + `perf_findings` (PERF001–PERF010),
@@ -20,14 +20,14 @@ classification, physical-design extraction, and PHY findings.
   `classify_regression` (NEW/IMPROVED/REGRESSED/STABLE/
   INSUFFICIENT_DATA, relative vs p95), `DataGravitySignal`/
   `data_gravity` (facts only, no score).
-- `src/forge_doctor/core/physical_design.py` — **new**:
+- `src/forge_doctor_data/core/physical_design.py` — **new**:
   `PhysicalDesign` (partitioning, clustering, ordering, distribution,
   sharding, indexing, replication, caching) extracted from
   evidence-tagged graph entity attrs; `physical_findings` PHY001–005.
-- `src/forge_doctor/knowledge/performance/` — **new** packs:
+- `src/forge_doctor_data/knowledge/performance/` — **new** packs:
   `thresholds.json` (policy defaults), `engines.json` (per-engine
   metric semantics/limitations), loaded via `knowledge.load_pack`.
-- `src/forge_doctor/cli/runtime.py` — `runtime performance` command.
+- `src/forge_doctor_data/cli/runtime.py` — `runtime performance` command.
 - `docs/checks.md` — PERF###/PHY### documented as runtime-scoped
   findings beside MIGR/SQLPORT.
 - `tests/unit/test_performance.py` — **new**, 18 tests.

@@ -2,22 +2,22 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.change_correlation import (
+from forge_doctor_data.core.change_correlation import (
     ChangeClass,
     ChangeEvent,
 )
-from forge_doctor.core.diagnosis import PromotionLevel
-from forge_doctor.core.execution_history import SubjectKind, build_series
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.diagnosis import PromotionLevel
+from forge_doctor_data.core.execution_history import SubjectKind, build_series
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )
-from forge_doctor.core.incident import (
+from forge_doctor_data.core.incident import (
     CauseCategory,
     build_incidents,
     structural_causes,
 )
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
@@ -176,7 +176,7 @@ class TestStructuralCauses:
         assert causes[0].limitations
 
     def test_drift_maps_to_category(self) -> None:
-        from forge_doctor.core.twin_states import (
+        from forge_doctor_data.core.twin_states import (
             DriftType,
             TwinReconciliation,
             TwinState,

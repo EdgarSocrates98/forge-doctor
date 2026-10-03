@@ -23,8 +23,8 @@ cycles, cross-DAG edges, schedule semantics.
 - Scheduling: missing schedule (AIR010), catchup=True with dynamic/expensive
   history (AIR012), cron parse sanity (AIR015 too-frequent heuristic),
   max_active_runs high (AIR016).
-- `forge-doctor airflow schedule <path>` — effective schedule per DAG +
-  risks; `forge-doctor airflow graph <path>` — text/dot of the DAG graphs.
+- `forge-doctor-data airflow schedule <path>` — effective schedule per DAG +
+  risks; `forge-doctor-data airflow graph <path>` — text/dot of the DAG graphs.
 
 # Constraints
 - Small deterministic graph impl (no new deps).

@@ -21,10 +21,10 @@ work is re-executed every parse pass) and resource/capacity posture.
 - Pools/concurrency: no pool on expensive workload (AIR090),
   max_active_tasks/max_active_runs too high (AIR093/AIR094),
   high fan-out without resource control (AIR096).
-- `forge-doctor airflow parse <path>` — static parse-pressure ranking
+- `forge-doctor-data airflow parse <path>` — static parse-pressure ranking
   (top-level statements, imports, external calls, dags/file, tasks/file)
   — explicitly NOT a benchmark.
-- `forge-doctor airflow capacity <path>` — per-DAG task/fanout/pool/
+- `forge-doctor-data airflow capacity <path>` — per-DAG task/fanout/pool/
   max_active_runs summary + risks.
 
 # Constraints

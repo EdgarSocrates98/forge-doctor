@@ -12,7 +12,7 @@ verification:
 
 # Context
 Final block of `prompt_evo_airflow.md`. Two pieces:
-1. Runtime: `forge-doctor airflow logs <file>` over scheduler/worker/
+1. Runtime: `forge-doctor-data airflow logs <file>` over scheduler/worker/
    triggerer logs — deepened error pack (DAG import timeout, zombies,
    heartbeat, pool starvation, serialization failures).
 2. Graph: link Airflow tasks → Glue/EMR/Databricks jobs (`GlueJobOperator`,

@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.execution_model import ExecutionStatus, QueryExecution
-from forge_doctor.core.platform_graph import (
+from forge_doctor_data.core.execution_model import ExecutionStatus, QueryExecution
+from forge_doctor_data.core.platform_graph import (
     DataPlatformGraph,
     Entity,
     EntityKind,
     Relationship,
     RelKind,
 )
-from forge_doctor.core.reliability import (
+from forge_doctor_data.core.reliability import (
     DeliverySemantics,
     EvidenceState,
     Mechanism,
@@ -157,7 +157,7 @@ def test_rel003_freshness_mismatch_and_partial() -> None:
 
 
 def test_rel004_observed_latency_exceeds() -> None:
-    from forge_doctor.core.reliability import ServiceObjective
+    from forge_doctor_data.core.reliability import ServiceObjective
 
     obj = ServiceObjective(
         metric=ObjectiveMetric.LATENCY,
@@ -173,7 +173,7 @@ def test_rel004_observed_latency_exceeds() -> None:
 
 
 def test_rel006_rto_path_incomplete() -> None:
-    from forge_doctor.core.reliability import ServiceObjective
+    from forge_doctor_data.core.reliability import ServiceObjective
 
     obj = ServiceObjective(
         metric=ObjectiveMetric.RTO, target=300.0, unit="seconds", scope="etl", source="contract"

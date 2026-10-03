@@ -12,24 +12,24 @@ observed run exports. Suites parsed, never executed.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/quality_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/quality_model.py` — **new**:
   `DataQualityModel` (`QualitySuite`/`QualityExpectation`/
   `QualityGate`/`ObservedQualityRun`), GX suite + checkpoint +
   validation-export scanners, SodaCL `checks for` scanner, Deequ
   code-bound scanner, dbt reuse via `DbtProjectModel`, CI/operator
   invocation gates, suite wiring pass.
-- `src/forge_doctor/checks/quality.py` — **new**: DQ000 census,
+- `src/forge_doctor_data/checks/quality.py` — **new**: DQ000 census,
   DQ001 prod table w/o expectations (gated on practice existing,
   medium confidence), DQ002 unwired suite (capped 10 + summary),
   DQ003 stale suite, DQ004 dropped-column expectation (silent without
   detected `field.*` schema).
-- `src/forge_doctor/cli/quality.py` — **new**: `quality inspect`
+- `src/forge_doctor_data/cli/quality.py` — **new**: `quality inspect`
   prints suites (engine/table/check count/wired), coverage map,
   gates, observed runs.
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py` (`PYTHON | CONFIG | FILES`),
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md` (`quality`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` (`PYTHON | CONFIG | FILES`),
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md` (`quality`
   producer domain) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/quality/{gx-unwired,contract-drift,soda-covered,adversarial}/`.
@@ -71,7 +71,7 @@ observed run exports. Suites parsed, never executed.
 - `pytest tests/unit/test_quality.py` — 18 passed.
 - Labs: `gx-unwired` fires DQ001/002/003, `contract-drift` fires
   DQ004 only, `soda-covered` fires DQ001 only, `adversarial` silent.
-- `forge-doctor quality inspect` renders suites/coverage/gates on both
+- `forge-doctor-data quality inspect` renders suites/coverage/gates on both
   positive labs.
 - ruff + mypy clean on touched files.
 

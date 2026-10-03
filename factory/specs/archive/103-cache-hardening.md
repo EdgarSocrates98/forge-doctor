@@ -11,14 +11,14 @@ verification:
 ---
 
 # Context
-Cache lives at `<target>/.forge-doctor/cache/` — a malicious repo can ship
+Cache lives at `<target>/.forge-doctor-data/cache/` — a malicious repo can ship
 scan-cache.json with correct SHAs but fake facts (poisoning). Also facts are
 only keyed by file sha: a changed imported module doesn't invalidate
 dependents' semantic facts.
 
 # Acceptance Criteria
-- Cache dir = platform user cache: %LOCALAPPDATA%/forge-doctor/cache (win),
-  ~/.cache/forge-doctor (linux), ~/Library/Caches/forge-doctor (mac). No new
+- Cache dir = platform user cache: %LOCALAPPDATA%/forge-doctor-data/cache (win),
+  ~/.cache/forge-doctor-data (linux), ~/Library/Caches/forge-doctor-data (mac). No new
   dep — stdlib resolution.
 - Cache key namespace: sha of canonical repo root + tool version +
   analyzer-schema version constant + file sha.

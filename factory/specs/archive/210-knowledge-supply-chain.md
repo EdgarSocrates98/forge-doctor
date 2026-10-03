@@ -18,13 +18,13 @@ publish pipeline for packs.
 
 ## Acceptance Criteria
 
-- `forge-doctor knowledge new <domain>` — scaffold a pack with correct
+- `forge-doctor-data knowledge new <domain>` — scaffold a pack with correct
   schema_version, provenance fields, and examples — same discipline as
   `plugins init`.
-- `forge-doctor knowledge diff <a> <b>` — semantic pack diff: entries
+- `forge-doctor-data knowledge diff <a> <b>` — semantic pack diff: entries
   added/removed/changed (versions, statuses, capability keys), not text
   diff.
-- `forge-doctor knowledge test` — pack conformance suite: every pack
+- `forge-doctor-data knowledge test` — pack conformance suite: every pack
   validates against its schema, capability assertions evaluate
   consistently (sample contexts), error-signature regexes compile and
   have ≥1 positive fixture match.

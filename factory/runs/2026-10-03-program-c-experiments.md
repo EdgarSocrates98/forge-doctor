@@ -12,13 +12,13 @@ transform, rescan hermetically, compare before/after.
 
 ## Files changed
 
-- `src/forge_doctor/core/experiments.py` — **new** (~270 lines):
+- `src/forge_doctor_data/core/experiments.py` — **new** (~270 lines):
   `Hypothesis` (named transform over a fixture tree),
   `ExperimentResult` (resolved/introduced by fingerprint, severity
   deltas, file counts, verdict + reasons), `run_experiment`
   (copy → transform → hermetic rescan → diff; temp copy always
   removed), `HYPOTHESES` registry.
-- `src/forge_doctor/cli/lab.py` — `lab experiment <scenario>
+- `src/forge_doctor_data/cli/lab.py` — `lab experiment <scenario>
   --hypothesis <name> [--json]`; accepts a scenario name under
   `--labs` or a direct fixture directory.
 - `tests/unit/test_experiments.py` — **new**, 12 tests: improved

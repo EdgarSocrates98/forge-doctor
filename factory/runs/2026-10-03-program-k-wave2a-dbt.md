@@ -15,28 +15,28 @@ snapshots, singular tests, macros, exposures) plus observed
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/dbt_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/dbt_model.py` — **new**:
   `DbtProjectModel` (project name/profile/model dirs; models with
   materialization, `unique_key`, refs/sources, tests, description;
   sources with freshness; seeds/snapshots/singular tests/exposures/
   macros; manifest node count; run-result rows; unparsed).
-- `src/forge_doctor/checks/dbt.py` — **new**: DBT000 census, DBT001
+- `src/forge_doctor_data/checks/dbt.py` — **new**: DBT000 census, DBT001
   untested model, DBT002 incremental without `unique_key`, DBT003
   source without freshness, DBT004 declared-but-unused source, DBT005
   doc coverage < 50%.
-- `src/forge_doctor/cli/dbt.py` — **new**: `dbt inspect`.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — `_dbt`
+- `src/forge_doctor_data/cli/dbt.py` — **new**: `dbt inspect`.
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — `_dbt`
   adapter: `dbt_model` entities, `READS_FROM` edges for `ref()`/`source()`,
   `WRITES_TO` edges for materialized outputs; output/source relations
   link to warehouse entities by tail-name when adapters 213–215
   already claimed them.
-- `src/forge_doctor/core/platform_graph.py`,
-  `src/forge_doctor/core/ontology.py`, `docs/ontology.md` —
+- `src/forge_doctor_data/core/platform_graph.py`,
+  `src/forge_doctor_data/core/ontology.py`, `docs/ontology.md` —
   `EntityKind.DBT_MODEL` + `dbt` producer domain.
-- `src/forge_doctor/core/incremental.py` — `dbt` domain
+- `src/forge_doctor_data/core/incremental.py` — `dbt` domain
   (`SQL | CONFIG | FILES`).
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py` — registrations.
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py` — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/dbt/basic-project/` (DBT001–004 + observed manifest),
   `labs/dbt/plain-dir/` (adversarial).

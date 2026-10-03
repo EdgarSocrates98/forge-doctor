@@ -1,6 +1,6 @@
 # Fleet / estate intelligence
 
-`forge-doctor fleet` answers org-scale questions across a manifest of
+`forge-doctor-data fleet` answers org-scale questions across a manifest of
 repositories — where `workspace` discovers nested projects inside one
 tree, `fleet` merges an explicit list of repos (or a parent dir) into
 one estate graph.
@@ -31,14 +31,14 @@ checkouts.
 ## Commands
 
 ```bash
-forge-doctor fleet inspect fleet.yml         # repos + merged graph census
-forge-doctor fleet query fleet.yml runtimes  # entities by domain + versioned attrs
-forge-doctor fleet query fleet.yml capability ICEBERG_MERGE_WRITE
-forge-doctor fleet query fleet.yml dependents "*orders-etl*"
-forge-doctor fleet query fleet.yml findings "SPARK*"
-forge-doctor fleet report fleet.yml [-f json]
-forge-doctor fleet portfolio fleet.yml [-f json]   # estate portfolio facts
-forge-doctor fleet regressions fleet.yml [-f json] # shared regression dimensions across repos
+forge-doctor-data fleet inspect fleet.yml         # repos + merged graph census
+forge-doctor-data fleet query fleet.yml runtimes  # entities by domain + versioned attrs
+forge-doctor-data fleet query fleet.yml capability ICEBERG_MERGE_WRITE
+forge-doctor-data fleet query fleet.yml dependents "*orders-etl*"
+forge-doctor-data fleet query fleet.yml findings "SPARK*"
+forge-doctor-data fleet report fleet.yml [-f json]
+forge-doctor-data fleet portfolio fleet.yml [-f json]   # estate portfolio facts
+forge-doctor-data fleet regressions fleet.yml [-f json] # shared regression dimensions across repos
 ```
 
 - `portfolio` — estate facts (platforms with lifecycle status from
@@ -49,7 +49,7 @@ forge-doctor fleet regressions fleet.yml [-f json] # shared regression dimension
   platforms carrying critical workloads, deprecated/EOL technologies,
   cross-cloud edge concentration, owners of cross-platform
   dependencies. Facts only — there is deliberately no health score.
-- `regressions` — replays each repo's `.forge-doctor/execution-history/`
+- `regressions` — replays each repo's `.forge-doctor-data/execution-history/`
   into fingerprint series and reports regression dimensions shared by
   >=2 repos (e.g. the same queue regression fleet-wide after a platform
   upgrade).

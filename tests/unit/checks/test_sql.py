@@ -9,15 +9,15 @@ import pytest
 
 pytest.importorskip("sqlglot", reason="requires the [sql] extra")
 
-from forge_doctor.checks.sql import (
+from forge_doctor_data.checks.sql import (
     CHECKS,
     CartesianJoin,
     NonSargablePredicate,
     SelectStar,
     SqlSurface,
 )
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.models import Severity
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.models import Severity
 
 
 def make_context(tmp_path: Path, files: dict[str, str]) -> ProjectContext:
@@ -109,7 +109,7 @@ def test_all_checks_run(tmp_path: Path) -> None:
 def test_degradation_without_sqlglot(monkeypatch: pytest.MonkeyPatch) -> None:
     """Without sqlglot the SQL category simply isn't registered."""
     monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
-    from forge_doctor.checks import builtin_checks
+    from forge_doctor_data.checks import builtin_checks
 
     assert [c.id for c in builtin_checks() if c.id.startswith("SQL")] == []
 
@@ -117,7 +117,7 @@ def test_degradation_without_sqlglot(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_explain_hint_without_sqlglot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli import app
+    from forge_doctor_data.cli import app
 
     monkeypatch.setattr(importlib.util, "find_spec", lambda name: None)
     result = CliRunner().invoke(app, ["explain", "SQL001"])

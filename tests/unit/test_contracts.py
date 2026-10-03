@@ -7,14 +7,14 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.checks import builtin_checks
-from forge_doctor.cli import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.contract_check import validate, verify_contract
-from forge_doctor.core.handoff import build_handoff_bundle
-from forge_doctor.core.registry import CheckRegistry
-from forge_doctor.core.runner import CheckRunner
-from forge_doctor.core.schemas import SCHEMAS
+from forge_doctor_data.checks import builtin_checks
+from forge_doctor_data.cli import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.contract_check import validate, verify_contract
+from forge_doctor_data.core.handoff import build_handoff_bundle
+from forge_doctor_data.core.registry import CheckRegistry
+from forge_doctor_data.core.runner import CheckRunner
+from forge_doctor_data.core.schemas import SCHEMAS
 
 runner = CliRunner()
 
@@ -135,7 +135,7 @@ def test_cli_export_handoff(tmp_path: Path) -> None:
     result = runner.invoke(app, ["export", str(tmp_path), "--format", "handoff"])
     assert result.exit_code == 0, result.output
     bundle = json.loads(result.output)
-    assert bundle["tool"]["name"] == "forge-doctor"
+    assert bundle["tool"]["name"] == "forge-doctor-data"
     assert verify_contract(bundle, "handoff-bundle") == []
 
 

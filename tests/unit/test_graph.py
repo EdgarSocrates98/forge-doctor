@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.graph import build_graph
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.graph import build_graph
 
 
 def _project(tmp_path: Path) -> ProjectContext:

@@ -1,7 +1,7 @@
-# SPEC — forge-doctor v0.7
+# SPEC — forge-doctor-data v0.7
 
 ## §G goal
-Deterministic CLI that diagnoses data-engineering projects (repo/python/deps/git/spark-ast/aws). pipx-installable, Poetry-managed. `forge-doctor scan .` → structured CheckResults → Rich|JSON.
+Deterministic CLI that diagnoses data-engineering projects (repo/python/deps/git/spark-ast/aws). pipx-installable, Poetry-managed. `forge-doctor-data scan .` → structured CheckResults → Rich|JSON.
 
 ## §C constraints
 - Python >=3.11 | Poetry 2.x + poetry-core | Typer | Rich | pytest | ruff | mypy
@@ -12,34 +12,34 @@ Deterministic CLI that diagnoses data-engineering projects (repo/python/deps/git
 - ~20 good checks, low false-positive; weak evidence → INFO not ERROR
 - no health score in v0.1 (passed/info/warnings/errors only)
 - no PyPI publish without explicit approval
-- name decided: `forge-doctor` (renamed from `data-doctor` after user picked the ecosystem-paired alternative; the old CLI name collided with `vision-data-doctor` on PyPI and `data-doctor-cli` on crates.io). PyPI `forge-doctor` + `forge_doctor` verified free (404).
+- name decided: `forge-doctor-data` (renamed from `data-doctor` after user picked the ecosystem-paired alternative; the old CLI name collided with `vision-data-doctor` on PyPI and `data-doctor-cli` on crates.io). PyPI `forge-doctor-data` + `forge_doctor_data` verified free (404).
 
 ## §R research
 - R1|poetry 2.x|PEP 621 [project] table native; tool.poetry deps deprecated mostly; poetry-core>=2.0 backend|python-poetry.org/blog/announcing-poetry-2.0.0
 - R2|poetry groups|PEP 735 [dependency-groups] supported by Poetry 2.2+; fallback tool.poetry.group.dev|python-poetry.org/docs/pyproject
 - R3|typer|current 0.27.x; [project.scripts] points at Typer app obj|pypi.org/project/Typer
-- R4|pypi name|pypi.org/pypi/forge-doctor/json → 404 free; prior name `data-doctor` was free too but its CLI collided with vision-data-doctor|pypi.org
+- R4|pypi name|pypi.org/pypi/forge-doctor-data/json → 404 free; prior name `data-doctor` was free too but its CLI collided with vision-data-doctor|pypi.org
 - R5|entry points|importlib.metadata.entry_points(group=...) stable API py>=3.10|docs.python.org
 
 ## §I interfaces
-- cli: `forge-doctor scan [path=.]` flags: --check CAT* --ignore ID* --format text|json|jsonl|html|sarif|agent --quiet --fail-on error|warning --verbose --baseline PATH --save-baseline PATH --new-only --output PATH --watch --no-color --files F* --no-plugins --profile NAME --emit FMT[:PATH]* --show-root --cache/--no-cache --stats
-- profiles: default|strict|security|spark-performance|glue-migration|production; `[tool.forge-doctor.policy] extends` picks the profile unless the CLI overrides
-- cli: `forge-doctor repo|python|dependencies|spark|aws|docker|glue|ci|iac` = scan scoped to category
-- cli: `forge-doctor plugins [list|validate|doctor]` | `version` | `checks` | `explain ID [--json]` | `init` | `info` | `diff OLD [NEW]` (reports, refs, or base...head) | `compatibility [--from V --to V]` | `workspace [--path D] [scan|diff base...head]` | `cache [--path D|clean]` | `suppressions [--json]` | `lineage [--format text|json|dot|mermaid|openlineage]` | `schema diff OLD [NEW]` | `migrate glue [--from --to]` | `knowledge [list|info D|verify]` | `sbom [--format cyclonedx|text]` | `graph [--format json|dot|mermaid]` | `doctor` | `diagnose FILE|-` | `trace ID FILE:LINE` | `spark [eventlog|plan|logs FILE]` | `iceberg [inspect|maintenance|compatibility|merge|files]` | `controlm [inspect]` | `airflow [inspect]` | `terraform [inspect]` | `parquet [inspect]` | `stepfunctions [inspect]` | `streaming [inspect]` | `mcp` | `lsp` | `--version` | `--install-completion`
+- cli: `forge-doctor-data scan [path=.]` flags: --check CAT* --ignore ID* --format text|json|jsonl|html|sarif|agent --quiet --fail-on error|warning --verbose --baseline PATH --save-baseline PATH --new-only --output PATH --watch --no-color --files F* --no-plugins --profile NAME --emit FMT[:PATH]* --show-root --cache/--no-cache --stats
+- profiles: default|strict|security|spark-performance|glue-migration|production; `[tool.forge-doctor-data.policy] extends` picks the profile unless the CLI overrides
+- cli: `forge-doctor-data repo|python|dependencies|spark|aws|docker|glue|ci|iac` = scan scoped to category
+- cli: `forge-doctor-data plugins [list|validate|doctor]` | `version` | `checks` | `explain ID [--json]` | `init` | `info` | `diff OLD [NEW]` (reports, refs, or base...head) | `compatibility [--from V --to V]` | `workspace [--path D] [scan|diff base...head]` | `cache [--path D|clean]` | `suppressions [--json]` | `lineage [--format text|json|dot|mermaid|openlineage]` | `schema diff OLD [NEW]` | `migrate glue [--from --to]` | `knowledge [list|info D|verify]` | `sbom [--format cyclonedx|text]` | `graph [--format json|dot|mermaid]` | `doctor` | `diagnose FILE|-` | `trace ID FILE:LINE` | `spark [eventlog|plan|logs FILE]` | `iceberg [inspect|maintenance|compatibility|merge|files]` | `controlm [inspect]` | `airflow [inspect]` | `terraform [inspect]` | `parquet [inspect]` | `stepfunctions [inspect]` | `streaming [inspect]` | `mcp` | `lsp` | `--version` | `--install-completion`
 - exit codes: 0 clean | 1 errors found (or --fail-on level hit; with --baseline only NEW findings count; diff/schema-diff exit 1 on new/breaking) | 2 internal/usage error
 - json v3: {tool:{name,version}, schema_version:"3.0", version, project:{name(,root?via --show-root)}, summary:{...}, results:[{check_id,title,severity,category,message,file,line,recommendation,fingerprint,symbol?,is_new?} + optional {column,end_line,end_column,confidence,evidence,evidence_kind,tags,docs_uri,source,fixable}], baseline?:{new,fixed,existing}, suppressions?:[{rule,path,reason,owner,expires,status,matched}]}
 - sarif: 2.1.0 runs[0] {tool.driver{rules}, results[{ruleId,level,message,rank,partialFingerprints,fixes?,locations?}]} — PASS excluded
 - agent: {tool,version,summary,findings:[{id,sev,loc,fp}]} — compact, PASS excluded
-- baseline file: .forge-doctor-baseline.json — {format:2, version, project, created, results:[{check_id,fingerprint,file,line,message}]} (format 1 still loads; v3 fingerprints won't match it)
-- cache: .forge-doctor/cache/scan-cache.json — {format:1, files:{relpath:{sha256,facts}}}; per-file analyzer facts reused across scans
+- baseline file: .forge-doctor-data-baseline.json — {format:2, version, project, created, results:[{check_id,fingerprint,file,line,message}]} (format 1 still loads; v3 fingerprints won't match it)
+- cache: .forge-doctor-data/cache/scan-cache.json — {format:1, files:{relpath:{sha256,facts}}}; per-file analyzer facts reused across scans
 - fingerprints: `v3|check_id|file|symbol|evidence_anchor` — semantic, stable across line moves/message rewording; duplicate anchors get a deterministic ordinal
-- config: `[tool.forge-doctor]` in target pyproject: exclude=[globs], ignore=[IDs], [tool.forge-doctor.plugins].allow=[check-ids|dist|entry-point], [tool.forge-doctor.policy] {extends,rules[ID]={severity,enabled}}, [[tool.forge-doctor.suppressions]] {rule,path?,line?,reason,owner,expires?}
-- knowledge packs: `forge_doctor/knowledge/{glue,spark,python,errors}/*.json` shipped in wheel — version status/compat maps + error signatures; schema_version 2 with pack_version/verified_at/sources; `knowledge verify` flags packs stale >90d
-- plugin group: entry_points `forge_doctor.checks` → Check instances; `__fd_identity__` PluginIdentity(distribution,version,api_version,entry_point); api 1+2 accepted; findings stamped source=<dist>
+- config: `[tool.forge-doctor-data]` in target pyproject: exclude=[globs], ignore=[IDs], [tool.forge-doctor-data.plugins].allow=[check-ids|dist|entry-point], [tool.forge-doctor-data.policy] {extends,rules[ID]={severity,enabled}}, [[tool.forge-doctor-data.suppressions]] {rule,path?,line?,reason,owner,expires?}
+- knowledge packs: `forge_doctor_data/knowledge/{glue,spark,python,errors}/*.json` shipped in wheel — version status/compat maps + error signatures; schema_version 2 with pack_version/verified_at/sources; `knowledge verify` flags packs stale >90d
+- plugin group: entry_points `forge_doctor_data.checks` → Check instances; `__fd_identity__` PluginIdentity(distribution,version,api_version,entry_point); api 1+2 accepted; findings stamped source=<dist>
 - check protocol: `id:str, title:str, category:str, run(ctx)->list[CheckResult]`; optional class attrs why/when_ok/fix/tags/confidence/docs_uri
 - check ids: REP### PY### DEP### GIT### SPARK### AWS### DOCKER### GLUE### CI### IAC### POLICY### RT### SQL### ICE### CTM### AIR### TF### PARQ### SFN### STREAM### — stable, message-independent
-- mcp: JSON-RPC 2.0 stdio; `mcp --root DIR` sandboxes tool paths; initialize negotiates protocolVersion (2024-11-05/2025-03-26/2025-06-18), server/discover alias; tools scan_project/explain_rule/check_compatibility/get_lineage/diagnose_log/diff_findings; resources forge-doctor://rules/ID + forge-doctor://knowledge/D/N
-- lsp: optional [lsp] extra (pygls); workspace-root scans, unsaved-buffer overlay, debounced didChange, empty-publish clearing; source=forge-doctor, code=check id
+- mcp: JSON-RPC 2.0 stdio; `mcp --root DIR` sandboxes tool paths; initialize negotiates protocolVersion (2024-11-05/2025-03-26/2025-06-18), server/discover alias; tools scan_project/explain_rule/check_compatibility/get_lineage/diagnose_log/diff_findings; resources forge-doctor-data://rules/ID + forge-doctor-data://knowledge/D/N
+- lsp: optional [lsp] extra (pygls); workspace-root scans, unsaved-buffer overlay, debounced didChange, empty-publish clearing; source=forge-doctor-data, code=check id
 - integrations: OpenLineage-shaped lineage export, CycloneDX 1.5 sbom, DOT/Mermaid graph renderers
 
 ## §V invariants
@@ -88,7 +88,7 @@ T26|x|v0.7: trace + diagnose + error packs (spark/glue/iceberg/lakeformation/dat
 T27|x|v0.7: spark runtime (eventlog/plan/logs) — no pyspark dep|V2,V9
 T28|x|v0.7: static lineage + schema diff + IaC checks (hcl-lite + CFN) + migrate glue|V2,V9
 T29|x|v0.7: workspace scan/diff + knowledge provenance + sbom + mcp + lsp + graph + doctor|I
-T30|x|v0.7: cli modularization (cli/ package, forge_doctor.cli:app unchanged) + runner dedupe + --stats|—
+T30|x|v0.7: cli modularization (cli/ package, forge_doctor_data.cli:app unchanged) + runner dedupe + --stats|—
 T31|x|v0.7: ci.yml smoke matrix (win/mac/ubu) + dogfood job + poetry>=2.2 + extras|—
 T32|x|v0.8: [sql] extra (sqlglot) + SqlIndex (.sql files + call literals) + SQL000-003|I,V2,V9,V11
 T33|x|v0.8: IcebergProjectModel + ICE000-013 + `iceberg` cmd group + iceberg packs|V11,I

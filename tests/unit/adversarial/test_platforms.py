@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge_doctor.analyzers.databricks_model import databricks_model
-from forge_doctor.analyzers.delta_model import delta_model
-from forge_doctor.analyzers.emr_model import emr_model
-from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
-from forge_doctor.checks.platforms import CHECKS
-from forge_doctor.core.context import ProjectContext
+from forge_doctor_data.analyzers.databricks_model import databricks_model
+from forge_doctor_data.analyzers.delta_model import delta_model
+from forge_doctor_data.analyzers.emr_model import emr_model
+from forge_doctor_data.analyzers.platform_graph_builder import build_platform_graph
+from forge_doctor_data.checks.platforms import CHECKS
+from forge_doctor_data.core.context import ProjectContext
 
 
 def _write(root: Path, rel: str, text: str) -> None:
@@ -37,7 +37,7 @@ def test_empty_project_no_findings(tmp_path: Path) -> None:
     assert not emr_model(ctx).has_emr
     assert not databricks_model(ctx).has_databricks
     assert not delta_model(ctx).has_delta
-    from forge_doctor.core.models import Severity
+    from forge_doctor_data.core.models import Severity
 
     for c in CHECKS:
         if c.id.startswith(("EMR", "DBX", "DELTA")):
@@ -206,7 +206,7 @@ resource "aws_glue_job" "j" { name = "j" }
 resource "aws_s3_bucket" "b" { bucket = "b" }
 """,
     )
-    from forge_doctor.core.models import Severity
+    from forge_doctor_data.core.models import Severity
 
     ctx = _ctx(tmp_path)
     assert not databricks_model(ctx).has_databricks

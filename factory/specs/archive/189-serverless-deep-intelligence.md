@@ -5,15 +5,15 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_serverless.py tests/unit/adversarial/test_serverless.py -x -q
-  - python -m forge_doctor athena inspect <fixture>
-  - python -m forge_doctor knowledge verify
+  - python -m forge_doctor_data athena inspect <fixture>
+  - python -m forge_doctor_data knowledge verify
 ---
 
 # Phase 8 - Athena + Lambda + Serverless Deep Intelligence
 
 ## Context
 
-Phase 8 of the ten-phase Forge Doctor program: complete serverless data
+Phase 8 of the ten-phase Forge Doctor Data program: complete serverless data
 platform reasoning. Existing surface: `stepfunctions_model.py` (ASL parse,
 SFN000-020 checks, `.sync`/`.waitForTaskToken` integration tags), runtime
 adapters for Athena stats + Lambda REPORT (Phase 2), no Athena or Lambda

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from forge_doctor.core.traversal import iter_files
+from forge_doctor_data.core.traversal import iter_files
 
 
 def _tree(root: Path, *paths: str) -> None:

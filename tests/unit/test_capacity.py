@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from forge_doctor.core.capacity import (
+from forge_doctor_data.core.capacity import (
     CAP006,
     CAP007,
     CapacityDimension,
@@ -13,8 +13,8 @@ from forge_doctor.core.capacity import (
     capacity_trends,
     threshold_for,
 )
-from forge_doctor.core.execution_history import SubjectKind, build_series
-from forge_doctor.core.execution_model import (
+from forge_doctor_data.core.execution_history import SubjectKind, build_series
+from forge_doctor_data.core.execution_model import (
     ExecutionStatus,
     QueryExecution,
 )

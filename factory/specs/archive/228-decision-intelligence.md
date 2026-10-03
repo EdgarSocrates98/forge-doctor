@@ -29,7 +29,7 @@ recommendation cites its evidence.
   radius (graph traversal depth/fan-out per entity). The scoring
   function is documented, pure, and total — identical inputs always
   produce identical ranks.
-- `forge-doctor advise <path>` — the ranked action list: each row
+- `forge-doctor-data advise <path>` — the ranked action list: each row
   carries the action, its rank score + breakdown, the finding
   fingerprints and entity ids backing it, the safety class of any
   applicable fix, and open unknowns. `--format json` stable shape;
@@ -53,7 +53,7 @@ recommendation cites its evidence.
 
 ## Open Questions
 
-- Whether score weights should be configurable via `forge-doctor.yml`
+- Whether score weights should be configurable via `forge-doctor-data.yml`
   — default no (documented constants keep behavior explainable);
   revisit if orgs need policy-weighted ranking.
 - Whether `advise` should absorb `--baseline` new-finding prioritization

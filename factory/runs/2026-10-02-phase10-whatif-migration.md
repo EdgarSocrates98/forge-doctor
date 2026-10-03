@@ -54,7 +54,7 @@
 - `pytest -q` → 1196 passed, 0 failed
 - `mypy src` → clean (141 files)
 - `ruff check src tests` + `ruff format` → clean
-- `forge_doctor knowledge verify` → all 74 packs ok
+- `forge_doctor_data knowledge verify` → all 74 packs ok
 - CLI smoke: `what-if --change glue-version=5.0` on a glue-4.0 fixture
   shows the glue job + LF-capability transition + pack-driven Java/Python
   blockers; `migrate plan` lists glue-4-to-5, iceberg-v1-to-v2,

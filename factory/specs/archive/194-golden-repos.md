@@ -5,8 +5,8 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_golden.py tests/unit/adversarial/test_golden.py -x -q
-  - python -m forge_doctor golden run
-  - python -m forge_doctor golden update && python -m forge_doctor golden run
+  - python -m forge_doctor_data golden run
+  - python -m forge_doctor_data golden update && python -m forge_doctor_data golden run
 ---
 
 # Roadmap-2 Phase 3 - Golden Repositories

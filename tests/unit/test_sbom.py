@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.sbom import build_sbom
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.sbom import build_sbom
 
 
 def test_sbom_cyclonedx_shape(tmp_path: Path):
@@ -15,7 +15,7 @@ def test_sbom_cyclonedx_shape(tmp_path: Path):
     assert bom["specVersion"] == "1.5"
     names = {c["name"] for c in bom["components"]}
     assert "requests" in names and "pyspark" in names
-    # knowledge packs + forge-doctor itself
+    # knowledge packs + forge-doctor-data itself
     types = {c["type"] for c in bom["components"]}
     assert "library" in types
     json.dumps(bom)

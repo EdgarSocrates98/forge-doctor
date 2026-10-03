@@ -5,15 +5,15 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_lakeformation.py tests/unit/adversarial/test_lakeformation.py -x -q
-  - python -m forge_doctor lakeformation inspect <fixture>
-  - python -m forge_doctor knowledge verify
+  - python -m forge_doctor_data lakeformation inspect <fixture>
+  - python -m forge_doctor_data knowledge verify
 ---
 
 # Phase 6 - Lake Formation Deep Intelligence
 
 ## Context
 
-Phase 6 of the ten-phase Forge Doctor program (`prompt_evo_next_step.md`):
+Phase 6 of the ten-phase Forge Doctor Data program (`prompt_evo_next_step.md`):
 turn Lake Formation from dispersed signal into a first-class model. Existing
 surface: `checks/lakeformation.py` (LF000-002) + `knowledge/lakeformation/errors.json`.
 
@@ -36,7 +36,7 @@ surface: `checks/lakeformation.py` (LF000-002) + `knowledge/lakeformation/errors
   location, LF-TBAC coverage, unused data-cells filter, hybrid overlap,
   external grant-option escalation.
 - Platform graph integration: principals + GOVERNS edges + resource links.
-- CLI `forge-doctor lakeformation`: inspect, permissions, graph,
+- CLI `forge-doctor-data lakeformation`: inspect, permissions, graph,
   cross-account, compatibility.
 - Deterministic, offline-only, no AWS calls.
 

@@ -5,7 +5,7 @@ agent: claude
 risk: medium
 verification:
   - python -m pytest tests/unit/test_sdk.py tests/unit/test_plugin_ext.py -x -q
-  - python -m forge_doctor plugins doctor
+  - python -m forge_doctor_data plugins doctor
 ---
 
 # Roadmap-3 Phase 1 - Plugin SDK & Ecosystem
@@ -15,32 +15,32 @@ verification:
 Third parties must be able to build analyzers/rules/adapters/packs
 without importing internals. `plugins/protocol.py` already has the
 `Check` protocol, `PluginDescriptor` v2 (api_version +
-requires_forge_doctor gating), and pre-load trust gates — but the SDK
+requires_forge_doctor_data gating), and pre-load trust gates — but the SDK
 is not a stable public surface, there is no scaffolding, no integrity
 pinning, no strict-deny mode, and no install flow.
 
 ## Acceptance Criteria
 
-- `src/forge_doctor/sdk.py` — the stable plugin-author surface:
+- `src/forge_doctor_data/sdk.py` — the stable plugin-author surface:
   re-export `Check`, `CheckBase`, `CheckResult`, `Severity`,
   `Confidence`, `EvidenceKind`, `PluginDescriptor`, `PluginIdentity`,
   `ProjectContext`, `CURRENT_API_VERSION`, `SUPPORTED_API_VERSIONS`,
   `ENTRY_POINT_GROUP`. `__all__` pinned by test.
-- `forge-doctor plugins init <name>` — scaffold a plugin package:
-  pyproject with the `forge_doctor.checks` entry point, a `Check`
-  subclass importing only `forge_doctor.sdk`, a test stub. Deterministic
+- `forge-doctor-data plugins init <name>` — scaffold a plugin package:
+  pyproject with the `forge_doctor_data.checks` entry point, a `Check`
+  subclass importing only `forge_doctor_data.sdk`, a test stub. Deterministic
   output; refuses to overwrite existing files.
-- `forge-doctor plugins lock` / `plugins verify` — integrity pinning:
+- `forge-doctor-data plugins lock` / `plugins verify` — integrity pinning:
   lock records each installed plugin distribution's name/version and a
-  content digest (dist-info RECORD) into `.forge-doctor/plugins.lock`;
+  content digest (dist-info RECORD) into `.forge-doctor-data/plugins.lock`;
   verify re-digests and reports ok/changed/missing. Offline, no signing
   infra.
-- Strict trust mode — `[tool.forge-doctor.plugins] mode = "strict"`
+- Strict trust mode — `[tool.forge-doctor-data.plugins] mode = "strict"`
   denies every plugin not in `trusted` (default-deny); current
   default-permit behavior unchanged when unset. `plugins list` shows
   `untrusted` status for denied plugins.
-- `forge-doctor plugins install <dist>` — thin wrapper: resolves to
-  `pipx inject forge-doctor <dist>` (pipx env) or `pip install`,
+- `forge-doctor-data plugins install <dist>` — thin wrapper: resolves to
+  `pipx inject forge-doctor-data <dist>` (pipx env) or `pip install`,
   `--dry-run` prints the command only, post-install runs the load/compat
   validation and reports. Installer is injectable for tests.
 - `docs/plugins.md` documents the SDK surface, template, trust levels

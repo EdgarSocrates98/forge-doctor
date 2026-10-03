@@ -15,33 +15,33 @@ exports. Capability pack adds per-connector capability surfaces.
 
 ## Files changed
 
-- `src/forge_doctor/analyzers/trino_model.py` — **new**:
+- `src/forge_doctor_data/analyzers/trino_model.py` — **new**:
   `TrinoProjectModel` (catalogs+connectors, coordinator/worker props,
   node props, jvm flags, resource-groups/event-listener file evidence,
   three-part refs, observed rows, unparsed list), deterministic
   `.properties` subset parser (`key=value`, `#`/`!` comments — no JVM).
-- `src/forge_doctor/checks/trino.py` — **new**: TRINO000 census,
+- `src/forge_doctor_data/checks/trino.py` — **new**: TRINO000 census,
   TRINO001 hive catalog without metastore keys, TRINO002 coordinator
   without spill config while authored SQL writes, TRINO003 test
   connector (`tpch`/`jmx`/`system`/`blackhole`/`memory`/`localfile`/
   `tcds`) in a deployment with data catalogs, TRINO004 multi-catalog
   without resource groups, TRINO005 three-part SQL ref to undeclared
   catalog (MEDIUM confidence).
-- `src/forge_doctor/cli/trino.py` — **new**: `trino inspect` prints
+- `src/forge_doctor_data/cli/trino.py` — **new**: `trino inspect` prints
   catalogs/connectors, cluster role, spill/resource-group state, refs
   (unknown catalogs marked), observed + unparsed files.
-- `src/forge_doctor/knowledge/capabilities/trino.json` — **new**:
+- `src/forge_doctor_data/knowledge/capabilities/trino.json` — **new**:
   per-connector surfaces (FEDERATED_READ/WRITE, TRANSACTIONAL_TABLES,
   PUSHDOWN) gated on the `connector` context attribute, plus
   SPILL_TO_DISK / RESOURCE_GROUPS / EVENT_LISTENERS facts.
-- `src/forge_doctor/analyzers/platform_graph_builder.py` — `_trino`
+- `src/forge_doctor_data/analyzers/platform_graph_builder.py` — `_trino`
   adapter: `catalog:trino:<name>` entities (connector attr) `CONTAINS`
   `table:trino:<catalog.schema.table>` for refs whose catalog is
   declared; unknown-catalog refs skipped (TRINO005 reports them).
-- `src/forge_doctor/checks/__init__.py`,
-  `src/forge_doctor/cli/__init__.py`,
-  `src/forge_doctor/core/incremental.py` (`CONFIG | SQL | FILES`),
-  `src/forge_doctor/core/ontology.py` + `docs/ontology.md`
+- `src/forge_doctor_data/checks/__init__.py`,
+  `src/forge_doctor_data/cli/__init__.py`,
+  `src/forge_doctor_data/core/incremental.py` (`CONFIG | SQL | FILES`),
+  `src/forge_doctor_data/core/ontology.py` + `docs/ontology.md`
   (`trino` producer domain) — registrations.
 - `docs/checks.md`, `README.md`, `CHANGELOG.md`.
 - `labs/trino/prod-cluster/` (TRINO001–005 all fire),
@@ -101,7 +101,7 @@ exports. Capability pack adds per-connector capability surfaces.
 - Capability registry — trino pack loads clean (no validation issues);
   connector/flag gating verified (`iceberg` write → SUPPORTED,
   `tpch` write → UNSUPPORTED, absent attrs → CONDITIONAL).
-- `forge-doctor trino inspect labs/trino/prod-cluster` renders
+- `forge-doctor-data trino inspect labs/trino/prod-cluster` renders
   catalogs, cluster role, spill/rg state, and marks `bogus.dw.orders`.
 - ruff format/check + mypy clean on touched files.
 

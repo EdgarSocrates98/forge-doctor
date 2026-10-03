@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from forge_doctor import api
+from forge_doctor_data import api
 
 
 def test_public_surface_is_pinned() -> None:
@@ -26,7 +26,7 @@ def test_public_surface_is_pinned() -> None:
 
 
 def test_version_and_schema_version() -> None:
-    from forge_doctor.output.json_renderer import JSON_SCHEMA_VERSION
+    from forge_doctor_data.output.json_renderer import JSON_SCHEMA_VERSION
 
     assert api.version()
     assert api.SCHEMA_VERSION == "1.0"
@@ -72,7 +72,7 @@ def test_scan_report_json_matches_contract(tmp_path: Path) -> None:
     """Every required key in the scan-report JSON Schema is present."""
     (tmp_path / "app.py").write_text("x = 1\n")
     report = api.scan(tmp_path)
-    from forge_doctor.output.json_renderer import result_to_dict
+    from forge_doctor_data.output.json_renderer import result_to_dict
 
     sample = None
     for r in report.results:
@@ -98,7 +98,7 @@ def test_scan_report_json_matches_contract(tmp_path: Path) -> None:
 
 
 def test_schema_registry_covers_public_artifacts() -> None:
-    from forge_doctor.core.schemas import SCHEMAS
+    from forge_doctor_data.core.schemas import SCHEMAS
 
     assert set(SCHEMAS) == {
         "scan-report",
@@ -122,7 +122,7 @@ def test_schema_registry_covers_public_artifacts() -> None:
 def test_schema_contracts_cli_lists_and_dumps() -> None:
     from typer.testing import CliRunner
 
-    from forge_doctor.cli.app import app
+    from forge_doctor_data.cli.app import app
 
     runner = CliRunner()
     result = runner.invoke(app, ["schema", "contracts"])
@@ -191,8 +191,8 @@ def _check(instance: object, schema: dict, path: str = "$") -> list[str]:
 
 def test_scan_report_validates_against_published_schema(tmp_path: Path) -> None:
     """The real ``render_json`` output must satisfy ``scan-report``."""
-    from forge_doctor.core.schemas import SCAN_REPORT
-    from forge_doctor.output.json_renderer import render_json
+    from forge_doctor_data.core.schemas import SCAN_REPORT
+    from forge_doctor_data.output.json_renderer import render_json
 
     (tmp_path / "main.tf").write_text(
         'resource "aws_glue_job" "j" {\n  name = "x"\n  glue_version = "4.0"\n}\n'
@@ -202,13 +202,13 @@ def test_scan_report_validates_against_published_schema(tmp_path: Path) -> None:
     errors = _check(payload, SCAN_REPORT)
     assert errors == []
     assert payload["schema_version"] == api.SCAN_SCHEMA_VERSION
-    assert payload["tool"]["name"] == "forge-doctor"
+    assert payload["tool"]["name"] == "forge-doctor-data"
     assert isinstance(payload["project"]["name"], str)
 
 
 def test_golden_snapshots_validate_against_published_schema() -> None:
     """Every committed golden snapshot file satisfies ``golden-snapshot``."""
-    from forge_doctor.core.schemas import GOLDEN_SNAPSHOT
+    from forge_doctor_data.core.schemas import GOLDEN_SNAPSHOT
 
     golden_dir = Path(__file__).resolve().parents[2] / "golden"
     files = sorted(golden_dir.glob("*/expected/*.json"))

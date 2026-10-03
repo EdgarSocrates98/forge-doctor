@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from forge_doctor.core.capabilities import (
+from forge_doctor_data.core.capabilities import (
     CapabilityContext,
     CapabilityRegistry,
     CapabilityStatus,
@@ -275,7 +275,7 @@ def test_bundled_neptune_language_paradigm() -> None:
 
 def test_bundled_packs_validate() -> None:
     """Bundled packs pass `knowledge verify` structural checks."""
-    from forge_doctor.core.knowledge import verify_pack
+    from forge_doctor_data.core.knowledge import verify_pack
 
     for name in ("glue", "iceberg", "dynamodb", "neptune", "graph"):
         assert verify_pack("capabilities", name) == []
@@ -290,9 +290,9 @@ def test_bundled_registry_no_issues() -> None:
 
 def test_migrated_check_ice001_unchanged(tmp_path: Path) -> None:
     """FormatVersionCompat emits the same findings through the registry."""
-    from forge_doctor.checks.iceberg import FormatVersionCompat
-    from forge_doctor.core.context import ProjectContext
-    from forge_doctor.core.models import Severity
+    from forge_doctor_data.checks.iceberg import FormatVersionCompat
+    from forge_doctor_data.core.context import ProjectContext
+    from forge_doctor_data.core.models import Severity
 
     sql = (
         "CREATE TABLE t (id int) USING iceberg TBLPROPERTIES ('format-version'='1');\n"

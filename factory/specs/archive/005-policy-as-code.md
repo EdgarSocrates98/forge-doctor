@@ -9,8 +9,8 @@ verification:
 ---
 
 # Acceptance Criteria
-- [tool.forge-doctor.policy] extends = "<builtin>"; [tool.forge-doctor.policy.rules.ID] severity="error"|enabled=false
-- [[tool.forge-doctor.suppressions]] rule=ID path=<posix-glob> reason=... owner=... expires=YYYY-MM-DD
+- [tool.forge-doctor-data.policy] extends = "<builtin>"; [tool.forge-doctor-data.policy.rules.ID] severity="error"|enabled=false
+- [[tool.forge-doctor-data.suppressions]] rule=ID path=<posix-glob> reason=... owner=... expires=YYYY-MM-DD
 - suppressions remove matching results; expired suppressions reactivate + emit POLICY001 WARNING
-- `forge-doctor suppressions` lists ACTIVE/EXPIRED/UNUSED
+- `forge-doctor-data suppressions` lists ACTIVE/EXPIRED/UNUSED
 - JSON report gains "suppressed" count + suppression detail

@@ -7,14 +7,14 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from forge_doctor.cli.app import app
-from forge_doctor.core.context import ProjectContext
-from forge_doctor.core.crossmigration import (
+from forge_doctor_data.cli.app import app
+from forge_doctor_data.core.context import ProjectContext
+from forge_doctor_data.core.crossmigration import (
     PlatformMigrationPlan,
     _migr_findings,
     plan_platform_migration,
 )
-from forge_doctor.core.whatif import evaluate_change, parse_change
+from forge_doctor_data.core.whatif import evaluate_change, parse_change
 
 runner = CliRunner()
 
@@ -80,7 +80,7 @@ def test_migr002_reverse_direction(tmp_path: Path) -> None:
 
 def test_migr001_unmapped_service() -> None:
     plan = PlatformMigrationPlan(source="x", target="snowflake")
-    from forge_doctor.core.crossmigration import EntityMapping
+    from forge_doctor_data.core.crossmigration import EntityMapping
 
     plan.entity_map.append(
         EntityMapping(
