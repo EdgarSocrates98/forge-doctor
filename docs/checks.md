@@ -2098,3 +2098,32 @@ Same subject written by >=3 distinct executions.
 Exchange/spill bytes above the pack bound.
 ### COST007 — Tiny-file overhead driver · warning
 Avg bytes/file below the bound; requires an exported file count.
+
+## Reliability & SLA (runtime-scoped — REL###)
+
+REL findings are emitted by `forge-doctor runtime reliability <root>`
+over declared config attrs plus optional runtime artifacts. Delivery
+semantics are composed per subject — exactly-once is never asserted
+without full-path evidence (retries + idempotency + dedup +
+checkpoint + declared intent).
+
+### REL001 — Retry without idempotency · info
+Retries declared but no idempotency evidence — replay may duplicate.
+### REL002 — Stateful stream without checkpoint · warning
+Stream subject with no checkpointing evidence.
+### REL003 — SLA freshness mismatch / unverifiable · warning
+Path lag exceeds objective, or PARTIAL path blocks verification.
+### REL004 — Observed latency exceeds objective · warning
+Runtime duration over declared latency objective.
+### REL005 — RPO mismatch · info
+RPO declared but no backup/checkpoint evidence in scope.
+### REL006 — RTO path incomplete · info
+RTO declared but no recovery/failover evidence in scope.
+### REL007 — Missing DLQ on retrying path · warning
+Retries declared with DLQ absent or unevidenced.
+### REL008 — Failover topology unresolved · info
+Replication declared with no failover mechanism evidence.
+### REL009 — At-least-once without dedup evidence · info
+Duplicates possible downstream; no dedup evidence.
+### REL010 — Backup without restore evidence · info
+Backup declared, restore/pitr unevidenced — recoverability unproven.

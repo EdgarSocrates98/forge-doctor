@@ -283,6 +283,76 @@ def runtime_cost(
     console.print()
 
 
+@runtime_app.command(name="reliability")
+def runtime_reliability(
+    root: Annotated[Path, typer.Argument(help="Project root to analyze.")],
+    artifact: Annotated[
+        Path | None,
+        typer.Option("--artifact", help="Optional exported runtime artifact."),
+    ] = None,
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Reliability models, delivery semantics, objectives + REL findings."""
+    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.reliability import (
+        delivery_semantics,
+        extract_objectives,
+        extract_reliability,
+        failure_domains,
+        freshness_paths,
+        observe_reliability,
+        rel_findings,
+    )
+
+    graph = build_platform_graph(ProjectContext(root=root.resolve()))
+    executions: list[Any] = []
+    if artifact is not None:
+        from forge_doctor.analyzers.execution_adapters import ingest_executions
+
+        _, executions = ingest_executions(artifact, adapter=adapter)
+    models = observe_reliability(extract_reliability(graph), executions)
+    objectives = extract_objectives(graph)
+    fps = freshness_paths(graph, executions)
+    domains = failure_domains(graph)
+    findings = rel_findings(models, objectives, fps, executions, graph)
+    semantics = {m.subject: delivery_semantics(m).value for m in models}
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "models": [m.to_dict() for m in models],
+                    "delivery_semantics": semantics,
+                    "objectives": [o.to_dict() for o in objectives],
+                    "freshness": [p.to_dict() for p in fps],
+                    "failure_domains": [d.to_dict() for d in domains],
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(
+        f"[bold]Reliability[/bold]  models={len(models)} "
+        f"objectives={len(objectives)} paths={len(fps)} findings={len(findings)}"
+    )
+    for m in models:
+        declared = [x.name for x in m.mechanisms if x.state.value in ("declared", "observed")]
+        console.print(
+            f"  {m.subject} ({m.engine}) -> {semantics[m.subject]} [{', '.join(declared)}]"
+        )
+    for p in fps:
+        lag = f"{p.total_lag:.0f}s" if p.total_lag is not None else "PARTIAL"
+        console.print(f"  freshness {p.subject}: lag={lag}")
+    for f in findings:
+        color = "yellow" if f.severity.value == "warning" else "dim"
+        console.print(f"  [{color}]{f.check_id}[/{color}] {f.message}")
+    console.print()
+
+
 @runtime_app.command(name="diagnose")
 def runtime_diagnose(
     artifact: Annotated[Path, typer.Argument(help="Exported runtime artifact.")],

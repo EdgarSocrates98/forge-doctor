@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "reliability",
+  "sources": [
+    "https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/",
+    "https://docs.aws.amazon.com/kinesis/latest/dev/developing-consumers-with-sdk.html",
+    "https://cloud.google.com/pubsub/docs/exactly-once-delivery",
+    "https://kafka.apache.org/documentation/#semantics",
+    "https://docs.snowflake.com/en/user-guide/data-time-travel",
+    "https://cloud.google.com/bigquery/docs/time-travel"
+  ],
+  "description": "Delivery/retry/checkpoint semantics per engine — what each engine can evidence, not what it guarantees in every deployment.",
+  "engines": {
+    "kafka": {
+      "delivery": "at_least_once_by_default; exactly_once requires transactions+idempotent producer+read_committed consumer",
+      "checkpoint": "consumer offsets",
+      "dedup": "producer idempotence; no broker-side dedup for consumer retries",
+      "dlq": "application-level convention, not broker feature"
+    },
+    "kinesis": {
+      "delivery": "at_least_once; no exactly-once",
+      "checkpoint": "consumer-managed (KCL checkpoint table)",
+      "dedup": "producer dedup via sequence numbers within put",
+      "dlq": "application-level"
+    },
+    "pubsub": {
+      "delivery": "at_least_once default; exactly-once delivery option per subscription",
+      "checkpoint": "ack state managed by service",
+      "dedup": "exactly-once subscription provides no-redelivery window",
+      "dlq": "dead-letter topics supported natively"
+    },
+    "eventhubs": {
+      "delivery": "at_least_once",
+      "checkpoint": "consumer checkpoint store (blob)",
+      "dedup": "producer idempotent retries",
+      "dlq": "application-level"
+    },
+    "flink": {
+      "delivery": "effectively_once via checkpointing + two-phase commit sinks",
+      "checkpoint": "native distributed checkpointing",
+      "dedup": "sink-dependent (upsert/idempotent writes)",
+      "dlq": "side-output convention"
+    },
+    "spark": {
+      "delivery": "structured streaming: effectively_once with checkpoint + idempotent sink",
+      "checkpoint": "checkpointLocation",
+      "dedup": "dropDuplicates / sink semantics",
+      "dlq": "application-level"
+    },
+    "snowflake": {
+      "delivery": "dml statements are atomic; pipelines via streams/tasks are at_least_once",
+      "checkpoint": "stream offsets (consumed on read)",
+      "dedup": "merge/insert-overwrite patterns",
+      "dlq": "application-level"
+    },
+    "bigquery": {
+      "delivery": "insertId dedup for streaming inserts (best-effort window)",
+      "checkpoint": "n/a for batch; storage write api supports exactly-once streams",
+      "dedup": "insertId / merge patterns",
+      "dlq": "application-level"
+    }
+  }
+}
