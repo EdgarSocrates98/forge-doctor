@@ -711,6 +711,68 @@ def runtime_correlate(
     console.print()
 
 
+@runtime_app.command(name="capacity")
+def runtime_capacity(
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    as_json: _JsonOpt = False,
+) -> None:
+    """Capacity/saturation signals + trends over recorded history (CAP001-007).
+
+    Threshold provenance is config > platform pack > baseline — an
+    unthresholded dimension reports UNKNOWN, never a global rule.
+    """
+    from forge_doctor.core.capacity import (
+        capacity_findings,
+        capacity_signals,
+        capacity_trends,
+    )
+    from forge_doctor.core.execution_history import iter_samples
+
+    series = build_series_from_samples(list(iter_samples(root)))
+    signals = capacity_signals(series)
+    trends = capacity_trends(signals, series)
+    findings = capacity_findings(signals, trends)
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "signals": [s.to_dict() for s in signals],
+                    "trends": [t.to_dict() for t in trends],
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(f"[bold]Capacity[/bold]  series={len(series)} signals={len(signals)}")
+    for s in signals:
+        cap = f"{s.configured_capacity}{s.unit}" if s.configured_capacity else "n/a"
+        console.print(
+            f"  {s.resource} {s.dimension.value}: {s.saturation.value} "
+            f"(usage={s.observed_usage}{s.unit} cap={cap})"
+        )
+    for t in trends:
+        if t.direction == "rising":
+            proj = (
+                f" simple projection ~{t.projected_saturation_at:.0f}"
+                if t.projected_saturation_at
+                else ""
+            )
+            console.print(
+                f"  [yellow]trend[/yellow] {t.resource} {t.dimension.value} "
+                f"rising ({t.points} pts){proj}"
+            )
+    for f in findings:
+        console.print(f"  [{f.severity}] {f.check_id} {f.message}")
+    if not signals:
+        console.print("  no capacity metrics in recorded history")
+    console.print()
+
+
 @runtime_app.callback(invoke_without_command=True)
 def _runtime_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:

@@ -72,6 +72,12 @@ class GroundTruth:
     # Spec-245 SLO/critical-path categories.
     expected_slo_findings: tuple[str, ...] = ()  # SLO001-006 ids
     expected_paths: tuple[str, ...] = ()  # "<source>-><destination>"
+    # Spec-246 capacity categories — ``capacity_attrs`` declares configured
+    # capacity per series subject (mirrors user config), keyed by subject
+    # suffix (e.g. "fp" matches subject "fingerprint:fp").
+    expected_capacity_signals: tuple[str, ...] = ()  # "<subject>.<dim>=<class>"
+    expected_capacity_findings: tuple[str, ...] = ()  # CAP001-007 ids
+    capacity_attrs: dict[str, dict[str, str]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -118,6 +124,8 @@ class ScenarioReport:
     propagations: CategoryResult = field(default_factory=CategoryResult)
     slo_findings: CategoryResult = field(default_factory=CategoryResult)
     paths: CategoryResult = field(default_factory=CategoryResult)
+    capacity: CategoryResult = field(default_factory=CategoryResult)
+    capacity_findings: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -139,6 +147,8 @@ class ScenarioReport:
             and self.propagations.ok
             and self.slo_findings.ok
             and self.paths.ok
+            and self.capacity.ok
+            and self.capacity_findings.ok
             and not self.errors
         )
 
@@ -160,6 +170,8 @@ class ScenarioReport:
             ("propagations", self.propagations),
             ("slo_findings", self.slo_findings),
             ("paths", self.paths),
+            ("capacity", self.capacity),
+            ("capacity_findings", self.capacity_findings),
         )
 
 
@@ -222,6 +234,17 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_propagations=_lst("expected_propagations"),
         expected_slo_findings=_lst("expected_slo_findings"),
         expected_paths=_lst("expected_paths"),
+        expected_capacity_signals=_lst("expected_capacity_signals"),
+        expected_capacity_findings=_lst("expected_capacity_findings"),
+        capacity_attrs=(
+            {
+                str(k): {str(kk): str(vv) for kk, vv in dict(v).items()}
+                for k, v in raw.get("capacity_attrs", {}).items()
+                if isinstance(v, dict)
+            }
+            if isinstance(raw.get("capacity_attrs"), dict)
+            else {}
+        ),
     )
 
 
@@ -414,6 +437,8 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
         or truth.expected_propagations
         or truth.expected_slo_findings
         or truth.expected_paths
+        or truth.expected_capacity_signals
+        or truth.expected_capacity_findings
     ):
         _behavioral_categories(ctx, scenario, truth, report)
 
@@ -532,6 +557,8 @@ def _behavioral_categories(
         or truth.expected_propagations
         or truth.expected_slo_findings
         or truth.expected_paths
+        or truth.expected_capacity_signals
+        or truth.expected_capacity_findings
     ):
         _temporal_categories(ctx, scenario, truth, report, executions)
 
@@ -682,6 +709,49 @@ def _temporal_categories(
                 if entry not in scat.actual:
                     scat.missed.append(f"{entry} (got {scat.actual or ['<none>']})")
 
+    if truth.expected_capacity_signals or truth.expected_capacity_findings:
+        from forge_doctor.core.capacity import (
+            capacity_findings,
+            capacity_signals,
+            capacity_trends,
+        )
+
+        # ``capacity_attrs`` keys match subject_id exactly or as suffix.
+        attrs_map: dict[str, dict[str, str]] = {}
+        for sid, s in series.items():
+            for key, attrs in truth.capacity_attrs.items():
+                if sid == key or s.subject_id == key or sid.endswith(key):
+                    attrs_map[s.subject_id] = attrs
+                    break
+        sigs = capacity_signals(series, attrs_map)
+        trends = capacity_trends(sigs, series)
+        cap_found = capacity_findings(sigs, trends)
+        if truth.expected_capacity_signals:
+            ccat = report.capacity
+            ccat.actual = sorted(
+                {f"{s.resource}.{s.dimension.value}={s.saturation.value}" for s in sigs}
+            )
+            for entry in truth.expected_capacity_signals:
+                ccat.expected.append(entry)
+                key, _, want = entry.rpartition("=")
+                subject, _, dim = key.rpartition(".")
+                hit = any(
+                    s.saturation.value == want.strip().lower()
+                    and s.dimension.value == dim
+                    and (subject == "*" or s.resource == subject or s.resource.endswith(subject))
+                    for s in sigs
+                )
+                if not hit:
+                    got = sorted(a for a in ccat.actual if f".{dim}=" in a) or ["<none>"]
+                    ccat.missed.append(f"{entry} (got {got})")
+        if truth.expected_capacity_findings:
+            fcat = report.capacity_findings
+            fcat.actual = sorted({f.check_id for f in cap_found})
+            for entry in truth.expected_capacity_findings:
+                fcat.expected.append(entry)
+                if entry not in fcat.actual:
+                    fcat.missed.append(f"{entry} (got {fcat.actual or ['<none>']})")
+
 
 def _sla_status(objectives: list[Any], fps: list[Any], executions: list[Any]) -> dict[str, str]:
     """``<scope>.<metric>`` -> met|violated|unverifiable from evidence."""
@@ -743,6 +813,9 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         expected_propagations=truth.expected_propagations,
         expected_slo_findings=truth.expected_slo_findings,
         expected_paths=truth.expected_paths,
+        expected_capacity_signals=truth.expected_capacity_signals,
+        expected_capacity_findings=truth.expected_capacity_findings,
+        capacity_attrs=truth.capacity_attrs,
     )
 
 

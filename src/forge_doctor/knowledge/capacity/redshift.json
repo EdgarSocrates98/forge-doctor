@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capacity",
+  "sources": [
+    "https://docs.aws.amazon.com/redshift/latest/dg/cm-c-wlm-queue-execution-times.html"
+  ],
+  "description": "Capacity/saturation thresholds + queue semantics for redshift.",
+  "engine": "redshift",
+  "queue_semantics": {
+    "unit": "ms",
+    "fields": [
+      "queue_wait_time",
+      "wlm_queue_time"
+    ],
+    "note": "WLM queue wait per query."
+  },
+  "saturation": {
+    "queue": {
+      "elevated": 0.6,
+      "saturated": 0.9
+    },
+    "concurrency": {
+      "elevated": 0.7,
+      "saturated": 0.95
+    }
+  }
+}

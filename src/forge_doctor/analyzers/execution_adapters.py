@@ -412,6 +412,12 @@ class SnowflakeExecutionAdapter:
                 or row.get("queue_time")
             )
             dur = _num(row.get("execution_time") or row.get("total_elapsed_time"))
+            start = _epoch_ms(
+                row.get("start_time") or row.get("start_time_epoch_ms") or row.get("start_ms")
+            )
+            end = _epoch_ms(
+                row.get("end_time") or row.get("end_time_epoch_ms") or row.get("end_ms")
+            )
             scans: tuple[ExecutionScan, ...] = ()
             if scanned is not None or pscan is not None:
                 scans = (
@@ -442,6 +448,8 @@ class SnowflakeExecutionAdapter:
                 engine="snowflake",
                 query_id=qid,
                 query_fingerprint=fingerprint_sql(sql) if sql else "",
+                start_time=start,
+                end_time=end,
                 duration_ms=dur,
                 queue_time_ms=queue,
                 status=_status(str(row.get("execution_status") or "success")),

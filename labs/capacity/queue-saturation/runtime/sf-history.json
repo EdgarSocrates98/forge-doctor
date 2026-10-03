@@ -1,0 +1,124 @@
+{
+  "queries": [
+    {
+      "query_id": "01a00000-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4200,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 300,
+      "start_time": 1700000000000,
+      "end_time": 1700000004200
+    },
+    {
+      "query_id": "01a00001-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4210,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 300,
+      "start_time": 1700003600000,
+      "end_time": 1700003604200
+    },
+    {
+      "query_id": "01a00002-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4220,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 300,
+      "start_time": 1700007200000,
+      "end_time": 1700007204200
+    },
+    {
+      "query_id": "01a00003-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4230,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 300,
+      "start_time": 1700010800000,
+      "end_time": 1700010804200
+    },
+    {
+      "query_id": "01a00004-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4240,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 600,
+      "start_time": 1700014400000,
+      "end_time": 1700014404200
+    },
+    {
+      "query_id": "01a00005-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4250,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 600,
+      "start_time": 1700018000000,
+      "end_time": 1700018004200
+    },
+    {
+      "query_id": "01a00006-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4260,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 600,
+      "start_time": 1700021600000,
+      "end_time": 1700021604200
+    },
+    {
+      "query_id": "01a00007-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4270,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 600,
+      "start_time": 1700025200000,
+      "end_time": 1700025204200
+    },
+    {
+      "query_id": "01a00008-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4280,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 900,
+      "start_time": 1700028800000,
+      "end_time": 1700028804200
+    },
+    {
+      "query_id": "01a00009-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4290,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 900,
+      "start_time": 1700032400000,
+      "end_time": 1700032404200
+    },
+    {
+      "query_id": "01a0000a-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4300,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 900,
+      "start_time": 1700036000000,
+      "end_time": 1700036004200
+    },
+    {
+      "query_id": "01a0000b-0000-0000-0000-000000000000",
+      "query_text": "select * from fact_sales where ds = '2026-10-01'",
+      "execution_status": "SUCCESS",
+      "execution_time": 4310,
+      "bytes_scanned": 250000000,
+      "queued_overload_time": 900,
+      "start_time": 1700039600000,
+      "end_time": 1700039604200
+    }
+  ]
+}

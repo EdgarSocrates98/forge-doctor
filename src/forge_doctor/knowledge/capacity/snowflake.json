@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capacity",
+  "sources": [
+    "https://docs.snowflake.com/en/sql-reference/account-usage/query_history",
+    "https://docs.snowflake.com/en/user-guide/warehouses-overview"
+  ],
+  "description": "Capacity/saturation thresholds + queue semantics for snowflake.",
+  "engine": "snowflake",
+  "queue_semantics": {
+    "unit": "ms",
+    "fields": [
+      "queued_overload_time_ms",
+      "queued_provisioning_time_ms",
+      "queued_repair_time_ms"
+    ],
+    "note": "overload = warehouse saturated; provisioning = scaling wait. Original units preserved."
+  },
+  "saturation": {
+    "queue": {
+      "elevated": 0.6,
+      "saturated": 0.9
+    },
+    "warehouse_load": {
+      "elevated": 0.7,
+      "saturated": 0.95
+    }
+  }
+}

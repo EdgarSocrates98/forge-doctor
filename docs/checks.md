@@ -2240,3 +2240,30 @@ Declared `rpo` on a path entity with no replication/failover evidence.
 Declared `rto` on a path entity with no replication/failover evidence.
 ### SLO006 — Critical dependency without failover · info
 Entity under an SLO scope on a critical path, no failover attrs.
+
+## Capacity / Saturation (runtime-scoped — CAP###)
+
+`runtime capacity` evaluates saturation over recorded history plus
+configured capacity. Threshold provenance is **config > platform pack >
+historical baseline** and is always reported; a dimension without any
+threshold source reports UNKNOWN — there is no global
+"CPU > 80% = bad" rule. Trends are rising/flat/falling + headroom; the
+optional linear extrapolation is labelled "simple projection", never a
+prediction. Observed usage with no resolvable threshold emits an INFO
+note under the dimension's finding id ("unverifiable") instead of a
+saturation verdict.
+
+### CAP001 — Queue saturation · warning
+Queue-wait usage vs configured/pack/baseline threshold is elevated or saturated.
+### CAP002 — Memory saturation · warning
+Peak memory vs configured capacity is elevated or saturated.
+### CAP003 — Storage-layout saturation · warning
+Partition/shard/storage-object counts vs declared capacity are elevated or saturated.
+### CAP004 — Worker saturation · warning
+Worker/executor pool usage vs declared capacity is elevated or saturated.
+### CAP005 — Concurrency saturation · warning
+Concurrency/slots/warehouse-load/request-rate usage vs declared capacity is elevated or saturated.
+### CAP006 — Capacity trend increasing · info
+Utilization series is rising; reports headroom and (when capacity is configured) a simple projection to saturation.
+### CAP007 — Low headroom on critical workload · warning
+A critical-path resource retains <20% headroom on a measured dimension.

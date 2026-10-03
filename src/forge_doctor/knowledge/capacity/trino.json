@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capacity",
+  "sources": [
+    "https://trino.io/docs/current/admin/properties-resource-management.html"
+  ],
+  "description": "Capacity/saturation thresholds + queue semantics for trino.",
+  "engine": "trino",
+  "queue_semantics": {
+    "unit": "ms",
+    "fields": [
+      "queued_time",
+      "analysis_time"
+    ],
+    "note": "queued_time is per-query wall-clock queue wait."
+  },
+  "saturation": {
+    "queue": {
+      "elevated": 0.6,
+      "saturated": 0.9
+    },
+    "concurrency": {
+      "elevated": 0.7,
+      "saturated": 0.95
+    }
+  }
+}

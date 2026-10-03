@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "capacity",
+  "sources": [
+    "https://cloud.google.com/bigquery/docs/information-schema-jobs",
+    "https://cloud.google.com/bigquery/docs/slots"
+  ],
+  "description": "Capacity/saturation thresholds + queue semantics for bigquery.",
+  "engine": "bigquery",
+  "queue_semantics": {
+    "unit": "ms",
+    "fields": [
+      "total_slot_ms",
+      "creation_to_start_ms"
+    ],
+    "note": "slot-time is a capacity metric, not wall-clock queue time. Original units preserved."
+  },
+  "saturation": {
+    "slots": {
+      "elevated": 0.8,
+      "saturated": 0.95
+    },
+    "queue": {
+      "elevated": 0.6,
+      "saturated": 0.9
+    }
+  }
+}
