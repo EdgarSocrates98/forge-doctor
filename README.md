@@ -91,6 +91,7 @@ forge-doctor policy list .            # organization policy packs
 forge-doctor policy report .          # compliance: violations + suppression audit
 forge-doctor lab run                  # Forge Lab scenario suites + ground truth
 forge-doctor incident inspect         # incident windows over recorded runtime history
+forge-doctor reliability path .       # critical paths over data-flow edges + segment coverage
 forge-doctor golden run               # golden-repo snapshot regression
 forge-doctor bench run .              # performance & scale benchmark
 forge-doctor schema contracts         # JSON Schemas for output artifacts

@@ -1,0 +1,5 @@
+{
+  "name": "kafka-spark-serving",
+  "description": "Kafka -> Spark SS -> Delta -> serving path; latency budget (50ms) exhausted by the ss segment (900ms); kafka/serving segments unknown.",
+  "expected_slo_findings": ["SLO002", "SLO003"]
+}

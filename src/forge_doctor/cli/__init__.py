@@ -40,6 +40,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     policy,
     quality,
     redshift,
+    reliability,
     remediate,
     rootcause,
     runtime,

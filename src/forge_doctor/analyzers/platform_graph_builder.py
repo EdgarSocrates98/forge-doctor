@@ -1015,6 +1015,20 @@ def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
     if not model.has_evidence:
         return
 
+    # datacontract slaProperties/servicelevels names -> canonical attrs
+    _SLA_ATTR = {
+        "availability": "sla_availability",
+        "latency": "sla_latency",
+        "freshness": "sla_freshness",
+        "throughput": "sla_throughput",
+        "error_rate": "sla_error_rate",
+        "errorrate": "sla_error_rate",
+        "recoverypointobjective": "rpo",
+        "recoverytimeobjective": "rto",
+        "rpo": "rpo",
+        "rto": "rto",
+    }
+
     def tail(name: str) -> str:
         return name.rpartition(".")[2].lower()
 
@@ -1034,6 +1048,12 @@ def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         for obj in c.objects:
             attrs = {f"field.{f.name}": f.type for f in obj.fields}
             attrs["contract"] = c.id
+            # Declared service levels land on the governed entity so
+            # `extract_objectives` / `slo budgets` can budget paths —
+            # canonical sla_* names, rpo/rto passthrough.
+            for prop, val in c.sla.items():
+                key = _SLA_ATTR.get(prop.lower(), f"sla_{prop.lower()}")
+                attrs[key] = val
             hits = [e for e in relations if tail(e.identifier) == tail(obj.name)]
             if not hits:
                 placeholder = g.add_entity(_e(K.TABLE, "datacontract", obj.name, c.file))

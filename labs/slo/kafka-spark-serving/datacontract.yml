@@ -1,0 +1,12 @@
+dataContractSpecification: 1.1.0
+id: orders-contract
+info:
+  title: Orders contract
+  owner: analytics-team
+servicelevels:
+  latency: "50"
+schema:
+  - name: s3://out/orders
+    fields:
+      order_id:
+        type: bigint

@@ -69,6 +69,9 @@ class GroundTruth:
     expected_incidents: tuple[str, ...] = ()  # "<count>"
     expected_candidate_causes: tuple[str, ...] = ()  # "<category>=<level>"
     expected_propagations: tuple[str, ...] = ()  # "<upstream>-><symptom>"
+    # Spec-245 SLO/critical-path categories.
+    expected_slo_findings: tuple[str, ...] = ()  # SLO001-006 ids
+    expected_paths: tuple[str, ...] = ()  # "<source>-><destination>"
 
 
 @dataclass(frozen=True)
@@ -113,6 +116,8 @@ class ScenarioReport:
     incidents: CategoryResult = field(default_factory=CategoryResult)
     candidate_causes: CategoryResult = field(default_factory=CategoryResult)
     propagations: CategoryResult = field(default_factory=CategoryResult)
+    slo_findings: CategoryResult = field(default_factory=CategoryResult)
+    paths: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -132,6 +137,8 @@ class ScenarioReport:
             and self.incidents.ok
             and self.candidate_causes.ok
             and self.propagations.ok
+            and self.slo_findings.ok
+            and self.paths.ok
             and not self.errors
         )
 
@@ -151,6 +158,8 @@ class ScenarioReport:
             ("incidents", self.incidents),
             ("candidate_causes", self.candidate_causes),
             ("propagations", self.propagations),
+            ("slo_findings", self.slo_findings),
+            ("paths", self.paths),
         )
 
 
@@ -211,6 +220,8 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_incidents=_lst("expected_incidents"),
         expected_candidate_causes=_lst("expected_candidate_causes"),
         expected_propagations=_lst("expected_propagations"),
+        expected_slo_findings=_lst("expected_slo_findings"),
+        expected_paths=_lst("expected_paths"),
     )
 
 
@@ -401,6 +412,8 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
         or truth.expected_incidents
         or truth.expected_candidate_causes
         or truth.expected_propagations
+        or truth.expected_slo_findings
+        or truth.expected_paths
     ):
         _behavioral_categories(ctx, scenario, truth, report)
 
@@ -517,6 +530,8 @@ def _behavioral_categories(
         or truth.expected_incidents
         or truth.expected_candidate_causes
         or truth.expected_propagations
+        or truth.expected_slo_findings
+        or truth.expected_paths
     ):
         _temporal_categories(ctx, scenario, truth, report, executions)
 
@@ -637,6 +652,36 @@ def _temporal_categories(
                 if entry not in actual_props:
                     pcat.missed.append(f"{entry} (got {actual_props or ['<none>']})")
 
+    if truth.expected_slo_findings or truth.expected_paths:
+        from forge_doctor.analyzers.platform_graph_builder import (
+            build_platform_graph,
+        )
+        from forge_doctor.core.critical_path import (
+            critical_paths,
+            slo_budgets,
+            slo_findings,
+        )
+        from forge_doctor.core.reliability import extract_objectives
+
+        slo_graph = graph if needs_incidents else build_platform_graph(ctx)
+        paths = critical_paths(slo_graph, executions)
+        budgets = slo_budgets(extract_objectives(slo_graph), paths)
+        slo_found = slo_findings(paths, budgets, slo_graph)
+        if truth.expected_paths:
+            pcat = report.paths
+            pcat.actual = sorted({f"{p.source}->{p.destination}" for p in paths})
+            for entry in truth.expected_paths:
+                pcat.expected.append(entry)
+                if entry not in pcat.actual:
+                    pcat.missed.append(f"{entry} (got {pcat.actual or ['<none>']})")
+        if truth.expected_slo_findings:
+            scat = report.slo_findings
+            scat.actual = sorted({f.check_id for f in slo_found})
+            for entry in truth.expected_slo_findings:
+                scat.expected.append(entry)
+                if entry not in scat.actual:
+                    scat.missed.append(f"{entry} (got {scat.actual or ['<none>']})")
+
 
 def _sla_status(objectives: list[Any], fps: list[Any], executions: list[Any]) -> dict[str, str]:
     """``<scope>.<metric>`` -> met|violated|unverifiable from evidence."""
@@ -696,6 +741,8 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         expected_incidents=truth.expected_incidents,
         expected_candidate_causes=truth.expected_candidate_causes,
         expected_propagations=truth.expected_propagations,
+        expected_slo_findings=truth.expected_slo_findings,
+        expected_paths=truth.expected_paths,
     )
 
 

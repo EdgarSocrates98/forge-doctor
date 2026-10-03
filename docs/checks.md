@@ -2213,3 +2213,30 @@ the graph evidences them; `path_found=false` when it doesn't.
 `downstream_effects` lists entities depending on the affected ones, and
 `owners` routes to entity owner/team/domain for display only.
 Resolved incidents can record `RecoveryEvent`s.
+
+## SLO & Critical Path (runtime-scoped — SLO###)
+
+`reliability path` enumerates source→sink critical paths over data-flow
+edges only (PRODUCES/CONSUMES/READS/WRITES/TRIGGERS/INVOKES/DEPENDS_ON —
+consumer-side edges are traversed in flow direction). Each segment shows
+measured latency (job/query-named executions or explicit attrs) or is
+reported `unknown` — never inferred. `bottleneck` is the largest
+*observed* contributor; coverage is always `N known / M unknown`.
+
+`reliability slo` decomposes declared objectives (`sla_*`/`rpo`/`rto`
+attrs — datacontract `servicelevels`/`slaProperties` land on governed
+entities) into `SLOBudget`s per matching path: consumed / remaining /
+which segments consumed the budget.
+
+### SLO001 — End-to-end freshness violation · warning
+Freshness budget exhausted over a critical path; consuming segments listed.
+### SLO002 — Latency budget exhausted · warning
+Summed measured latency exceeds the objective; top consumers listed.
+### SLO003 — Unknown critical segment · info
+A path segment carries no latency/freshness evidence — coverage is partial.
+### SLO004 — RPO mismatch · warning
+Declared `rpo` on a path entity with no replication/failover evidence.
+### SLO005 — RTO mismatch · warning
+Declared `rto` on a path entity with no replication/failover evidence.
+### SLO006 — Critical dependency without failover · info
+Entity under an SLO scope on a critical path, no failover attrs.
