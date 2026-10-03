@@ -1,0 +1,95 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "performance",
+  "sources": [
+    "https://spark.apache.org/docs/latest/monitoring.html",
+    "https://docs.snowflake.com/en/sql-reference/account-usage/query_history",
+    "https://cloud.google.com/bigquery/docs/information-schema-jobs",
+    "https://docs.aws.amazon.com/redshift/latest/dg/r_STL_QUERY.html",
+    "https://trino.io/docs/current/admin/event-listener.html",
+    "https://clickhouse.com/docs/en/operations/system-tables/query_log"
+  ],
+  "engines": {
+    "spark": {
+      "export": "SparkListener event log (JSONL)",
+      "metrics": {
+        "executor_run_time": {"unit": "ms", "scope": "task"},
+        "shuffle_bytes": {"unit": "bytes", "scope": "stage", "family": "data_exchange_amplification"},
+        "memory_bytes_spilled": {"unit": "bytes", "scope": "task", "family": "spill_pressure"},
+        "input_bytes": {"unit": "bytes", "scope": "task", "family": "scan_amplification"},
+        "scheduler_delay": {"unit": "ms", "scope": "task", "family": "queue_pressure"}
+      },
+      "limitations": [
+        "stage kind inferred from stage details text — not a parsed plan",
+        "SQL execution id only present when SparkListenerSQLExecutionStart events exist"
+      ]
+    },
+    "snowflake": {
+      "export": "ACCOUNT_USAGE.QUERY_HISTORY / INFORMATION_SCHEMA.QUERY_HISTORY rows",
+      "metrics": {
+        "execution_time": {"unit": "ms"},
+        "bytes_scanned": {"unit": "bytes", "family": "scan_amplification"},
+        "partitions_scanned": {"unit": "count", "family": "poor_pruning"},
+        "queued_overload_time": {"unit": "ms", "family": "queue_pressure"},
+        "bytes_spilled_to_local_storage": {"unit": "bytes", "family": "spill_pressure"}
+      },
+      "limitations": [
+        "QUERY_HISTORY aggregates per query — no operator-level stages",
+        "queue times split provisioning vs overload; only overload maps to QUEUE_PRESSURE"
+      ]
+    },
+    "bigquery": {
+      "export": "INFORMATION_SCHEMA.JOBS* rows",
+      "metrics": {
+        "total_bytes_processed": {"unit": "bytes", "family": "scan_amplification"},
+        "total_bytes_billed": {"unit": "bytes", "family": "scan_volume"},
+        "total_slot_ms": {"unit": "ms", "family": "compute"},
+        "shuffle_output_bytes": {"unit": "bytes", "family": "data_exchange_amplification"}
+      },
+      "limitations": [
+        "slot_ms is compute capacity-time, not wall cpu; mapped to cpu_time_ms with that caveat",
+        "queryStages array only present in API get() output, not table export"
+      ]
+    },
+    "redshift": {
+      "export": "STL_QUERY / SVL_QUERY_SUMMARY / SYS_QUERY_HISTORY rows",
+      "metrics": {
+        "total_exec_time": {"unit": "us", "note": "microseconds in STL views"},
+        "wlm_queue_time": {"unit": "us", "family": "queue_pressure"},
+        "rows": {"unit": "rows"}
+      },
+      "limitations": [
+        "unit ambiguity: STL uses microseconds; SYS_* uses ms — adapters keep raw values",
+        "distribution stats live in SVL_QUERY_REPORT, not STL_QUERY"
+      ]
+    },
+    "trino": {
+      "export": "v1/query/<id> JSON or event-listener query payload",
+      "metrics": {
+        "elapsedTime": {"unit": "duration-string", "parsed": "ms"},
+        "queuedTime": {"unit": "duration-string", "family": "queue_pressure"},
+        "processedInputDataSize": {"unit": "size-string", "family": "scan_amplification"},
+        "spilledDataSize": {"unit": "size-string", "family": "spill_pressure"}
+      },
+      "limitations": [
+        "stage kind inferred from operatorTypes list — approximate mapping",
+        "outputStageInfos shape differs across Trino versions; both dict/list tolerated"
+      ]
+    },
+    "clickhouse": {
+      "export": "system.query_log / query_thread_log rows",
+      "metrics": {
+        "query_duration_ms": {"unit": "ms"},
+        "read_rows": {"unit": "rows", "family": "scan_amplification"},
+        "read_bytes": {"unit": "bytes", "family": "scan_amplification"},
+        "memory_usage": {"unit": "bytes"}
+      },
+      "limitations": [
+        "per-thread breakdown needs query_thread_log; query_log is query-level",
+        "parts/merges exports are storage evidence, not execution"
+      ]
+    }
+  }
+}

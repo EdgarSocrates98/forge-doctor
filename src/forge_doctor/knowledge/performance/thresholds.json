@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "performance",
+  "sources": [
+    "https://docs.aws.amazon.com/redshift/latest/dg/c-mgmt-vacuum.html",
+    "https://docs.snowflake.com/en/user-guide/warehouse-management",
+    "https://trino.io/docs/current/admin/properties.html",
+    "https://spark.apache.org/docs/latest/monitoring.html"
+  ],
+  "description": "Default PERF finding bounds. Conservative: tuned to fire on clear evidence only. Contract/pack/config may override.",
+  "thresholds": {
+    "scan_amplification": {
+      "value": 5.0,
+      "rationale": "scanning >5x the produced bytes indicates missing pruning/filtering"
+    },
+    "pruning_min": {
+      "value": 0.5,
+      "rationale": "scanning >50% of partitions means the partition key misses the predicate"
+    },
+    "exchange_amplification": {
+      "value": 3.0,
+      "rationale": "shuffle >3x input is a redistribution-heavy plan"
+    },
+    "skew_ratio": {
+      "value": 4.0,
+      "rationale": "max/median task duration >4x across >=4 tasks is a hot key or data skew"
+    },
+    "spill_ratio": {
+      "value": 0.5,
+      "rationale": "spilling >50% of peak memory indicates sustained memory pressure"
+    },
+    "queue_share": {
+      "value": 0.3,
+      "rationale": "queueing >30% of wall time is contention, not execution"
+    },
+    "remote_io_ratio": {
+      "value": 0.5,
+      "rationale": "remote reads >50% of input bytes is an I/O bound workload"
+    },
+    "min_parallelism": {
+      "value": 1.0,
+      "rationale": "single-task/near-serial stages cap effective parallelism"
+    },
+    "materialize_count": {
+      "value": 3.0,
+      "rationale": "3+ materializations in one plan suggests repeated intermediate work"
+    }
+  }
+}

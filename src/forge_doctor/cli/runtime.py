@@ -166,6 +166,61 @@ def runtime_executions(
     console.print()
 
 
+@runtime_app.command(name="performance")
+def runtime_performance(
+    artifact: Annotated[Path, typer.Argument(help="Exported engine artifact.")],
+    adapter: _AdapterOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Derive performance signals + PERF findings from an artifact."""
+    from forge_doctor.analyzers.execution_adapters import ingest_executions
+    from forge_doctor.core.performance import (
+        PerfPolicy,
+        extract_signals,
+        perf_findings,
+    )
+
+    source, executions = ingest_executions(artifact, adapter=adapter)
+    signals = extract_signals(executions)
+    findings = perf_findings(executions, signals, PerfPolicy.defaults())
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "source": source,
+                    "executions": len(executions),
+                    "signals": [
+                        {
+                            "family": s.family.value,
+                            "subject": s.subject,
+                            "value": s.value,
+                            "observed": s.observed,
+                            "derived": s.derived,
+                            "confidence": s.confidence.value,
+                        }
+                        for s in signals
+                    ],
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(
+        f"[bold]Performance[/bold]  source={source} executions={len(executions)} "
+        f"signals={len(signals)}"
+    )
+    for s in signals:
+        console.print(f"  {s.family.value:<28} {s.subject} value={s.value} [{s.confidence.value}]")
+        console.print(f"    observed: {s.observed} | derived: {s.derived}")
+    warn = [f for f in findings if f.severity.value == "warning"]
+    for f in warn:
+        console.print(f"  [yellow]{f.check_id}[/yellow] {f.message}")
+    console.print()
+
+
 @runtime_app.command(name="diagnose")
 def runtime_diagnose(
     artifact: Annotated[Path, typer.Argument(help="Exported runtime artifact.")],

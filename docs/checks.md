@@ -2028,3 +2028,49 @@ side) — e.g. time-travel window semantics.
 ### MIGR003 — Unmapped downstream consumer · warning
 A consumer entity reads migrated assets but has no target link.
 **Fix:** rewire onto the target or run parallel.
+
+## Runtime performance (runtime-scoped — PERF###, PHY###)
+
+PERF/PHY findings are not project-scan checks; they are emitted by
+`forge-doctor runtime performance` over exported execution artifacts
+(`runtime executions` input) plus declared physical designs on the
+platform graph. Thresholds come from `knowledge/performance/` packs or
+explicit policy config — without a bound, a signal stays an
+informational observation, never a warning on a magic number.
+
+### PERF001 — High scan amplification · warning
+Bytes scanned far exceed bytes logically required (ratio only when the
+logical denominator is measured, never fabricated).
+### PERF002 — Poor partition pruning · warning
+Share of partitions scanned exceeds the policy bound.
+### PERF003 — High data exchange amplification · warning
+Shuffle/exchange/redistribution volume elevated relative to input.
+### PERF004 — Confirmed skew · warning
+Task-duration distribution shows real skew (requires n>=4 task records;
+never inferred from code alone).
+### PERF005 — Spill pressure · warning
+Spill bytes relative to input exceed the bound (per-engine metric, no
+cross-engine equivalence claimed).
+### PERF006 — Excessive queue time · warning
+Queue/slot/WLM/resource-group wait share exceeds the bound.
+### PERF007 — Remote I/O amplification · warning
+Remote reads dominate local reads beyond the bound.
+### PERF008 — Low parallelism · info
+Stage parallelism below the policy floor.
+### PERF009 — Small-file penalty · warning
+Average bytes/file below the pack threshold — tiny-file overhead.
+### PERF010 — Repeated materialization · info
+Multiple materialize stages suggest review.
+
+### PHY001 — No data-organization keys declared · info
+Design declares secondary features only (replication/caching/indexing/
+sharding) with no partitioning, clustering, ordering or distribution.
+### PHY002 — Pruning ineffective · warning
+Runtime pruning evidence contradicts the declared partitioning.
+### PHY003 — Distribution mismatch · info
+Exchange/skew signals suggest distribution/layout review.
+### PHY004 — Storage layout under pressure · info
+Small-file/write/materialization/remote-IO signals suggest
+layout/compaction review.
+### PHY005 — Excessive physical representation count · warning
+Same subject materialized in 4+ physical designs.
