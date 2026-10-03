@@ -84,6 +84,7 @@ class ExecutionScan:
     rows_scanned: float | None = None
     partitions_total: float | None = None
     partitions_scanned: float | None = None
+    files_scanned: float | None = None  # exported file count when present
     predicate: str = ""  # redacted predicate text when exported
     pushdown: str = ""  # pushdown evidence kind, free-form
     pruning: float | None = None

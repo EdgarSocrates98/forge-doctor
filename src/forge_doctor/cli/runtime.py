@@ -221,6 +221,68 @@ def runtime_performance(
     console.print()
 
 
+@runtime_app.command(name="cost")
+def runtime_cost(
+    artifact: Annotated[Path, typer.Argument(help="Exported engine artifact.")],
+    adapter: _AdapterOpt = None,
+    root: Annotated[
+        Path | None,
+        typer.Option("--root", help="Project root for entity drivers/transfers."),
+    ] = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Derive technical cost drivers + COST findings (never prices)."""
+    from forge_doctor.analyzers.execution_adapters import ingest_executions
+    from forge_doctor.core.cost_drivers import (
+        CostPolicy,
+        cost_findings,
+        detect_transfers,
+        extract_drivers,
+    )
+
+    source, executions = ingest_executions(artifact, adapter=adapter)
+    graph = None
+    if root is not None:
+        from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+        from forge_doctor.core.context import ProjectContext
+
+        graph = build_platform_graph(ProjectContext(root=root.resolve()))
+    drivers = extract_drivers(executions, graph)
+    transfers = detect_transfers(executions, graph)
+    findings = cost_findings(drivers, transfers, CostPolicy.defaults(), executions)
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "source": source,
+                    "executions": len(executions),
+                    "drivers": [d.to_dict() for d in drivers],
+                    "transfers": [t.to_dict() for t in transfers],
+                    "findings": [f.to_dict() for f in findings],
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print()
+    console.print(
+        f"[bold]Cost Drivers[/bold]  source={source} executions={len(executions)} "
+        f"drivers={len(drivers)} transfers={len(transfers)}"
+    )
+    for d in drivers:
+        console.print(
+            f"  {d.kind.value:<20} {d.entity or d.source} {d.value:.0f} {d.unit}"
+            + (f" team={d.team}" if d.team else "")
+        )
+    for t in transfers:
+        console.print(f"  [cyan]transfer[/cyan] {t.source_cloud} -> {t.target_cloud} ({t.mode})")
+    warn = [f for f in findings if f.severity.value == "warning"]
+    for f in warn:
+        console.print(f"  [yellow]{f.check_id}[/yellow] {f.message}")
+    console.print()
+
+
 @runtime_app.command(name="diagnose")
 def runtime_diagnose(
     artifact: Annotated[Path, typer.Argument(help="Exported runtime artifact.")],

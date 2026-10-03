@@ -2074,3 +2074,27 @@ Small-file/write/materialization/remote-IO signals suggest
 layout/compaction review.
 ### PHY005 — Excessive physical representation count · warning
 Same subject materialized in 4+ physical designs.
+
+## Cost drivers (runtime-scoped — COST###)
+
+COST findings are emitted by `forge-doctor runtime cost` over exported
+execution artifacts plus (with `--root`) entity evidence from the
+platform graph. They report technical driver units — bytes, slot-ms,
+credits, executor-ms — never prices; no monetary claim is made without
+explicit pricing/config evidence in the repo.
+
+### COST001 — Idle compute evidence · info
+Execution ran with duration but no bytes read or written.
+### COST002 — Repeated high scan volume · warning
+Same subject scanned repeatedly above the pack bound.
+### COST003 — Cross-cloud data movement · warning
+Engine reads an input entity whose cloud differs from its own —
+emitted only when both clouds are known evidence.
+### COST004 — Replication footprint declared · warning
+Replica count exceeds the bound; storage multiplier shown.
+### COST005 — Materialization duplication · info
+Same subject written by >=3 distinct executions.
+### COST006 — Shuffle/spill cost driver · warning
+Exchange/spill bytes above the pack bound.
+### COST007 — Tiny-file overhead driver · warning
+Avg bytes/file below the bound; requires an exported file count.

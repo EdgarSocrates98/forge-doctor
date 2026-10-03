@@ -1,0 +1,52 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "cost_drivers",
+  "sources": [
+    "https://docs.snowflake.com/en/user-guide/credits",
+    "https://cloud.google.com/bigquery/pricing",
+    "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-billing.html",
+    "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan.html",
+    "https://opensearch.org/docs/latest/tuning-your-cluster/"
+  ],
+  "description": "Technical cost-driver semantics per engine — units and shapes only, never prices.",
+  "engines": {
+    "snowflake": {
+      "kinds": ["compute_duration", "warehouse_uptime", "scan_volume", "storage_volume", "spill_io", "shuffle_volume", "credit_usage"],
+      "notes": "Credits require explicit export; warehouse uptime proxies compute spend. Queue time does not directly cost but extends uptime."
+    },
+    "bigquery": {
+      "kinds": ["scan_volume", "slot_usage", "compute_duration", "shuffle_volume", "storage_volume"],
+      "notes": "bytes_processed/bytes_billed map to scan_volume; slot-ms map to slot_usage. Reservations are config evidence, not runtime."
+    },
+    "redshift": {
+      "kinds": ["rpu_usage", "compute_duration", "scan_volume", "shuffle_volume", "storage_volume"],
+      "notes": "Serverless bills RPU-seconds (proxied by duration); provisioned bills node-hours. Concurrency scaling appears as extra cluster time."
+    },
+    "spark": {
+      "kinds": ["executor_time", "compute_duration", "shuffle_volume", "spill_io", "scan_volume"],
+      "notes": "Executor time = sum of task durations; cluster uptime is separate evidence. Shuffle/spill drive network+disk I/O."
+    },
+    "databricks": {
+      "kinds": ["executor_time", "compute_duration", "shuffle_volume", "spill_io", "scan_volume"],
+      "notes": "DBU consumption follows executor/cluster time; no DBU claims without export."
+    },
+    "emr": {
+      "kinds": ["executor_time", "compute_duration", "shuffle_volume", "spill_io", "scan_volume"],
+      "notes": "Node-hours proxy cluster duration; shuffle/spill indicate wasted I/O."
+    },
+    "trino": {
+      "kinds": ["compute_duration", "scan_volume", "shuffle_volume", "network_egress"],
+      "notes": "No billing unit; drivers are cluster-time and I/O shapes."
+    },
+    "clickhouse": {
+      "kinds": ["compute_duration", "scan_volume", "storage_volume", "replication"],
+      "notes": "Self-managed: cost drivers are node time, storage, and replication fan-out."
+    },
+    "opensearch": {
+      "kinds": ["compute_duration", "storage_volume", "index_storage", "replication", "request_count"],
+      "notes": "Nodes/shards/replicas/storage dominate; shard count amplifies per-request work."
+    }
+  }
+}

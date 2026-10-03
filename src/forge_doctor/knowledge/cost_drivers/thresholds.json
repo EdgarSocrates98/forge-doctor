@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "pack_version": "1.0.0",
+  "verified_at": "2026-10-03",
+  "domain": "cost_drivers",
+  "sources": [
+    "https://docs.snowflake.com/en/user-guide/credits",
+    "https://cloud.google.com/bigquery/docs/slots",
+    "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-billing.html",
+    "https://spark.apache.org/docs/latest/monitoring.html"
+  ],
+  "description": "Default COST finding bounds in technical units (bytes, counts). Never monetary amounts. Contract/pack/config may override.",
+  "thresholds": {
+    "scan_volume_bytes": {
+      "value": 10737418240,
+      "rationale": ">10 GiB scanned per execution is a dominant scan driver worth reviewing"
+    },
+    "replication_max_copies": {
+      "value": 3,
+      "rationale": ">3 replicas is an unusual durability footprint for analytic data"
+    },
+    "materialize_min_dup": {
+      "value": 3,
+      "rationale": "same subject materialized by >=3 distinct executions suggests consolidation"
+    },
+    "shuffle_bytes": {
+      "value": 1073741824,
+      "rationale": ">1 GiB of shuffle/spill per execution is a measurable I/O driver"
+    },
+    "small_file_bytes": {
+      "value": 8388608,
+      "rationale": "avg file <8 MiB makes per-file overhead dominate the scan"
+    }
+  }
+}
