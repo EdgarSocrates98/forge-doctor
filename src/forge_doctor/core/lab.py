@@ -61,6 +61,10 @@ class GroundTruth:
     expected_cost_drivers: tuple[str, ...] = ()  # CostDriverKind values
     expected_sla_status: tuple[str, ...] = ()  # "<scope>.<metric>=met|violated|unverifiable"
     expected_optimization_candidates: tuple[str, ...] = ()  # family values
+    # Spec-243 temporal categories — series built from runtime/ artifacts.
+    expected_regressions: tuple[str, ...] = ()  # "<fingerprint>.<dimension>=<class>"
+    expected_correlations: tuple[str, ...] = ()  # "<change_id>" or "<change_id>=<conf>"
+    forbidden_correlations: tuple[str, ...] = ()  # "<change_id>" must not correlate
 
 
 @dataclass(frozen=True)
@@ -100,6 +104,8 @@ class ScenarioReport:
     cost_drivers: CategoryResult = field(default_factory=CategoryResult)
     sla_status: CategoryResult = field(default_factory=CategoryResult)
     opportunities: CategoryResult = field(default_factory=CategoryResult)
+    regressions: CategoryResult = field(default_factory=CategoryResult)
+    correlations: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -114,6 +120,8 @@ class ScenarioReport:
             and self.cost_drivers.ok
             and self.sla_status.ok
             and self.opportunities.ok
+            and self.regressions.ok
+            and self.correlations.ok
             and not self.errors
         )
 
@@ -128,6 +136,8 @@ class ScenarioReport:
             ("cost_drivers", self.cost_drivers),
             ("sla_status", self.sla_status),
             ("opportunities", self.opportunities),
+            ("regressions", self.regressions),
+            ("correlations", self.correlations),
         )
 
 
@@ -182,6 +192,9 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_cost_drivers=_lst("expected_cost_drivers"),
         expected_sla_status=_lst("expected_sla_status"),
         expected_optimization_candidates=_lst("expected_optimization_candidates"),
+        expected_regressions=_lst("expected_regressions"),
+        expected_correlations=_lst("expected_correlations"),
+        forbidden_correlations=_lst("forbidden_correlations"),
     )
 
 
@@ -366,6 +379,9 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
         or truth.expected_cost_drivers
         or truth.expected_sla_status
         or truth.expected_optimization_candidates
+        or truth.expected_regressions
+        or truth.expected_correlations
+        or truth.forbidden_correlations
     ):
         _behavioral_categories(ctx, scenario, truth, report)
 
@@ -475,6 +491,75 @@ def _behavioral_categories(
             if e not in actual_fams:
                 ocat.missed.append(e)
 
+    if truth.expected_regressions or truth.expected_correlations or truth.forbidden_correlations:
+        _temporal_categories(ctx, scenario, truth, report, executions)
+
+
+def _temporal_categories(
+    ctx: Any,
+    scenario: Path,
+    truth: GroundTruth,
+    report: ScenarioReport,
+    executions: list[Any],
+) -> None:
+    """Regression classes + change correlations vs truth (spec 243).
+
+    ``changes.json`` in the scenario root supplies change events —
+    absent file means zero events.  Expectation subject may be the
+    exact series subject_id or ``*`` (any series).
+    """
+    from forge_doctor.core.change_correlation import (
+        change_events_from_json,
+        correlate,
+    )
+    from forge_doctor.core.execution_history import SubjectKind, build_series
+    from forge_doctor.core.regression import (
+        RegressionPolicy,
+        detect_regressions,
+    )
+
+    series = build_series(executions, SubjectKind.FINGERPRINT)
+    signals = detect_regressions(series, RegressionPolicy.defaults())
+
+    if truth.expected_regressions:
+        rcat = report.regressions
+        actual = sorted({f"{s.subject}.{s.dimension.value}={s.klass.value}" for s in signals})
+        rcat.actual = actual
+        for entry in truth.expected_regressions:
+            rcat.expected.append(entry)
+            key, _, want = entry.rpartition("=")
+            subject, _, dim = key.rpartition(".")
+            hit = any(
+                s.klass.value == want.strip().lower()
+                and s.dimension.value == dim
+                and (subject == "*" or s.subject == subject or s.subject.endswith(subject))
+                for s in signals
+            )
+            if not hit:
+                got = sorted(a for a in actual if f".{dim}=" in a) or ["<none>"]
+                rcat.missed.append(f"{entry} (got {got})")
+
+    if truth.expected_correlations or truth.forbidden_correlations:
+        ccat = report.correlations
+        changes = change_events_from_json(scenario / "changes.json")
+        from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+
+        corrs = correlate(changes, series, build_platform_graph(ctx))
+        actual = sorted({f"{c.change.id}={c.confidence.value}" for c in corrs})
+        ccat.actual = actual
+        actual_ids = {c.change.id: c.confidence.value for c in corrs}
+        for entry in truth.expected_correlations:
+            ccat.expected.append(entry)
+            cid, _, want = entry.partition("=")
+            got_conf = actual_ids.get(cid)
+            if got_conf is None:
+                ccat.missed.append(f"{entry} (got none)")
+            elif want and got_conf != want.strip().lower():
+                ccat.missed.append(f"{entry} (got {got_conf})")
+        for entry in truth.forbidden_correlations:
+            if entry in actual_ids:
+                ccat.forbidden_hit.append(entry)
+
 
 def _sla_status(objectives: list[Any], fps: list[Any], executions: list[Any]) -> dict[str, str]:
     """``<scope>.<metric>`` -> met|violated|unverifiable from evidence."""
@@ -528,6 +613,9 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         expected_cost_drivers=truth.expected_cost_drivers,
         expected_sla_status=truth.expected_sla_status,
         expected_optimization_candidates=truth.expected_optimization_candidates,
+        expected_regressions=truth.expected_regressions,
+        expected_correlations=truth.expected_correlations,
+        forbidden_correlations=truth.forbidden_correlations,
     )
 
 

@@ -657,6 +657,60 @@ def runtime_regressions(
     console.print()
 
 
+@runtime_app.command(name="correlate")
+def runtime_correlate(
+    events: Annotated[
+        Path,
+        typer.Argument(help="JSON file of change events (deployment export / diff output)."),
+    ],
+    root: Annotated[
+        Path, typer.Option("--root", help="Project root holding .forge-doctor/.")
+    ] = Path("."),
+    window_minutes: Annotated[
+        int, typer.Option("--window", help="Max minutes between change and regression start.")
+    ] = 120,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Correlate recorded change events with regression episodes.
+
+    Evidence-gated: a correlation is reported only when at least two
+    evidence legs hold (temporal proximity, entity overlap, graph path,
+    metric relevance).  Language stays 'correlated with' — never cause.
+    """
+    from forge_doctor.core.change_correlation import (
+        change_events_from_json,
+        correlate,
+    )
+    from forge_doctor.core.execution_history import iter_samples
+
+    changes = change_events_from_json(events)
+    series = build_series_from_samples(list(iter_samples(root)))
+    graph = None
+    try:
+        from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+        from forge_doctor.core.context import ProjectContext
+
+        graph = build_platform_graph(ProjectContext(root=root.resolve()))
+    except Exception:
+        graph = None
+    correlations = correlate(changes, series, graph, window_ms=window_minutes * 60_000)
+    if as_json:
+        typer.echo(json.dumps([c.to_dict() for c in correlations], indent=2))
+        return
+    console = Console()
+    console.print()
+    console.print(
+        f"[bold]Change <-> runtime correlation[/bold]  changes={len(changes)} series={len(series)}"
+    )
+    for c in correlations:
+        dims = ",".join(d.value for d in c.matching_dimensions)
+        console.print(f"  [{c.confidence.value}] {c.change.id} -> {c.subject} {dims}")
+        console.print(f"    {c.explanation}")
+    if not correlations:
+        console.print("  no correlations met the evidence threshold")
+    console.print()
+
+
 @runtime_app.callback(invoke_without_command=True)
 def _runtime_default(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:

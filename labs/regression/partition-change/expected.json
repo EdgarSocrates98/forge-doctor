@@ -1,0 +1,6 @@
+{
+  "name": "partition-change-regression",
+  "description": "Stable baseline then partition change -> duration regression; the change correlates (entity overlap + temporal + metric relevance).",
+  "expected_regressions": ["*.duration=regressed"],
+  "expected_correlations": ["chg-partition=medium"]
+}

@@ -39,6 +39,16 @@ def diff_cmd(
         bool,
         typer.Option("--semantic", help="Entity-level diff + blast radius (git refs only)."),
     ] = False,
+    runtime_impact: Annotated[
+        bool,
+        typer.Option(
+            "--runtime-impact",
+            help=(
+                "Correlate the semantic diff's changes with recorded "
+                "runtime history (implies --semantic)."
+            ),
+        ),
+    ] = False,
     fmt: Annotated[
         str, typer.Option("--format", "-f", help="text|json (semantic diff only)")
     ] = "text",
@@ -53,8 +63,8 @@ def diff_cmd(
         _stderr.print("[red]Empty diff side - expected 'base...head'.[/red]")
         raise typer.Exit(INTERNAL_ERROR_EXIT)
 
-    if semantic:
-        _semantic_diff(old, new, path, fmt)
+    if semantic or runtime_impact:
+        _semantic_diff(old, new, path, fmt, runtime_impact=runtime_impact)
         return
     if fmt != "text":
         _stderr.print("[red]--format is only supported with --semantic.[/red]")
@@ -102,7 +112,14 @@ def diff_cmd(
     raise typer.Exit(1 if added else 0)
 
 
-def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") -> None:
+def _semantic_diff(
+    base_ref: str,
+    head_ref: str,
+    repo: Path,
+    fmt: str = "text",
+    *,
+    runtime_impact: bool = False,
+) -> None:
     """Entity-level diff between two git refs: changes, blast radius, risk."""
     import subprocess
 
@@ -137,6 +154,34 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") 
     from forge_doctor.core.change_intel import analyze_change
 
     intel = analyze_change(base_g, head_g)
+
+    from forge_doctor.core.change_correlation import ChangeRuntimeCorrelation
+
+    correlations: list[ChangeRuntimeCorrelation] = []
+    if runtime_impact:
+        from forge_doctor.core.change_correlation import (
+            change_events_from_diff,
+            correlate,
+        )
+        from forge_doctor.core.execution_history import iter_samples
+
+        ts_raw = subprocess.run(
+            ["git", "-C", str(repo), "log", "-1", "--format=%ct", head_ref],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=30,
+        )
+        head_ts = (
+            float(ts_raw.stdout.strip()) * 1000
+            if ts_raw.returncode == 0 and ts_raw.stdout.strip()
+            else None
+        )
+        events = change_events_from_diff(diff, timestamp=head_ts, commit=head_ref)
+        from forge_doctor.cli.runtime import build_series_from_samples
+
+        series = build_series_from_samples(list(iter_samples(repo)))
+        correlations = correlate(events, series, head_g)
 
     if fmt == "json":
         import dataclasses
@@ -185,6 +230,11 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") 
                         }
                         for r in intel.migration_requirements
                     ],
+                    **(
+                        {"runtime_impact": [c.to_dict() for c in correlations]}
+                        if runtime_impact
+                        else {}
+                    ),
                 },
                 indent=2,
                 ensure_ascii=False,
@@ -256,4 +306,15 @@ def _semantic_diff(base_ref: str, head_ref: str, repo: Path, fmt: str = "text") 
         console.print(
             f"[dim]{len(diff.unmapped_files)} changed file(s) map to no platform entity[/dim]"
         )
+    if runtime_impact:
+        console.print("[bold]Runtime impact[/bold] (correlated, not causal):")
+        if correlations:
+            for corr in correlations:
+                console.print(
+                    f"  [{corr.confidence.value}] {corr.change.id} -> "
+                    f"{corr.subject} {corr.dimension.value}"
+                )
+                console.print(f"    [dim]{corr.explanation}[/dim]")
+        else:
+            console.print("  [dim]no recorded regression correlates with these changes[/dim]")
     raise typer.Exit(1 if added or diff.risk == RISK_HIGH else 0)

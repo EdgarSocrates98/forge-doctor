@@ -1,0 +1,15 @@
+[
+  {
+    "id": "chg-partition",
+    "timestamp": 1700025200000,
+    "entities": [
+      "8f35d4d2e59e8499"
+    ],
+    "properties": [
+      "num_partitions"
+    ],
+    "class": "partition_change",
+    "source": "deployment_export",
+    "commit": "a1b2c3"
+  }
+]

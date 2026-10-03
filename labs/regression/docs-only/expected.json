@@ -1,0 +1,6 @@
+{
+  "name": "docs-only-false-positive",
+  "description": "Docs-only change + real regression -> no correlation (no entity locality).",
+  "expected_regressions": ["*.duration=regressed"],
+  "forbidden_correlations": ["chg-docs"]
+}

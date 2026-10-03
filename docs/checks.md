@@ -2169,3 +2169,25 @@ Freshness lag grew persistently vs baseline.
 Rows/second fell persistently vs baseline (lower-is-better direction).
 ### PERFREG009 — Volatility increase · info
 Baseline dispersion (MAD/median) exceeds the declared ratio — the series itself is unstable.
+
+## Change ↔ Runtime Correlation (runtime-scoped)
+
+`runtime correlate <events.json>` and `diff --runtime-impact` pair change
+events (`ChangeEvent`: semantic-diff entity changes, deployment exports,
+CI/TF/dbt apply summaries) with regression episodes from recorded history.
+
+A `ChangeRuntimeCorrelation` is emitted only when the change demonstrably
+reaches the subject — entity overlap or a bounded graph path — *and* the
+changed property plausibly moves the regressed dimension (`matching_dimensions`).
+Confidence is an exposed evidence breakdown, not a score:
+
+- **high** — all four legs: temporal precedence within the window,
+  entity overlap, graph path, metric relevance
+- **medium** — three legs
+- **low** — locality + metric relevance only
+
+Without clock-aligned timestamps (`TimestampQuality`) no temporal leg is
+claimed; without locality nothing is emitted — a docs-only commit cannot
+correlate with a regression. Language stays `correlated with` /
+`preceded by`; `confirmed cause` is reserved for deterministic
+graph + runtime + change evidence chains (spec 244).

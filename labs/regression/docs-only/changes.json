@@ -1,0 +1,14 @@
+[
+  {
+    "id": "chg-docs",
+    "timestamp": 1700025200000,
+    "entities": [
+      "docs/runbook.md"
+    ],
+    "properties": [
+      "content"
+    ],
+    "class": "config_change",
+    "source": "deployment_export"
+  }
+]
