@@ -173,7 +173,7 @@ def test_cli_optimize_clean(tmp_path: Path) -> None:
     (tmp_path / "main.tf").write_text(
         'resource "aws_dynamodb_table" "t" { name = "t" }\n', encoding="utf-8"
     )
-    result = runner.invoke(app, ["optimize", str(tmp_path)])
+    result = runner.invoke(app, ["optimize", "--path", str(tmp_path)])
     assert result.exit_code == 0, result.output
     assert "Optimization candidates" in result.output
 
@@ -184,7 +184,7 @@ def test_cli_optimize_json(tmp_path: Path) -> None:
         "df = SparkSession.builder.getOrCreate().read.parquet('s3://in')\n"
         "df.repartition(1).write.save('/x')\n"
     )
-    result = runner.invoke(app, ["optimize", str(tmp_path), "-f", "json"])
+    result = runner.invoke(app, ["optimize", "--path", str(tmp_path), "-f", "json"])
     assert result.exit_code == 0, result.output
     rows = json.loads(result.output)
     assert any(r["optimization"] == "partition-data" for r in rows)
