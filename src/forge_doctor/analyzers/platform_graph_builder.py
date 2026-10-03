@@ -1048,6 +1048,8 @@ def _contracts(ctx: ProjectContext, g: DataPlatformGraph) -> None:
         for obj in c.objects:
             attrs = {f"field.{f.name}": f.type for f in obj.fields}
             attrs["contract"] = c.id
+            if c.owner:
+                attrs["owner"] = c.owner
             # Declared service levels land on the governed entity so
             # `extract_objectives` / `slo budgets` can budget paths —
             # canonical sla_* names, rpo/rto passthrough.

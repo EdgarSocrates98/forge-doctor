@@ -78,6 +78,10 @@ class GroundTruth:
     expected_capacity_signals: tuple[str, ...] = ()  # "<subject>.<dim>=<class>"
     expected_capacity_findings: tuple[str, ...] = ()  # CAP001-007 ids
     capacity_attrs: dict[str, dict[str, str]] = field(default_factory=dict)
+    # Spec-247 portfolio categories — ``fleet_manifest`` names a manifest
+    # file inside the scenario (repos as relative subdirs).
+    fleet_manifest: str = ""
+    expected_duplications: tuple[str, ...] = ()  # "<kind>:<subject>"
 
 
 @dataclass(frozen=True)
@@ -126,6 +130,7 @@ class ScenarioReport:
     paths: CategoryResult = field(default_factory=CategoryResult)
     capacity: CategoryResult = field(default_factory=CategoryResult)
     capacity_findings: CategoryResult = field(default_factory=CategoryResult)
+    duplications: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -149,6 +154,7 @@ class ScenarioReport:
             and self.paths.ok
             and self.capacity.ok
             and self.capacity_findings.ok
+            and self.duplications.ok
             and not self.errors
         )
 
@@ -172,6 +178,7 @@ class ScenarioReport:
             ("paths", self.paths),
             ("capacity", self.capacity),
             ("capacity_findings", self.capacity_findings),
+            ("duplications", self.duplications),
         )
 
 
@@ -245,6 +252,8 @@ def load_ground_truth(path: Path) -> GroundTruth:
             if isinstance(raw.get("capacity_attrs"), dict)
             else {}
         ),
+        fleet_manifest=str(raw.get("fleet_manifest") or ""),
+        expected_duplications=_lst("expected_duplications"),
     )
 
 
@@ -442,7 +451,34 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
     ):
         _behavioral_categories(ctx, scenario, truth, report)
 
+    if truth.fleet_manifest or truth.expected_duplications:
+        _fleet_categories(scenario, truth, report)
+
     return report
+
+
+def _fleet_categories(scenario: Path, truth: GroundTruth, report: ScenarioReport) -> None:
+    """Portfolio duplication expectations over a scenario fleet manifest."""
+    from forge_doctor.core.fleet import (
+        FleetManifestError,
+        build_fleet_model,
+        load_manifest,
+    )
+    from forge_doctor.core.portfolio import build_portfolio
+
+    manifest_path = scenario / (truth.fleet_manifest or "fleet.yml")
+    dcat = report.duplications
+    try:
+        model = build_fleet_model(load_manifest(manifest_path.resolve()))
+    except FleetManifestError as exc:
+        report.errors.append(f"fleet manifest: {exc}")
+        return
+    dups = build_portfolio(model).duplications
+    dcat.actual = sorted({f"{d.kind.value}:{d.subject}" for d in dups})
+    for entry in truth.expected_duplications:
+        dcat.expected.append(entry)
+        if entry not in dcat.actual:
+            dcat.missed.append(f"{entry} (got {dcat.actual or ['<none>']})")
 
 
 def _execution_models(scenario: Path) -> list[Any]:
@@ -816,6 +852,8 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         expected_capacity_signals=truth.expected_capacity_signals,
         expected_capacity_findings=truth.expected_capacity_findings,
         capacity_attrs=truth.capacity_attrs,
+        fleet_manifest=truth.fleet_manifest,
+        expected_duplications=truth.expected_duplications,
     )
 
 

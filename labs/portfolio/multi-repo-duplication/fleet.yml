@@ -1,0 +1,4 @@
+fleet: dup-test
+repos:
+  - repoA
+  - repoB

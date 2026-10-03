@@ -335,3 +335,154 @@ def fleet_report(
         f"({dict(sorted(sev_counts.items()))}); "
         f"{len(model.links)} cross-repo links"
     )
+
+
+@fleet_app.command(name="portfolio")
+def fleet_portfolio(
+    spec: ManifestArg,
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Portfolio view: platforms, workloads, duplication, complexity —
+    facts only, no health score."""
+    import json as _json
+
+    from forge_doctor.core.portfolio import (
+        answer_critical_platforms,
+        answer_cross_cloud_concentration,
+        answer_datasets_across_platforms,
+        answer_deprecated,
+        answer_engines_per_workload,
+        answer_team_cross_platform_deps,
+        build_portfolio,
+    )
+
+    manifest, model = _load(spec)
+    portfolio = build_portfolio(model)
+    if fmt == "json":
+        typer.echo(
+            _json.dumps(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "fleet": manifest.name,
+                    "portfolio": portfolio.to_dict(),
+                    "answers": {
+                        "engines_per_workload": answer_engines_per_workload(portfolio),
+                        "datasets_across_platforms": answer_datasets_across_platforms(portfolio),
+                        "critical_platforms": answer_critical_platforms(portfolio),
+                        "deprecated": [t.to_dict() for t in answer_deprecated(portfolio)],
+                        "cross_cloud_concentration": [
+                            {"src": a, "dst": b, "edges": n}
+                            for a, b, n in answer_cross_cloud_concentration(model.graph)
+                        ],
+                        "team_cross_platform_deps": answer_team_cross_platform_deps(model.graph),
+                    },
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    console = Console()
+    console.print(f"[bold]Portfolio:[/bold] {manifest.name}")
+    cx = portfolio.complexity
+    if cx is not None:
+        console.print(
+            f"  engines={cx.engines} orchestrators={cx.orchestrators} "
+            f"governance={cx.governance_planes} copies={cx.copies} "
+            f"cross_cloud_edges={cx.cross_cloud_edges} owners={cx.owners}"
+        )
+    t = Table(title="Platforms", title_justify="left")
+    t.add_column("Platform", style="bold")
+    t.add_column("Version")
+    t.add_column("Lifecycle")
+    t.add_column("Workloads", justify="right")
+    t.add_column("Replacement", style="dim")
+    for p in portfolio.platforms:
+        t.add_row(
+            p.platform,
+            p.version or "-",
+            p.lifecycle_status.value,
+            str(len(p.workloads)),
+            p.replacement or "-",
+        )
+    console.print(t)
+    if portfolio.duplications:
+        d = Table(title="Duplication (opportunities)", title_justify="left")
+        d.add_column("Kind")
+        d.add_column("Subject", style="bold")
+        d.add_column("Locations", justify="right")
+        for dup in portfolio.duplications:
+            d.add_row(dup.kind.value, dup.subject, str(len(dup.locations)))
+        console.print(d)
+    conc = answer_cross_cloud_concentration(model.graph)
+    if conc:
+        console.print("[bold]Cross-cloud concentration[/bold]")
+        for src, dst, n in conc:
+            console.print(f"  {src} -> {dst}: {n} edge(s)")
+
+
+@fleet_app.command(name="regressions")
+def fleet_regressions(
+    spec: ManifestArg,
+    fmt: Annotated[str, typer.Option("--format", "-f", help="text|json")] = "text",
+) -> None:
+    """Fleet-level regression aggregation: same regression family across
+    workloads/repos (e.g. after a platform upgrade)."""
+    import json as _json
+
+    from forge_doctor.cli.runtime import build_series_from_samples
+    from forge_doctor.core.execution_history import iter_samples
+    from forge_doctor.core.regression import RegressionPolicy, detect_regressions
+
+    manifest, model = _load(spec)
+    rows: list[dict[str, str]] = []
+    for repo in sorted(model.repositories, key=lambda r: r.name):
+        repo_dir = model.root if repo.path == "." else model.root / repo.path
+        if not repo_dir.is_dir():
+            continue
+        samples = list(iter_samples(repo_dir))
+        if not samples:
+            continue
+        # Stored samples carry fingerprint (not query_id) — only
+        # fingerprint series can be honestly rebuilt.
+        series = build_series_from_samples(samples)
+        for s in detect_regressions(series, RegressionPolicy.defaults()):
+            rows.append(
+                {
+                    "repo": repo.name,
+                    "subject": s.subject,
+                    "dimension": s.dimension.value,
+                    "class": s.klass.value,
+                }
+            )
+    # same dimension across >=2 repos -> fleet-level pattern
+    by_dim: dict[str, set[str]] = {}
+    for r in rows:
+        by_dim.setdefault(r["dimension"], set()).add(r["repo"])
+    shared = sorted(d for d, repos in by_dim.items() if len(repos) >= 2)
+
+    if fmt == "json":
+        typer.echo(
+            _json.dumps(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "fleet": manifest.name,
+                    "regressions": sorted(
+                        rows,
+                        key=lambda r: (r["repo"], r["subject"], r["dimension"]),
+                    ),
+                    "shared_dimensions": shared,
+                },
+                indent=2,
+            )
+        )
+        return
+    console = Console()
+    console.print(f"[bold]Fleet regressions:[/bold] {manifest.name}")
+    if not rows:
+        console.print("  no recorded history in any repo - nothing to aggregate")
+    for r in sorted(rows, key=lambda r: (r["repo"], r["subject"], r["dimension"])):
+        console.print(f"  {r['repo']} {r['subject']} {r['dimension']}={r['class']}")
+    if shared:
+        console.print(f"[yellow]shared regression dimensions:[/yellow] {', '.join(shared)}")

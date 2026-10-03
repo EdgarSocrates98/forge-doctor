@@ -109,6 +109,73 @@ _TOOL_DEFS = [
             "required": ["old", "new"],
         },
     },
+    {
+        "name": "get_execution_baseline",
+        "description": "Baseline stats per recorded execution series (median/p95/MAD).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"path": {"type": "string"}},
+        },
+    },
+    {
+        "name": "get_regressions",
+        "description": "Regression signals over recorded execution history.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"path": {"type": "string"}},
+        },
+    },
+    {
+        "name": "get_runtime_correlations",
+        "description": "Correlate a changes.json event list with recorded regressions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string"},
+                "changes": {"type": "string"},
+            },
+            "required": ["changes"],
+        },
+    },
+    {
+        "name": "get_incident_explanation",
+        "description": "Incident episodes + candidate causes from recorded history.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string"},
+                "changes": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "get_critical_path",
+        "description": "Critical paths + SLO budgets over the platform graph and history.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"path": {"type": "string"}},
+        },
+    },
+    {
+        "name": "get_capacity_signals",
+        "description": "Saturation signals + trends over recorded history.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"path": {"type": "string"}},
+        },
+    },
+    {
+        "name": "get_portfolio_summary",
+        "description": "Portfolio facts over a fleet manifest (platforms, "
+        "duplication, complexity).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "manifest": {"type": "string"},
+            },
+            "required": ["manifest"],
+        },
+    },
 ]
 
 
@@ -219,6 +286,142 @@ def _diff(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _series_map(root: Path) -> dict[str, Any]:
+    """Recorded history -> fingerprint series (stored samples carry no
+    query_id, so job series cannot be honestly rebuilt)."""
+    from forge_doctor.cli.runtime import build_series_from_samples
+    from forge_doctor.core.execution_history import iter_samples
+
+    return build_series_from_samples(list(iter_samples(root)))
+
+
+def _get_execution_baseline(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.core.execution_history import baseline_for
+
+    root = Path(str(arguments.get("path") or "."))
+    out: dict[str, Any] = {}
+    for sid, series in sorted(_series_map(root).items()):
+        out[sid] = baseline_for(series).to_dict()
+    return {"series": out}
+
+
+def _get_regressions(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.core.regression import RegressionPolicy, detect_regressions
+
+    root = Path(str(arguments.get("path") or "."))
+    signals = detect_regressions(_series_map(root), RegressionPolicy.defaults())
+    return {
+        "signals": [
+            {
+                "subject": s.subject,
+                "dimension": s.dimension.value,
+                "class": s.klass.value,
+            }
+            for s in signals
+        ]
+    }
+
+
+def _get_runtime_correlations(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor.core.change_correlation import change_events_from_json, correlate
+    from forge_doctor.core.context import ProjectContext
+
+    root = Path(str(arguments.get("path") or "."))
+    changes = change_events_from_json(Path(str(arguments["changes"])))
+    graph = build_platform_graph(ProjectContext(root=root))
+    corrs = correlate(changes, _series_map(root), graph)
+    return {
+        "correlations": [
+            {
+                "change": c.change.id,
+                "subject": c.subject,
+                "confidence": c.confidence.value,
+                "explanation": c.explanation,
+                "score": {
+                    "temporal_match": c.temporal_match,
+                    "entity_overlap": c.entity_overlap,
+                    "graph_match": c.graph_match,
+                    "metric_relevant": c.metric_relevant,
+                },
+            }
+            for c in corrs
+        ]
+    }
+
+
+def _get_incident_explanation(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor.core.change_correlation import change_events_from_json
+    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.incident import build_incidents
+
+    root = Path(str(arguments.get("path") or "."))
+    changes_path = arguments.get("changes")
+    changes = change_events_from_json(Path(str(changes_path))) if changes_path else ()
+    graph = build_platform_graph(ProjectContext(root=root))
+    incidents = build_incidents(_series_map(root), changes, graph)
+    return {"incidents": [i.to_dict() for i in incidents]}
+
+
+def _get_critical_path(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.analyzers.execution_adapters import ingest_executions
+    from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
+    from forge_doctor.core.context import ProjectContext
+    from forge_doctor.core.critical_path import critical_paths, slo_budgets
+    from forge_doctor.core.reliability import extract_objectives
+
+    root = Path(str(arguments.get("path") or "."))
+    ctx = ProjectContext(root=root)
+    graph = build_platform_graph(ctx)
+    executions: list[Any] = []
+    for artifact in sorted(root.rglob("*")):
+        if artifact.is_file():
+            try:
+                _, exs = ingest_executions(artifact)
+            except (OSError, ValueError):
+                continue
+            executions.extend(exs)
+    paths = critical_paths(graph, executions)
+    budgets = slo_budgets(extract_objectives(graph), paths)
+    return {
+        "paths": [p.to_dict() for p in paths],
+        "slo_budgets": [b.to_dict() for b in budgets],
+    }
+
+
+def _get_capacity_signals(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.core.capacity import (
+        capacity_findings,
+        capacity_signals,
+        capacity_trends,
+    )
+
+    root = Path(str(arguments.get("path") or "."))
+    series = _series_map(root)
+    signals = capacity_signals(series)
+    trends = capacity_trends(signals, series)
+    findings = capacity_findings(signals, trends)
+    return {
+        "signals": [s.to_dict() for s in signals],
+        "trends": [t.to_dict() for t in trends],
+        "findings": [f.to_dict() for f in findings],
+    }
+
+
+def _get_portfolio_summary(arguments: dict[str, Any]) -> dict[str, Any]:
+    from forge_doctor.core.fleet import build_fleet_model, load_manifest
+    from forge_doctor.core.portfolio import build_portfolio
+
+    manifest = load_manifest(Path(str(arguments["manifest"])).resolve())
+    model = build_fleet_model(manifest)
+    return {
+        "fleet": manifest.name,
+        "summary": model.summary(),
+        "portfolio": build_portfolio(model).to_dict(),
+    }
+
+
 _TOOL_HANDLERS = {
     "scan_project": _scan,
     "explain_rule": _explain,
@@ -226,6 +429,13 @@ _TOOL_HANDLERS = {
     "get_lineage": _lineage,
     "diagnose_log": _diagnose,
     "diff_findings": _diff,
+    "get_execution_baseline": _get_execution_baseline,
+    "get_regressions": _get_regressions,
+    "get_runtime_correlations": _get_runtime_correlations,
+    "get_incident_explanation": _get_incident_explanation,
+    "get_critical_path": _get_critical_path,
+    "get_capacity_signals": _get_capacity_signals,
+    "get_portfolio_summary": _get_portfolio_summary,
 }
 
 

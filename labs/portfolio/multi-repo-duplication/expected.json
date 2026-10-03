@@ -1,0 +1,10 @@
+{
+  "name": "multi-repo-duplication",
+  "description": "Two repos materialize the same logical datasets on different platforms/clouds and the same workload under different orchestrators.",
+  "fleet_manifest": "fleet.yml",
+  "expected_duplications": [
+    "cross_cloud_copy:raw-orders",
+    "dataset_across_platforms:events",
+    "workload_across_orchestrators:etl"
+  ]
+}

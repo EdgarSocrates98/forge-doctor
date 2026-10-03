@@ -37,7 +37,22 @@ forge-doctor fleet query fleet.yml capability ICEBERG_MERGE_WRITE
 forge-doctor fleet query fleet.yml dependents "*orders-etl*"
 forge-doctor fleet query fleet.yml findings "SPARK*"
 forge-doctor fleet report fleet.yml [-f json]
+forge-doctor fleet portfolio fleet.yml [-f json]   # estate portfolio facts
+forge-doctor fleet regressions fleet.yml [-f json] # shared regression dimensions across repos
 ```
+
+- `portfolio` — estate facts (platforms with lifecycle status from
+  capability/runtime packs, workloads, logical datasets and their
+  physical representations, teams, environments, complexity counts,
+  duplication signals classified `OPPORTUNITY`) plus the §7.2 answers:
+  engines serving the same workload, datasets on multiple platforms,
+  platforms carrying critical workloads, deprecated/EOL technologies,
+  cross-cloud edge concentration, owners of cross-platform
+  dependencies. Facts only — there is deliberately no health score.
+- `regressions` — replays each repo's `.forge-doctor/execution-history/`
+  into fingerprint series and reports regression dimensions shared by
+  >=2 repos (e.g. the same queue regression fleet-wide after a platform
+  upgrade).
 
 - `query runtimes` — entity counts per domain plus a versioned-entity
   table (`version`, `glue_version`, `dbr`, `runtime`, …).

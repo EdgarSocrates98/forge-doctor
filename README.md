@@ -70,6 +70,8 @@ forge-doctor workspace inspect .        # cross-repo graph links (defines/implem
 forge-doctor fleet inspect fleet.yml    # manifest-driven estate graph over many repos
 forge-doctor fleet query fleet.yml runtimes|dependents|findings|capability
 forge-doctor fleet report fleet.yml     # estate census + findings roll-up
+forge-doctor fleet portfolio fleet.yml  # platforms, duplication, complexity — facts not scores
+forge-doctor fleet regressions fleet.yml # regression dimensions shared across repos
 forge-doctor diff base...head --semantic  # entity diff + blast radius + capability/migration intel
 forge-doctor remediate .              # deterministic fix plans per finding/root cause
 forge-doctor fix .                    # preview/apply safety-classified text fixes
@@ -430,9 +432,12 @@ ignore = ["AWS002"]
 
 - **MCP** (`forge-doctor mcp [--root DIR]`): zero-dependency JSON-RPC
   stdio server — `scan_project`, `explain_rule`, `check_compatibility`,
-  `get_lineage`, `diagnose_log`, `diff_findings` tools plus
-  `forge-doctor://rules/ID` and `forge-doctor://knowledge/D/N` resources.
-  `--root` sandboxes every tool path argument to that tree.
+  `get_lineage`, `diagnose_log`, `diff_findings`, plus behavioral tools
+  `get_execution_baseline`, `get_regressions`, `get_runtime_correlations`,
+  `get_incident_explanation`, `get_critical_path`, `get_capacity_signals`,
+  `get_portfolio_summary`, and `forge-doctor://rules/ID` /
+  `forge-doctor://knowledge/D/N` resources. `--root` sandboxes every tool
+  path argument to that tree.
 - **LSP** (`pipx inject forge-doctor pygls lsprotocol`, `forge-doctor lsp`):
   publishes diagnostics on open/change/save, using the workspace root and
   unsaved-buffer contents (debounced; clears resolved findings).

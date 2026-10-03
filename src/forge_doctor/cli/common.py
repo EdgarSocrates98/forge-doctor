@@ -212,6 +212,15 @@ EvidenceOutOpt = Annotated[
         rich_help_panel=_HIST,
     ),
 ]
+EvidenceCompactOpt = Annotated[
+    bool,
+    typer.Option(
+        "--evidence-compact",
+        help="With --evidence-out: bundle v2 — compact summary.json sized "
+        "for token-constrained consumers instead of the full report.",
+        rich_help_panel=_HIST,
+    ),
+]
 RecordOpt = Annotated[
     bool,
     typer.Option(
@@ -253,6 +262,7 @@ class _ScanCli:
     cache: bool | None = None
     stats: bool = False
     evidence_out: Path | None = None
+    evidence_compact: bool = False
     record: bool = False
     keep: int | None = None
     incremental: bool = False
@@ -393,9 +403,15 @@ def _emit_reports(
         _stderr.print(f"[yellow]Plugin skipped:[/yellow] {error}")
 
 
-def _write_evidence(target: Path, report: ScanReport, ctx: ProjectContext) -> Path:
+def _write_evidence(
+    target: Path, report: ScanReport, ctx: ProjectContext, compact: bool = False
+) -> Path:
     """``--evidence-out``: dated audit bundle - the full JSON report, the
-    suppression audit trail, and the policy packs that were in effect."""
+    suppression audit trail, and the policy packs that were in effect.
+
+    ``compact`` (Evidence Bundle v2) writes ``summary.json`` instead of
+    the full report — id/severity/location/message rows plus roll-ups —
+    sized for token-constrained consumers."""
     import dataclasses
     import json as _json
     from datetime import UTC, datetime
@@ -404,9 +420,38 @@ def _write_evidence(target: Path, report: ScanReport, ctx: ProjectContext) -> Pa
 
     bundle = target / f"evidence-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
     bundle.mkdir(parents=True, exist_ok=True)
-    (bundle / "report.json").write_text(
-        render_json(report, show_root=True) + "\n", encoding="utf-8"
-    )
+    if compact:
+        (bundle / "summary.json").write_text(
+            _json.dumps(
+                {
+                    "bundle_version": 2,
+                    "summary": {
+                        "passed": report.summary.passed,
+                        "warnings": report.summary.warnings,
+                        "errors": report.summary.errors,
+                    },
+                    "findings": [
+                        {
+                            "id": r.check_id,
+                            "severity": r.severity.value,
+                            "file": r.file.as_posix() if r.file else None,
+                            "line": r.line,
+                            "message": r.message[:120],
+                        }
+                        for r in report.results
+                        if r.severity.value != "pass"
+                    ],
+                },
+                indent=1,
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    else:
+        (bundle / "report.json").write_text(
+            render_json(report, show_root=True) + "\n", encoding="utf-8"
+        )
     (bundle / "suppressions.json").write_text(
         _json.dumps(
             [dataclasses.asdict(s) for s in report.suppressions],
@@ -465,7 +510,7 @@ def _run_scan(opts: _ScanCli) -> None:
                 console.print(f"[dim]pruned {len(removed)} oldest snapshot(s)[/dim]")
 
     if opts.evidence_out is not None:
-        bundle = _write_evidence(opts.evidence_out, report, ctx)
+        bundle = _write_evidence(opts.evidence_out, report, ctx, compact=opts.evidence_compact)
         console.print(f"[green]evidence bundle written:[/green] {bundle.resolve()}")
 
     _emit_reports(report, opts, console, selected, plugin_errors)
