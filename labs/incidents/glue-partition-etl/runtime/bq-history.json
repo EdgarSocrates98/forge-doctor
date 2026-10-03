@@ -1,0 +1,98 @@
+[
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700000000000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700003600000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700007200000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700010800000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700014400000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700018000000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700021600000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700025200000,
+    "duration_ms": 100.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700028800000,
+    "duration_ms": 400.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700032400000,
+    "duration_ms": 400.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700036000000,
+    "duration_ms": 400.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  },
+  {
+    "job_id": "etl",
+    "query": "INSERT INTO lake.db.events SELECT * FROM staging.updates WHERE dt = ?",
+    "start_time": 1700039600000,
+    "duration_ms": 400.0,
+    "total_bytes_processed": 5000000,
+    "state": "DONE"
+  }
+]

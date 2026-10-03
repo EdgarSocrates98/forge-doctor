@@ -2191,3 +2191,25 @@ claimed; without locality nothing is emitted — a docs-only commit cannot
 correlate with a regression. Language stays `correlated with` /
 `preceded by`; `confirmed cause` is reserved for deterministic
 graph + runtime + change evidence chains (spec 244).
+
+## Incident Intelligence (runtime-scoped)
+
+`incident inspect` groups co-occurring regression episodes into
+`IncidentEpisode` windows; `incident explain <id>` narrates the evidence
+path of one incident.
+
+Each `CandidateCause` carries an explicit evidence path —
+`N/5 expected links confirmed` (change event, temporal precedence, entity
+overlap, graph path, metric relevance) plus `limitations` stating what
+could *not* be shown. Confidence reuses the diagnosis ladder:
+
+- **confirmed** — all 5 links + a persistent breach
+- **strongly_supported** — 3–4 links
+- **possible** — fewer, or structural causes (twin drift, capability gaps)
+
+`SymptomPropagation` reports directed graph hops
+(`upstream --KIND--> ... -> symptom`) — cross-engine chains surface when
+the graph evidences them; `path_found=false` when it doesn't.
+`downstream_effects` lists entities depending on the affected ones, and
+`owners` routes to entity owner/team/domain for display only.
+Resolved incidents can record `RecoveryEvent`s.

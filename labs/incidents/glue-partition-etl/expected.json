@@ -1,0 +1,16 @@
+{
+  "name": "glue-partition-etl",
+  "description": "TF partition change on glue job -> job duration regression; propagation over DEFINES edge.",
+  "expected_regressions": [
+    "etl.duration=regressed"
+  ],
+  "expected_incidents": [
+    "1"
+  ],
+  "expected_candidate_causes": [
+    "storage_layout=strongly_supported"
+  ],
+  "expected_propagations": [
+    "aws_glue_job.etl->etl"
+  ]
+}

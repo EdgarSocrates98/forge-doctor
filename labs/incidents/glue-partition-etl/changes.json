@@ -1,0 +1,15 @@
+[
+  {
+    "id": "chg-tf-partition",
+    "timestamp": 1700025200000,
+    "entities": [
+      "aws_glue_job.etl"
+    ],
+    "properties": [
+      "partition_keys"
+    ],
+    "class": "partition_change",
+    "source": "terraform_apply",
+    "commit": "f00ba4"
+  }
+]

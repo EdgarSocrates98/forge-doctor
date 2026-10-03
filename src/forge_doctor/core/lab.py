@@ -65,6 +65,10 @@ class GroundTruth:
     expected_regressions: tuple[str, ...] = ()  # "<fingerprint>.<dimension>=<class>"
     expected_correlations: tuple[str, ...] = ()  # "<change_id>" or "<change_id>=<conf>"
     forbidden_correlations: tuple[str, ...] = ()  # "<change_id>" must not correlate
+    # Spec-244 incident categories — needs changes.json in scenario root.
+    expected_incidents: tuple[str, ...] = ()  # "<count>"
+    expected_candidate_causes: tuple[str, ...] = ()  # "<category>=<level>"
+    expected_propagations: tuple[str, ...] = ()  # "<upstream>-><symptom>"
 
 
 @dataclass(frozen=True)
@@ -106,6 +110,9 @@ class ScenarioReport:
     opportunities: CategoryResult = field(default_factory=CategoryResult)
     regressions: CategoryResult = field(default_factory=CategoryResult)
     correlations: CategoryResult = field(default_factory=CategoryResult)
+    incidents: CategoryResult = field(default_factory=CategoryResult)
+    candidate_causes: CategoryResult = field(default_factory=CategoryResult)
+    propagations: CategoryResult = field(default_factory=CategoryResult)
     errors: list[str] = field(default_factory=list)
     stats: dict[str, int] = field(default_factory=dict)
 
@@ -122,6 +129,9 @@ class ScenarioReport:
             and self.opportunities.ok
             and self.regressions.ok
             and self.correlations.ok
+            and self.incidents.ok
+            and self.candidate_causes.ok
+            and self.propagations.ok
             and not self.errors
         )
 
@@ -138,6 +148,9 @@ class ScenarioReport:
             ("opportunities", self.opportunities),
             ("regressions", self.regressions),
             ("correlations", self.correlations),
+            ("incidents", self.incidents),
+            ("candidate_causes", self.candidate_causes),
+            ("propagations", self.propagations),
         )
 
 
@@ -195,6 +208,9 @@ def load_ground_truth(path: Path) -> GroundTruth:
         expected_regressions=_lst("expected_regressions"),
         expected_correlations=_lst("expected_correlations"),
         forbidden_correlations=_lst("forbidden_correlations"),
+        expected_incidents=_lst("expected_incidents"),
+        expected_candidate_causes=_lst("expected_candidate_causes"),
+        expected_propagations=_lst("expected_propagations"),
     )
 
 
@@ -382,6 +398,9 @@ def run_scenario(scenario: Path, truth: GroundTruth | None = None) -> ScenarioRe
         or truth.expected_regressions
         or truth.expected_correlations
         or truth.forbidden_correlations
+        or truth.expected_incidents
+        or truth.expected_candidate_causes
+        or truth.expected_propagations
     ):
         _behavioral_categories(ctx, scenario, truth, report)
 
@@ -491,7 +510,14 @@ def _behavioral_categories(
             if e not in actual_fams:
                 ocat.missed.append(e)
 
-    if truth.expected_regressions or truth.expected_correlations or truth.forbidden_correlations:
+    if (
+        truth.expected_regressions
+        or truth.expected_correlations
+        or truth.forbidden_correlations
+        or truth.expected_incidents
+        or truth.expected_candidate_causes
+        or truth.expected_propagations
+    ):
         _temporal_categories(ctx, scenario, truth, report, executions)
 
 
@@ -519,6 +545,7 @@ def _temporal_categories(
     )
 
     series = build_series(executions, SubjectKind.FINGERPRINT)
+    series.update(build_series(executions, SubjectKind.JOB))
     signals = detect_regressions(series, RegressionPolicy.defaults())
 
     if truth.expected_regressions:
@@ -539,12 +566,21 @@ def _temporal_categories(
                 got = sorted(a for a in actual if f".{dim}=" in a) or ["<none>"]
                 rcat.missed.append(f"{entry} (got {got})")
 
-    if truth.expected_correlations or truth.forbidden_correlations:
-        ccat = report.correlations
-        changes = change_events_from_json(scenario / "changes.json")
+    needs_incidents = (
+        truth.expected_correlations
+        or truth.forbidden_correlations
+        or truth.expected_incidents
+        or truth.expected_candidate_causes
+        or truth.expected_propagations
+    )
+    if needs_incidents:
         from forge_doctor.analyzers.platform_graph_builder import build_platform_graph
 
-        corrs = correlate(changes, series, build_platform_graph(ctx))
+        changes = change_events_from_json(scenario / "changes.json")
+        graph = build_platform_graph(ctx)
+        corrs = correlate(changes, series, graph)
+    if truth.expected_correlations or truth.forbidden_correlations:
+        ccat = report.correlations
         actual = sorted({f"{c.change.id}={c.confidence.value}" for c in corrs})
         ccat.actual = actual
         actual_ids = {c.change.id: c.confidence.value for c in corrs}
@@ -559,6 +595,47 @@ def _temporal_categories(
         for entry in truth.forbidden_correlations:
             if entry in actual_ids:
                 ccat.forbidden_hit.append(entry)
+
+    if truth.expected_incidents or truth.expected_candidate_causes or truth.expected_propagations:
+        from forge_doctor.core.incident import build_incidents
+
+        incidents = build_incidents(series, changes, graph)
+        if truth.expected_incidents:
+            icat = report.incidents
+            icat.actual = [str(len(incidents))]
+            for entry in truth.expected_incidents:
+                icat.expected.append(entry)
+                if entry != str(len(incidents)):
+                    icat.missed.append(f"{entry} (got {len(incidents)})")
+        if truth.expected_candidate_causes:
+            ccat2 = report.candidate_causes
+            actual_causes = sorted(
+                {
+                    f"{c.category.value}={c.confidence.value}"
+                    for i in incidents
+                    for c in i.candidate_causes
+                }
+            )
+            ccat2.actual = actual_causes
+            for entry in truth.expected_candidate_causes:
+                ccat2.expected.append(entry)
+                if entry not in actual_causes:
+                    ccat2.missed.append(f"{entry} (got {actual_causes or ['<none>']})")
+        if truth.expected_propagations:
+            pcat = report.propagations
+            actual_props = sorted(
+                {
+                    f"{p.upstream_entity}->{p.downstream_symptom}"
+                    for i in incidents
+                    for p in i.propagations
+                    if p.path_found
+                }
+            )
+            pcat.actual = actual_props
+            for entry in truth.expected_propagations:
+                pcat.expected.append(entry)
+                if entry not in actual_props:
+                    pcat.missed.append(f"{entry} (got {actual_props or ['<none>']})")
 
 
 def _sla_status(objectives: list[Any], fps: list[Any], executions: list[Any]) -> dict[str, str]:
@@ -616,6 +693,9 @@ def _merge_defaults(truth: GroundTruth, labs_root: Path) -> GroundTruth:
         expected_regressions=truth.expected_regressions,
         expected_correlations=truth.expected_correlations,
         forbidden_correlations=truth.forbidden_correlations,
+        expected_incidents=truth.expected_incidents,
+        expected_candidate_causes=truth.expected_candidate_causes,
+        expected_propagations=truth.expected_propagations,
     )
 
 

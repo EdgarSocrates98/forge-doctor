@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="Forge Doctor" width="440">
+  <img src="docs/assets/logo.png" alt="Forge Doctor Data" width="440">
 </p>
 
 # Forge Doctor
@@ -90,6 +90,7 @@ forge-doctor migrate plan . --from snowflake --to bigquery  # cross-platform pla
 forge-doctor policy list .            # organization policy packs
 forge-doctor policy report .          # compliance: violations + suppression audit
 forge-doctor lab run                  # Forge Lab scenario suites + ground truth
+forge-doctor incident inspect         # incident windows over recorded runtime history
 forge-doctor golden run               # golden-repo snapshot regression
 forge-doctor bench run .              # performance & scale benchmark
 forge-doctor schema contracts         # JSON Schemas for output artifacts

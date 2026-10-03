@@ -27,6 +27,7 @@ from forge_doctor.cli import (  # noqa: F401 - import-time command registration
     graph,
     history,
     iceberg,
+    incident,
     lab,
     lakeformation,
     misc,
